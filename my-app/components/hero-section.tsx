@@ -1,16 +1,15 @@
 "use client";
 
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { useEffect, useState, useRef } from "react";
-import { Button } from "@/components/ui/button";
-import { Download, ChevronDown } from "lucide-react";
+import { Download } from "lucide-react";
 import { hapticManager } from "@/lib/haptic-manager";
 import { staggerContainer, staggerItem } from "@/components/providers/motion-provider";
 
 const roles = [
   "Graduate Student",
-  "D365 Customizer",
   "Full Stack Developer",
+  "D365 Customizer",
   "UI/UX Designer",
 ];
 
@@ -175,19 +174,40 @@ export function HeroSection() {
             variants={staggerItem}
             className="flex flex-col items-center justify-center gap-4 sm:flex-row"
           >
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          <motion.button
+            onClick={handleDownload}
+            whileHover={{ scale: 1.02, y: -2 }}
+            whileTap={{ scale: 0.98 }}
+            className="group relative overflow-hidden rounded-lg border border-white/20 bg-white/5 px-8 py-4 text-base font-medium text-white backdrop-blur-sm transition-all duration-300 hover:border-white/40 hover:bg-white/10 md:px-10 md:py-5 md:text-lg"
           >
-            <Button
-              onClick={handleDownload}
-              size="lg"
-              className="group relative overflow-hidden bg-white px-10 py-7 text-lg font-semibold text-black transition-all hover:bg-white/90 hover:shadow-lg hover:shadow-white/20 md:px-12 md:py-8 md:text-xl"
-            >
-              <Download className="mr-3 h-6 w-6 transition-transform group-hover:translate-y-[-2px] md:h-7 md:w-7" />
-              Download Resume
-            </Button>
-          </motion.div>
+            {/* Animated background gradient */}
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0"
+              initial={{ x: "-100%" }}
+              whileHover={{ x: "100%" }}
+              transition={{ duration: 0.6, ease: "easeInOut" }}
+            />
+            
+            {/* Content */}
+            <span className="relative z-10 flex items-center gap-3">
+              <motion.div
+                animate={{ y: 0 }}
+                whileHover={{ y: -2 }}
+                transition={{ duration: 0.2 }}
+              >
+                <Download className="h-5 w-5 md:h-6 md:w-6" />
+              </motion.div>
+              <span>Download Resume</span>
+            </span>
+            
+            {/* Bottom border accent */}
+            <motion.div
+              className="absolute bottom-0 left-0 h-[2px] bg-white"
+              initial={{ width: "0%" }}
+              whileHover={{ width: "100%" }}
+              transition={{ duration: 0.3 }}
+            />
+          </motion.button>
 
         </motion.div>
         </div>
@@ -209,27 +229,23 @@ function AnimatedRoles({
         I&apos;m a
       </span>
       <div className="relative min-h-[3rem] md:min-h-[4.5rem] lg:min-h-[5.5rem] min-w-[280px] md:min-w-[450px] lg:min-w-[550px] xl:min-w-[650px] flex items-center justify-start">
-        {roles.map((role, index) => (
+        <AnimatePresence mode="wait">
           <motion.div
-            key={role}
-            initial={{ opacity: 0, y: 20, rotateX: -90 }}
-            animate={{
-              opacity: index === currentIndex ? 1 : 0,
-              y: index === currentIndex ? 0 : 20,
-              rotateX: index === currentIndex ? 0 : -90,
-              display: index === currentIndex ? "flex" : "none",
-            }}
+            key={currentIndex}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
             transition={{
-              duration: 0.6,
-              ease: [0.4, 0, 0.2, 1],
+              duration: 0.4,
+              ease: "easeInOut",
             }}
             className="absolute inset-0 flex items-center justify-start"
           >
-            <span className="bg-gradient-to-r from-white via-white to-white/80 bg-clip-text text-4xl font-light text-transparent md:text-6xl lg:text-7xl xl:text-8xl whitespace-nowrap">
-              {role}
+            <span className="text-4xl font-light text-white md:text-6xl lg:text-7xl xl:text-8xl whitespace-nowrap">
+              {roles[currentIndex]}
             </span>
           </motion.div>
-        ))}
+        </AnimatePresence>
       </div>
     </div>
   );
