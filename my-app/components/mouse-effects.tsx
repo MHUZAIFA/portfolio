@@ -135,7 +135,7 @@ export function MouseEffects() {
         });
       }
 
-      // Draw gradient trail on canvas
+      // Draw shooting star trail on canvas
       const canvas = trailCanvasRef.current;
       const currentTrailPoints = trailPointsRef.current;
       if (canvas && currentTrailPoints.length > 1) {
@@ -144,31 +144,66 @@ export function MouseEffects() {
           // Clear canvas
           ctx.clearRect(0, 0, canvas.width, canvas.height);
           
-          // Animate hue
+          // Animate hue for color shifting
           hueOffsetRef.current = (hueOffsetRef.current + 0.5) % 360;
           
           ctx.lineCap = "round";
           ctx.lineJoin = "round";
-          ctx.shadowBlur = 0;
           
-          // Draw smooth gradient trail with color shifting
-          for (let i = 0; i < currentTrailPoints.length - 1; i++) {
+          // Draw shooting star trail - bright head fading to tail
+          const totalPoints = currentTrailPoints.length;
+          
+          for (let i = 0; i < totalPoints - 1; i++) {
             const current = currentTrailPoints[i];
             const next = currentTrailPoints[i + 1];
             const age = Date.now() - current.time;
-            const progress = i / (currentTrailPoints.length - 1);
-            const opacity = Math.max(0, 1 - age / 800);
-            const width = (isHoveringRef.current ? 8 : 4) * opacity;
             
-            // Color shifts along the trail
-            const hue = (Math.floor(hueOffsetRef.current) + progress * 60) % 360;
-            const color = `hsla(${hue}, 75%, 65%, ${opacity * 0.7})`;
+            // Progress from head (0) to tail (1)
+            const progress = i / (totalPoints - 1);
+            const reverseProgress = 1 - progress; // 1 at head, 0 at tail
             
-            ctx.globalAlpha = opacity * 0.7;
+            // Opacity fades dramatically based on position - steeper curve for faster tail fade
+            const ageOpacity = Math.max(0, 1 - age / 800);
+            // Use cubic curve for much more dramatic fade (progress^3 means tail fades very quickly)
+            const positionOpacity = Math.pow(reverseProgress, 3);
+            const opacity = ageOpacity * positionOpacity;
+            
+            // Skip drawing if opacity is too low
+            if (opacity < 0.05) continue;
+            
+            // Width: much larger at head, very thin at tail - dramatic taper
+            const baseWidth = isHoveringRef.current ? 14 : 8;
+            // Use squared curve for more dramatic width taper
+            const widthMultiplier = Math.pow(reverseProgress, 2);
+            const width = baseWidth * (0.1 + 0.9 * widthMultiplier) * opacity;
+            
+            // Color: much brighter/whiter at head, fades to transparent at tail
+            const hue = (Math.floor(hueOffsetRef.current) + progress * 40) % 360;
+            const saturation = 40 + progress * 30; // Less saturated at head
+            const lightness = 95 - progress * 25; // Much brighter at head
+            
+            // Create gradient for each segment
+            const gradient = ctx.createLinearGradient(
+              current.x, current.y,
+              next.x, next.y
+            );
+            
+            // Head color (very bright, almost white)
+            const headColor = `hsla(${hue}, ${saturation * 0.3}%, ${lightness}%, ${opacity})`;
+            // Tail color (very transparent, fades quickly)
+            const tailColor = `hsla(${hue}, ${saturation}%, ${lightness - 15}%, ${opacity * 0.1})`;
+            
+            gradient.addColorStop(0, headColor);
+            gradient.addColorStop(1, tailColor);
+            
+            ctx.globalAlpha = 1;
             ctx.lineWidth = width;
-            ctx.strokeStyle = color;
-            ctx.shadowBlur = width * 4;
-            ctx.shadowColor = `hsla(${hue}, 75%, 65%, ${opacity * 0.5})`;
+            ctx.strokeStyle = gradient;
+            
+            // Glow effect - much stronger at head, fades quickly
+            const glowIntensity = Math.pow(reverseProgress, 2) * opacity;
+            ctx.shadowBlur = width * 12 * glowIntensity;
+            ctx.shadowColor = `hsla(${hue}, ${saturation * 0.5}%, ${lightness}%, ${opacity * 0.8})`;
             
             ctx.beginPath();
             ctx.moveTo(current.x, current.y);
@@ -176,8 +211,50 @@ export function MouseEffects() {
             ctx.stroke();
           }
           
-          ctx.shadowBlur = 0;
+          // Draw bright head/core at the most recent point - much more prominent
+          if (totalPoints > 0) {
+            const headPoint = currentTrailPoints[totalPoints - 1];
+            const headAge = Date.now() - headPoint.time;
+            const headOpacity = Math.max(0, 1 - headAge / 800);
+            
+            const headHue = Math.floor(hueOffsetRef.current) % 360;
+            const headSize = isHoveringRef.current ? 20 : 14;
+            
+            // Very bright core with multiple layers for shooting star effect
+            const coreGradient = ctx.createRadialGradient(
+              headPoint.x, headPoint.y, 0,
+              headPoint.x, headPoint.y, headSize * 1.5
+            );
+            coreGradient.addColorStop(0, `hsla(${headHue}, 20%, 98%, ${headOpacity})`);
+            coreGradient.addColorStop(0.3, `hsla(${headHue}, 30%, 95%, ${headOpacity * 0.9})`);
+            coreGradient.addColorStop(0.6, `hsla(${headHue}, 40%, 90%, ${headOpacity * 0.6})`);
+            coreGradient.addColorStop(1, `hsla(${headHue}, 50%, 85%, 0)`);
+            
+            ctx.globalAlpha = 1;
+            ctx.fillStyle = coreGradient;
+            ctx.shadowBlur = 30 * headOpacity;
+            ctx.shadowColor = `hsla(${headHue}, 30%, 95%, ${headOpacity})`;
+            ctx.beginPath();
+            ctx.arc(headPoint.x, headPoint.y, headSize * 1.5, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Inner bright core
+            const innerCoreGradient = ctx.createRadialGradient(
+              headPoint.x, headPoint.y, 0,
+              headPoint.x, headPoint.y, headSize * 0.6
+            );
+            innerCoreGradient.addColorStop(0, `hsla(${headHue}, 10%, 100%, ${headOpacity})`);
+            innerCoreGradient.addColorStop(1, `hsla(${headHue}, 20%, 98%, 0)`);
+            
+            ctx.fillStyle = innerCoreGradient;
+            ctx.shadowBlur = 15 * headOpacity;
+            ctx.beginPath();
+            ctx.arc(headPoint.x, headPoint.y, headSize * 0.6, 0, Math.PI * 2);
+            ctx.fill();
+          }
           
+          // Reset shadow
+          ctx.shadowBlur = 0;
           ctx.globalAlpha = 1;
         }
       }
