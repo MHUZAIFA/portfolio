@@ -5,30 +5,6 @@ import { Card } from "@/components/ui/card";
 import { staggerContainer, staggerItem } from "@/components/providers/motion-provider";
 import { useState } from "react";
 import { 
-  Code, 
-  Globe, 
-  FileCode, 
-  Layout, 
-  Palette, 
-  Server, 
-  Database, 
-  Cloud, 
-  Flame, 
-  BarChart3, 
-  Tag, 
-  Circle, 
-  Coffee, 
-  Hash, 
-  Settings, 
-  Sparkles, 
-  Workflow, 
-  Zap, 
-  FileText, 
-  Table,
-  Building,
-  GitBranch,
-  ArrowRight,
-  Play,
   MessageCircle,
   Users,
   Lightbulb,
@@ -36,13 +12,69 @@ import {
   Crown,
   RefreshCw,
   Brain,
-  Eye
+  Eye,
+  BarChart3,
+  Tag,
+  Sparkles,
+  Play,
+  Database,
+  Cloud
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { 
+  SiReact,
+  SiAngular,
+  SiNextdotjs,
+  SiHtml5,
+  SiBootstrap,
+  SiCss3,
+  SiJavascript,
+  SiSass,
+  SiExpress,
+  SiDotnet,
+  SiPhp,
+  SiApachecassandra,
+  SiMongodb,
+  SiFirebase,
+  SiRedis,
+  SiTypescript,
+  SiSharp,
+  SiPython,
+  SiC,
+  SiCplusplus,
+  SiN8N,
+  SiJenkins,
+  SiVercel,
+  SiDocker,
+  SiKubernetes,
+  SiGit,
+  SiGithub,
+  SiGitlab,
+  SiBitbucket,
+  SiOverleaf,
+  SiOpenai,
+  SiGooglegemini,
+  SiGooglecloud,
+  SiSpringboot,
+  SiQuarkus,
+  SiTailwindcss,
+  SiShadcnui,
+  SiMaterialdesign,
+  SiMui
+} from "react-icons/si";
+import {
+  FaJava,
+  FaMicrosoft,
+  FaFilePowerpoint,
+  FaFileWord,
+  FaFileExcel,
+  FaAws
+} from "react-icons/fa";
+import type { IconType } from "react-icons";
 import Link from "next/link";
 
 // Category definitions
-type CategoryName = "Frontend" | "Middleware" | "Database" | "Microsoft" | "Coding Languages" | "Tools & DevOps";
+type CategoryName = "Frontend" | "Middleware" | "Database" | "Tools" | "Coding Languages" | "DevOps" | "Cloud" | "ML/AI";
 
 const categories: Array<{
   name: CategoryName;
@@ -52,71 +84,107 @@ const categories: Array<{
   {
     name: "Frontend",
     color: "#3b82f6", // blue
-    skillNames: ["React JS", "Angular", "Next.js", "HTML 5", "Bootstrap 4", "CSS 3", "JavaScript", "Sass", "Web Analytics", "Tag Manager"],
+    skillNames: ["Next JS", "React JS", "Angular", "HTML 5", "Bootstrap 4", "Tailwind CSS", "CSS 3", "JavaScript", "Sass", "shadcn/ui", "Angular Material", "Material-UI", "Google Analytics", "Tag Manager"],
   },
   {
     name: "Middleware",
     color: "#10b981", // green
-    skillNames: ["Express.js", ".NET Core", "PHP", "Java Play Framework"],
+    skillNames: ["Express.js", ".NET Core", "PHP", "Java Spring Boot", "Quarkus", "Java Play Framework"],
   },
   {
     name: "Database",
     color: "#f59e0b", // amber
-    skillNames: ["Apache Cassandra", "Cosmos DB", "SQL Server", "MongoDB", "Firebase", "Redis"],
+    skillNames: ["Apache Cassandra", "Azure Cosmos DB", "SQL Server", "MongoDB", "Redis"],
   },
   {
-    name: "Microsoft",
+    name: "Tools",
     color: "#8b5cf6", // violet
-    skillNames: ["Dynamics 365", "ADO", "Azure", "PowerPoint", "Word", "Excel"],
+    skillNames: ["Dynamics 365", "PowerPoint", "Word", "Excel", "Overleaf - LaTeX"],
   },
   {
     name: "Coding Languages",
     color: "#ef4444", // red
-    skillNames: ["Java", "TypeScript", "C#", "Python 3", "C"],
+    skillNames: ["Java", "TypeScript", "C#", "Python 3", "C++", "C"],
   },
   {
-    name: "Tools & DevOps",
+    name: "DevOps",
     color: "#06b6d4", // cyan
-    skillNames: ["Crewdle AI", "n8n", "Jenkins", "Vercel"],
+    skillNames: ["Azure DevOps", "Firebase", "Vercel", "Jenkins", "Docker", "Kubernetes", "Git", "GitHub", "GitLab", "Bitbucket"],
+  },
+  {
+    name: "Cloud",
+    color: "#06b6d4", // cyan
+    skillNames: ["Azure", "AWS", "GCP", "Docker", "Kubernetes", "Git", "GitHub", "GitLab", "Bitbucket"],
+  },
+  {
+    name: "ML/AI",
+    color: "#ec4899", // pink
+    skillNames: ["Crewdle AI", "n8n", "ChatGPT", "Gemini"],
   },
 ];
 
-const technicalSkillsData: Array<{ name: string; icon: LucideIcon; url?: string }> = [
-  { name: "React JS", icon: Zap, url: "https://react.dev" },
-  { name: "Angular", icon: Globe, url: "https://angular.io" },
-  { name: "Next.js", icon: ArrowRight, url: "https://nextjs.org" },
-  { name: "HTML 5", icon: FileCode, url: "https://developer.mozilla.org/en-US/docs/Web/HTML" },
-  { name: "Bootstrap 4", icon: Layout, url: "https://getbootstrap.com/docs/4.6" },
-  { name: "CSS 3", icon: Palette, url: "https://developer.mozilla.org/en-US/docs/Web/CSS" },
-  { name: "JavaScript", icon: Code, url: "https://developer.mozilla.org/en-US/docs/Web/JavaScript" },
-  { name: "Sass", icon: Palette, url: "https://sass-lang.com" },
-  { name: "Web Analytics", icon: BarChart3 },
+const technicalSkillsData: Array<{ name: string; icon: IconType | LucideIcon; url?: string }> = [
+  // Frontend
+  { name: "Next JS", icon: SiNextdotjs, url: "https://nextjs.org" },
+  { name: "React JS", icon: SiReact, url: "https://react.dev" },
+  { name: "Angular", icon: SiAngular, url: "https://angular.io" },
+  { name: "HTML 5", icon: SiHtml5, url: "https://developer.mozilla.org/en-US/docs/Web/HTML" },
+  { name: "Bootstrap 4", icon: SiBootstrap, url: "https://getbootstrap.com/docs/4.6" },
+  { name: "Tailwind CSS", icon: SiTailwindcss, url: "https://tailwindcss.com" },
+  { name: "CSS 3", icon: SiCss3, url: "https://developer.mozilla.org/en-US/docs/Web/CSS" },
+  { name: "JavaScript", icon: SiJavascript, url: "https://developer.mozilla.org/en-US/docs/Web/JavaScript" },
+  { name: "Sass", icon: SiSass, url: "https://sass-lang.com" },
+  { name: "shadcn/ui", icon: SiShadcnui, url: "https://ui.shadcn.com" },
+  { name: "Angular Material", icon: SiMaterialdesign, url: "https://material.angular.io" },
+  { name: "Material-UI", icon: SiMui, url: "https://mui.com" },
+  { name: "Google Analytics", icon: BarChart3 },
   { name: "Tag Manager", icon: Tag, url: "https://tagmanager.google.com" },
-  { name: "Express.js", icon: Server, url: "https://expressjs.com" },
-  { name: ".NET Core", icon: Circle, url: "https://dotnet.microsoft.com" },
-  { name: "PHP", icon: Code, url: "https://www.php.net" },
+  // Middleware
+  { name: "Express.js", icon: SiExpress, url: "https://expressjs.com" },
+  { name: ".NET Core", icon: SiDotnet, url: "https://dotnet.microsoft.com" },
+  { name: "PHP", icon: SiPhp, url: "https://www.php.net" },
+  { name: "Java Spring Boot", icon: SiSpringboot, url: "https://spring.io/projects/spring-boot" },
+  { name: "Quarkus", icon: SiQuarkus, url: "https://quarkus.io" },
   { name: "Java Play Framework", icon: Play, url: "https://www.playframework.com" },
-  { name: "Apache Cassandra", icon: Database, url: "https://cassandra.apache.org" },
-  { name: "Cosmos DB", icon: Database, url: "https://azure.microsoft.com/products/cosmos-db" },
+  // Database
+  { name: "Apache Cassandra", icon: SiApachecassandra, url: "https://cassandra.apache.org" },
+  { name: "Azure Cosmos DB", icon: Database, url: "https://azure.microsoft.com/products/cosmos-db" },
   { name: "SQL Server", icon: Database, url: "https://www.microsoft.com/sql-server" },
-  { name: "MongoDB", icon: Database, url: "https://www.mongodb.com" },
-  { name: "Firebase", icon: Flame, url: "https://firebase.google.com" },
-  { name: "Redis", icon: Database, url: "https://redis.io" },
-  { name: "Dynamics 365", icon: Building, url: "https://dynamics.microsoft.com" },
-  { name: "ADO", icon: GitBranch, url: "https://azure.microsoft.com/products/devops" },
+  { name: "MongoDB", icon: SiMongodb, url: "https://www.mongodb.com" },
+  { name: "Redis", icon: SiRedis, url: "https://redis.io" },
+  // Tools
+  { name: "Dynamics 365", icon: FaMicrosoft, url: "https://dynamics.microsoft.com" },
+  { name: "PowerPoint", icon: FaFilePowerpoint, url: "https://www.microsoft.com/microsoft-365/powerpoint" },
+  { name: "Word", icon: FaFileWord, url: "https://www.microsoft.com/microsoft-365/word" },
+  { name: "Excel", icon: FaFileExcel, url: "https://www.microsoft.com/microsoft-365/excel" },
+  { name: "Overleaf - LaTeX", icon: SiOverleaf, url: "https://www.overleaf.com" },
+  // Coding Languages
+  { name: "Java", icon: FaJava, url: "https://www.java.com" },
+  { name: "TypeScript", icon: SiTypescript, url: "https://www.typescriptlang.org" },
+  { name: "C#", icon: SiSharp, url: "https://dotnet.microsoft.com/languages/csharp" },
+  { name: "Python 3", icon: SiPython, url: "https://www.python.org" },
+  { name: "C++", icon: SiCplusplus, url: "https://isocpp.org" },
+  { name: "C", icon: SiC, url: "https://en.wikipedia.org/wiki/C_(programming_language)" },
+  // DevOps
+  { name: "Azure DevOps", icon: Cloud, url: "https://azure.microsoft.com/products/devops" },
+  { name: "Firebase", icon: SiFirebase, url: "https://firebase.google.com" },
+  { name: "Vercel", icon: SiVercel, url: "https://vercel.com" },
+  { name: "Jenkins", icon: SiJenkins, url: "https://www.jenkins.io" },
+  { name: "Docker", icon: SiDocker, url: "https://www.docker.com" },
+  { name: "Kubernetes", icon: SiKubernetes, url: "https://kubernetes.io" },
+  { name: "Git", icon: SiGit, url: "https://git-scm.com" },
+  { name: "GitHub", icon: SiGithub, url: "https://github.com" },
+  { name: "GitLab", icon: SiGitlab, url: "https://gitlab.com" },
+  { name: "Bitbucket", icon: SiBitbucket, url: "https://bitbucket.org" },
+  // Cloud
   { name: "Azure", icon: Cloud, url: "https://azure.microsoft.com" },
-  { name: "PowerPoint", icon: FileText, url: "https://www.microsoft.com/microsoft-365/powerpoint" },
-  { name: "Word", icon: FileText, url: "https://www.microsoft.com/microsoft-365/word" },
-  { name: "Excel", icon: Table, url: "https://www.microsoft.com/microsoft-365/excel" },
-  { name: "Java", icon: Coffee, url: "https://www.java.com" },
-  { name: "TypeScript", icon: FileCode, url: "https://www.typescriptlang.org" },
-  { name: "C#", icon: Hash, url: "https://dotnet.microsoft.com/languages/csharp" },
-  { name: "Python 3", icon: Code, url: "https://www.python.org" },
-  { name: "C", icon: Code, url: "https://en.wikipedia.org/wiki/C_(programming_language)" },
+  { name: "AWS", icon: FaAws, url: "https://aws.amazon.com" },
+  { name: "GCP", icon: SiGooglecloud, url: "https://cloud.google.com" },
+  // ML/AI
   { name: "Crewdle AI", icon: Sparkles, url: "https://www.crewdle.com" },
-  { name: "n8n", icon: Workflow, url: "https://n8n.io" },
-  { name: "Jenkins", icon: Settings, url: "https://www.jenkins.io" },
-  { name: "Vercel", icon: Zap, url: "https://vercel.com" },
+  { name: "n8n", icon: SiN8N, url: "https://n8n.io" },
+  { name: "ChatGPT", icon: SiOpenai, url: "https://chat.openai.com" },
+  { name: "Gemini", icon: SiGooglegemini, url: "https://gemini.google.com" },
 ];
 
 const softSkillsData: Array<{ name: string; icon: LucideIcon }> = [
@@ -142,7 +210,7 @@ function DonutChart({
   onCategoryHover: (name: string) => void;
   onCategoryLeave: () => void;
 }) {
-  const size = 260;
+  const size = 300;
   const radius = size / 2;
   const innerRadius = radius * 0.6;
   const centerX = radius;
@@ -387,14 +455,16 @@ export default function AboutPage() {
 
           {/* Chart and Legend on the Right */}
           <div className="flex flex-col gap-3 justify-center">
+                <div className="flex justify-center mt-16">
                 <DonutChart
                   data={chartData}
                   hoveredCategory={hoveredCategory}
                   onCategoryHover={(name) => setHoveredCategory(name as CategoryName)}
                   onCategoryLeave={() => setHoveredCategory(null)}
                 />
+                </div>
                 {/* Category Legend */}
-              <div className="flex flex-wrap justify-center gap-2 max-w-sm">
+              <div className="flex flex-wrap justify-end gap-x-2 gap-y-3 max-w-sm mt-4">
                 {categories.map((category) => {
                   const isHovered = hoveredCategory === category.name;
                   return (
