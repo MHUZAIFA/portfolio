@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Huzaifa Anjum - Portfolio",
-  description: "Portfolio website of Huzaifa Anjum - Graduate Student, D365 Customizer, Full Stack Developer, UI/UX Designer",
+  title: "Mohammed Huzaifa - Portfolio",
+  description: "Portfolio website of Mohammed Huzaifa - Graduate Student, D365 Customizer, Full Stack Developer, UI/UX Designer",
 };
 
 export default function RootLayout({

@@ -41,7 +41,7 @@ export function AppWrapper({ children }: { children: React.ReactNode }) {
   return (
     <MotionProvider>
       {isLoading && <LoadingScreen onComplete={() => setIsLoading(false)} />}
-      <div className="min-h-screen bg-black text-white">
+      <div className="h-screen bg-black text-white">
         <Navigation />
         <main className="pt-20">{children}</main>
       </div>

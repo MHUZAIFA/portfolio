@@ -33,7 +33,7 @@ export function Navigation() {
             className="text-xl font-semibold text-white"
             onClick={() => hapticManager.light()}
           >
-            HA
+            MHuzaifa
           </Link>
         </motion.div>
 
