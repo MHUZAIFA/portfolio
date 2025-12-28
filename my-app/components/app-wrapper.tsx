@@ -5,6 +5,7 @@ import { LoadingScreen } from "@/components/loading-screen";
 import { Navigation } from "@/components/navigation";
 import { MotionProvider } from "@/components/providers/motion-provider";
 import { AudioController } from "@/lib/audio-controller";
+import { MouseEffects } from "@/components/mouse-effects";
 
 let audioController: AudioController | null = null;
 
@@ -41,6 +42,7 @@ export function AppWrapper({ children }: { children: React.ReactNode }) {
   return (
     <MotionProvider>
       {isLoading && <LoadingScreen onComplete={() => setIsLoading(false)} />}
+      <MouseEffects />
       <div className="h-screen bg-black text-white">
         <Navigation />
         <main className="pt-20">{children}</main>
