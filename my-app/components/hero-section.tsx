@@ -4,7 +4,7 @@ import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion"
 import { useEffect, useState, useRef } from "react";
 import { Download } from "lucide-react";
 import { hapticManager } from "@/lib/haptic-manager";
-import { staggerContainer, staggerItem } from "@/components/providers/motion-provider";
+import { staggerItem } from "@/components/providers/motion-provider";
 
 const roles = [
   "Graduate Student",
@@ -31,7 +31,7 @@ const letterVariants = {
     rotateX: 0,
     transition: {
       duration: 0.5,
-      ease: [0.4, 0, 0.2, 1],
+      ease: [0.4, 0, 0.2, 1] as const,
     },
   },
 };
@@ -77,32 +77,194 @@ export function HeroSection() {
       style={{ opacity, scale, y }}
       className="relative flex h-[calc(100vh-5rem)] flex-col items-center justify-center overflow-hidden px-4 text-center"
     >
-      {/* Background decorative elements */}
-      <div className="absolute inset-0 -z-10">
+      {/* Animated Gradient Mesh Background */}
+      <div className="absolute inset-0 -z-10 overflow-hidden">
+        {/* Animated gradient blobs */}
         <motion.div
-          className="absolute left-1/4 top-1/4 h-96 w-96 rounded-full bg-white/5 blur-3xl"
-          animate={{
-            scale: [1, 1.2, 1],
-            x: [0, 50, 0],
-            y: [0, 30, 0],
+          className="absolute left-[10%] top-[20%] h-[500px] w-[500px] rounded-full opacity-30"
+          style={{
+            background: "radial-gradient(circle, rgba(99, 102, 241, 0.4) 0%, transparent 70%)",
+            filter: "blur(80px)",
           }}
-          transition={{
-            duration: 20,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-        <motion.div
-          className="absolute right-1/4 bottom-1/4 h-96 w-96 rounded-full bg-white/5 blur-3xl"
           animate={{
-            scale: [1, 1.3, 1],
-            x: [0, -30, 0],
-            y: [0, -50, 0],
+            x: [0, 100, -50, 0],
+            y: [0, -80, 50, 0],
+            scale: [1, 1.2, 0.9, 1],
           }}
           transition={{
             duration: 25,
             repeat: Infinity,
             ease: "easeInOut",
+          }}
+        />
+        <motion.div
+          className="absolute right-[15%] top-[60%] h-[600px] w-[600px] rounded-full opacity-25"
+          style={{
+            background: "radial-gradient(circle, rgba(168, 85, 247, 0.4) 0%, transparent 70%)",
+            filter: "blur(100px)",
+          }}
+          animate={{
+            x: [0, -120, 80, 0],
+            y: [0, 100, -60, 0],
+            scale: [1, 1.3, 1.1, 1],
+          }}
+          transition={{
+            duration: 30,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 2,
+          }}
+        />
+        <motion.div
+          className="absolute left-[50%] top-[40%] h-[400px] w-[400px] rounded-full opacity-20"
+          style={{
+            background: "radial-gradient(circle, rgba(59, 130, 246, 0.4) 0%, transparent 70%)",
+            filter: "blur(90px)",
+          }}
+          animate={{
+            x: [0, 60, -40, 0],
+            y: [0, -100, 70, 0],
+            scale: [1, 1.15, 0.95, 1],
+          }}
+          transition={{
+            duration: 28,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 1,
+          }}
+        />
+        <motion.div
+          className="absolute right-[25%] top-[10%] h-[350px] w-[350px] rounded-full opacity-25"
+          style={{
+            background: "radial-gradient(circle, rgba(236, 72, 153, 0.3) 0%, transparent 70%)",
+            filter: "blur(70px)",
+          }}
+          animate={{
+            x: [0, -80, 50, 0],
+            y: [0, 120, -80, 0],
+            scale: [1, 1.25, 1.05, 1],
+          }}
+          transition={{
+            duration: 22,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 3,
+          }}
+        />
+
+        {/* Animated Grid Pattern */}
+        <div className="absolute inset-0 opacity-[0.03]">
+          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern
+                id="grid"
+                width="60"
+                height="60"
+                patternUnits="userSpaceOnUse"
+              >
+                <path
+                  d="M 60 0 L 0 0 0 60"
+                  fill="none"
+                  stroke="white"
+                  strokeWidth="1"
+                />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#grid)" />
+          </svg>
+        </div>
+
+        {/* Floating Geometric Shapes */}
+        {[
+          { delay: 0, duration: 20, size: 80, x: "15%", y: "25%", color: "rgba(99, 102, 241, 0.1)" },
+          { delay: 2, duration: 25, size: 60, x: "75%", y: "35%", color: "rgba(168, 85, 247, 0.1)" },
+          { delay: 4, duration: 18, size: 100, x: "50%", y: "70%", color: "rgba(59, 130, 246, 0.08)" },
+          { delay: 1, duration: 22, size: 70, x: "25%", y: "65%", color: "rgba(236, 72, 153, 0.1)" },
+          { delay: 3, duration: 24, size: 55, x: "80%", y: "15%", color: "rgba(34, 197, 94, 0.08)" },
+        ].map((shape, index) => (
+          <motion.div
+            key={index}
+            className="absolute"
+            style={{
+              left: shape.x,
+              top: shape.y,
+              width: `${shape.size}px`,
+              height: `${shape.size}px`,
+              border: `2px solid ${shape.color}`,
+              borderRadius: index % 2 === 0 ? "50%" : "20%",
+              rotate: 45,
+            }}
+            animate={{
+              y: [0, -30, 30, 0],
+              x: [0, 20, -20, 0],
+              rotate: [45, 90, 45, 0, 45],
+              scale: [1, 1.2, 0.8, 1],
+              opacity: [0.1, 0.2, 0.15, 0.1],
+            }}
+            transition={{
+              duration: shape.duration,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: shape.delay,
+            }}
+          />
+        ))}
+
+        {/* Animated Connecting Lines */}
+        <svg className="absolute inset-0 w-full h-full opacity-[0.08]" xmlns="http://www.w3.org/2000/svg">
+          {[0, 1, 2, 3].map((i) => (
+            <motion.line
+              key={i}
+              x1={`${20 + i * 25}%`}
+              y1="0%"
+              x2={`${30 + i * 15}%`}
+              y2="100%"
+              stroke="white"
+              strokeWidth="1"
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{
+                pathLength: [0, 1, 0],
+                opacity: [0, 0.15, 0],
+              }}
+              transition={{
+                duration: 8,
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: i * 1.5,
+              }}
+            />
+          ))}
+        </svg>
+
+        {/* Pulsing Orbs */}
+        {[0, 1, 2].map((i) => (
+          <motion.div
+            key={i}
+            className="absolute rounded-full border border-white/10"
+            style={{
+              left: `${30 + i * 25}%`,
+              top: `${20 + i * 30}%`,
+              width: `${150 + i * 50}px`,
+              height: `${150 + i * 50}px`,
+            }}
+            animate={{
+              scale: [1, 1.3, 1],
+              opacity: [0.1, 0.2, 0.1],
+            }}
+            transition={{
+              duration: 6 + i * 2,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: i * 2,
+            }}
+          />
+        ))}
+
+        {/* Noise Texture Overlay */}
+        <div
+          className="absolute inset-0 opacity-[0.015] mix-blend-overlay"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='4' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
           }}
         />
       </div>
