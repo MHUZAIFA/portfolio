@@ -3,29 +3,52 @@
 import { motion } from "framer-motion";
 import { ContactForm } from "@/components/contact-form";
 import { staggerContainer, staggerItem } from "@/components/providers/motion-provider";
-import { Github, Linkedin, Mail, Twitter } from "lucide-react";
+import {
+  FaGithub,
+  FaLinkedin,
+  FaXTwitter,
+  FaEnvelope,
+  FaInstagram,
+  FaFacebook,
+  FaYoutube,
+} from "react-icons/fa6";
 import { hapticManager } from "@/lib/haptic-manager";
 
 const socialLinks = [
   {
     name: "GitHub",
-    icon: Github,
+    icon: FaGithub,
     url: "https://github.com",
   },
   {
     name: "LinkedIn",
-    icon: Linkedin,
+    icon: FaLinkedin,
     url: "https://linkedin.com",
   },
   {
     name: "Email",
-    icon: Mail,
+    icon: FaEnvelope,
     url: "mailto:your.email@example.com",
   },
   {
-    name: "Twitter",
-    icon: Twitter,
+    name: "X (Twitter)",
+    icon: FaXTwitter,
     url: "https://twitter.com",
+  },
+  {
+    name: "Instagram",
+    icon: FaInstagram,
+    url: "https://instagram.com",
+  },
+  {
+    name: "Facebook",
+    icon: FaFacebook,
+    url: "https://facebook.com",
+  },
+  {
+    name: "YouTube",
+    icon: FaYoutube,
+    url: "https://youtube.com",
   },
 ];
 
@@ -35,27 +58,17 @@ export default function ContactPage() {
       initial="initial"
       animate="animate"
       variants={staggerContainer}
-      className="mx-auto max-w-4xl px-4 py-24"
+      className="mx-auto max-w-7xl px-4 md:px-8 py-24"
     >
-      <motion.h1
+      <motion.div
         variants={staggerItem}
-        className="mb-12 text-4xl font-bold text-white md:text-5xl"
+        className="mb-10 flex items-center justify-between gap-4"
       >
-        Contact
-      </motion.h1>
+        <h1 className="text-4xl font-bold text-white md:text-5xl">
+          Contact
+        </h1>
 
-      <div className="mb-16">
-        <ContactForm />
-      </div>
-
-      <motion.section
-        variants={staggerItem}
-        className="text-center"
-      >
-        <h2 className="mb-6 text-2xl font-semibold text-white">
-          Connect with me
-        </h2>
-        <div className="flex justify-center gap-6">
+        <div className="flex flex-wrap gap-3">
           {socialLinks.map((social, index) => {
             const Icon = social.icon;
             return (
@@ -65,21 +78,54 @@ export default function ContactPage() {
                 target="_blank"
                 rel="noopener noreferrer"
                 initial={{ opacity: 0, scale: 0.8 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: index * 0.05 }}
                 whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => hapticManager.light()}
-                className="rounded-full bg-white/10 p-4 text-white transition-colors hover:bg-white/20"
+                className="flex items-center justify-center text-white/70 transition-colors hover:text-white"
                 aria-label={social.name}
               >
-                <Icon className="h-6 w-6" />
+                <Icon className="h-5 w-5" />
               </motion.a>
             );
           })}
         </div>
-      </motion.section>
+      </motion.div>
+
+      <div className="mb-16 grid gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:items-start">
+        <div>
+          <ContactForm />
+        </div>
+
+        <motion.section
+          variants={staggerItem}
+          className="overflow-hidden rounded-sm border border-white/10 bg-white/5 shadow-xl"
+        >
+          <div className="border-b border-white/10 bg-gradient-to-r from-sky-500/20 via-cyan-400/10 to-emerald-400/10 px-5 py-4">
+            <h2 className="text-sm font-medium uppercase tracking-[0.22em] text-sky-100/90">
+              Based in Montréal, Canada
+            </h2>
+            <p className="mt-1 text-sm text-white/70">
+              Happy to work remotely or in-person around the Greater Montréal Area.
+            </p>
+          </div>
+
+          <div className="relative">
+            <div className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.25),_transparent_55%),radial-gradient(circle_at_bottom,_rgba(94,234,212,0.18),_transparent_55%)] mix-blend-screen" />
+            <div className="relative z-10 h-[calc(100vh-20rem)] w-full overflow-hidden rounded-b-2xl bg-black">
+              <iframe
+                title="Map showing Montréal, Canada"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2795.995746324729!2d-73.56725668443858!3d45.501688979101995!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4cc91a417de4c1c3%3A0x5bcd40ff0fb1921!2sMontr%C3%A9al%2C%20QC!5e0!3m2!1sen!2sca!4v1700000000000!5m2!1sen!2sca"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                className="h-full w-full border-0 filter invert-[0.9] grayscale contrast-[1.1] brightness-[0.6]"
+              />
+              <div className="pointer-events-none absolute inset-0 bg-black/55 mix-blend-multiply" />
+            </div>
+          </div>
+        </motion.section>
+      </div>
     </motion.div>
   );
 }

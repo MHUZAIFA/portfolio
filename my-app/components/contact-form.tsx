@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card } from "@/components/ui/card";
 import { hapticManager } from "@/lib/haptic-manager";
 import { staggerContainer, staggerItem } from "@/components/providers/motion-provider";
 
@@ -14,6 +13,7 @@ interface FormData {
   firstName: string;
   lastName: string;
   email: string;
+  subject: string;
   message: string;
 }
 
@@ -21,6 +21,7 @@ interface FormErrors {
   firstName?: string;
   lastName?: string;
   email?: string;
+  subject?: string;
   message?: string;
 }
 
@@ -29,6 +30,7 @@ export function ContactForm() {
     firstName: "",
     lastName: "",
     email: "",
+    subject: "",
     message: "",
   });
   const [errors, setErrors] = useState<FormErrors>({});
@@ -54,6 +56,12 @@ export function ContactForm() {
       newErrors.email = "Email is required";
     } else if (!validateEmail(formData.email)) {
       newErrors.email = "Please enter a valid email address";
+    }
+
+    if (!formData.subject.trim()) {
+      newErrors.subject = "Subject is required";
+    } else if (formData.subject.trim().length < 5) {
+      newErrors.subject = "Subject should be at least 5 characters";
     }
 
     if (!formData.message.trim()) {
@@ -87,7 +95,13 @@ export function ContactForm() {
 
       if (response.ok) {
         setSubmitStatus("success");
-        setFormData({ firstName: "", lastName: "", email: "", message: "" });
+        setFormData({
+          firstName: "",
+          lastName: "",
+          email: "",
+          subject: "",
+          message: "",
+        });
         hapticManager.pattern([10, 50, 10]);
       } else {
         setSubmitStatus("error");
@@ -119,15 +133,7 @@ export function ContactForm() {
       variants={staggerContainer}
       className="mx-auto max-w-2xl"
     >
-      <Card className="border-white/10 bg-white/5 p-6 md:p-8">
-        <motion.h2
-          variants={staggerItem}
-          className="mb-6 text-2xl font-semibold text-white"
-        >
-          Get in Touch
-        </motion.h2>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <motion.div variants={staggerItem} className="space-y-2">
               <Label htmlFor="firstName" className="text-white/80">
@@ -183,6 +189,23 @@ export function ContactForm() {
           </motion.div>
 
           <motion.div variants={staggerItem} className="space-y-2">
+            <Label htmlFor="subject" className="text-white/80">
+              Subject
+            </Label>
+            <Input
+              id="subject"
+              value={formData.subject}
+              onChange={(e) => handleChange("subject", e.target.value)}
+              className="bg-white/5 border-white/10 text-white placeholder:text-white/40"
+              placeholder="Project inquiry, collaboration, feedback..."
+              disabled={isSubmitting}
+            />
+            {errors.subject && (
+              <p className="text-sm text-red-400">{errors.subject}</p>
+            )}
+          </motion.div>
+
+          <motion.div variants={staggerItem} className="space-y-2">
             <Label htmlFor="message" className="text-white/80">
               Message
             </Label>
@@ -194,6 +217,10 @@ export function ContactForm() {
               placeholder="Your message here..."
               disabled={isSubmitting}
             />
+            <div className="flex items-center justify-between text-xs text-white/50">
+              <span>Share as much detail as you’d like.</span>
+              <span>{formData.message.length}/1000</span>
+            </div>
             {errors.message && (
               <p className="text-sm text-red-400">{errors.message}</p>
             )}
@@ -210,27 +237,26 @@ export function ContactForm() {
             </Button>
           </motion.div>
 
-          {submitStatus === "success" && (
-            <motion.p
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-center text-sm text-green-400"
-            >
-              Message sent successfully!
-            </motion.p>
-          )}
+        {submitStatus === "success" && (
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center text-sm text-green-400"
+          >
+            Message sent successfully!
+          </motion.p>
+        )}
 
-          {submitStatus === "error" && (
-            <motion.p
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-center text-sm text-red-400"
-            >
-              Failed to send message. Please try again.
-            </motion.p>
-          )}
-        </form>
-      </Card>
+        {submitStatus === "error" && (
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center text-sm text-red-400"
+          >
+            Failed to send message. Please try again.
+          </motion.p>
+        )}
+      </form>
     </motion.div>
   );
 }
