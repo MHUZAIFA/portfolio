@@ -16,7 +16,8 @@ import {
   Code,
   Rocket,
   Building2,
-  Cloud
+  Cloud,
+  ExternalLink
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { hapticManager } from "@/lib/haptic-manager";
@@ -517,13 +518,24 @@ export default function ExperiencePage() {
                                 <Building2 className="h-6 w-6 text-white/80" />
                               )}
                             </motion.div>
-                            <div className="flex flex-col gap-0">
-                              <h3 className="text-lg font-bold text-white md:text-2xl">
+                            <div className="flex flex-col gap-1">
+                               <h3 className="text-lg font-bold text-white md:text-2xl">
                                 {exp.role}
                               </h3>
-                              <p className="text-sm font-medium text-white/70">
-                                {exp.company}
-                              </p>
+                               <div className="flex items-center gap-2">
+                                 <p className="text-sm font-medium text-white/70">
+                                   {exp.company}
+                                 </p>
+                                 {exp.links && exp.links.length > 0 && (
+                                   <a
+                                     href={exp.links[0].href}
+                                     target="_blank"
+                                     rel="noopener noreferrer"
+                                   >
+                                     <ExternalLink className="h-3 w-3" />
+                                   </a>
+                                 )}
+                               </div>
                             </div>
                           </div>
 
@@ -597,22 +609,7 @@ export default function ExperiencePage() {
                         </div>
                       )}
 
-                      {/* Links */}
-                      {exp.links && exp.links.length > 0 && (
-                        <div className="mb-4 flex flex-wrap gap-2">
-                          {exp.links.map((link) => (
-                            <a
-                              key={link.href}
-                              href={link.href}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center rounded-full bg-white/10 px-3 py-1.5 text-xs font-medium text-white/80 backdrop-blur-sm transition-colors hover:bg-white/20"
-                            >
-                              {link.label}
-                            </a>
-                          ))}
-                        </div>
-                      )}
+                      {/* Links are shown inline next to company name */}
 
                       {/* Achievements */}
                       {exp.achievements && (
