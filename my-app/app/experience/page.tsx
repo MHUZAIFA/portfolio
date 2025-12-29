@@ -35,6 +35,10 @@ interface Experience {
   fullDescription?: string;
   logo?: string;
   technologies?: string[];
+  links?: Array<{
+    label: string;
+    href: string;
+  }>;
   achievements?: Array<{
     icon: LucideIcon;
     label: string;
@@ -46,7 +50,7 @@ interface Experience {
 
 const experiences: Experience[] = [
   {
-    id: "1",
+    id: "0",
     company: "Flexspring",
     role: "Full-stack Development Intern",
     duration: "Sep 2024 - Present",
@@ -58,8 +62,38 @@ const experiences: Experience[] = [
       "Currently working as a Full-stack Development Intern at Flexspring, contributing to the development of modern web applications using React.js, Java, and other cutting-edge technologies. Based in Montreal, Quebec, Canada.",
     logo: "/imgs/logos/flexspring.jpeg",
     technologies: ["React.js", "Java", "TypeScript", "Node.js"],
+    links: [
+      {
+        label: "Flexspring Website",
+        href: "https://www.flexspring.com",
+      },
+    ],
     achievements: [
       { icon: Code, label: "Technologies", value: "Modern Stack", color: "from-blue-500 to-cyan-500" },
+    ],
+  },
+  {
+    id: "1",
+    company: "Concordia University",
+    role: "MACS Graduate Student",
+    duration: "Sep 2023 - Present",
+    location: "Montreal, Quebec, Canada",
+    type: "full-time",
+    description:
+      "MACS Graduate Student at Concordia University, focusing on containerization, databases, software measurement, and advanced CS topics.",
+    fullDescription:
+      "Ever since discovering the realm of computer science following my high school education, I've been on a passionate journey of self-improvement and exploration of technology. This relentless pursuit of knowledge has equipped me with a diverse skill set and an unwavering commitment to innovation.\n\nMy journey into the tech field began post-high school, prompting an ardent dedication to daily improvement. Through roles at CitiusTech and Willis Towers Watson, I've delved into software development, healthcare systems, and agile methodologies, all while adhering to software principles like OOPS, SOLID, and more. Crafting solutions that leverage AI technology to enhance medical imaging processes at CitiusTech encapsulated the impactful work that drives my passion for problem-solving.\n\nMy first semester in the master's program at Concordia University has provided me with practical experience in essential technologies, including containerization, Cassandra database management, software measurement methodologies, problem-solving, and Python and Java programming languages. Looking forward, I am excited about the upcoming coursework in areas such as Human-Computer Interaction (HCI), Data Structures, Machine Learning (ML), and Artificial Intelligence (AI). These studies will further augment my skill set and align seamlessly with my practical expertise developed as a Senior Software Developer.",
+    logo: "/imgs/logos/concordia.png",
+      technologies: ["Containerization", "Cassandra", "Software Measurement", "Python", "Java"],
+    links: [
+      {
+        label: "Concordia MACS Program",
+        href: "https://www.concordia.ca/academics/graduate/macs.html",
+      },
+      {
+        label: "LinkedIn Profile",
+        href: "https://www.linkedin.com", // TODO: replace with your actual profile URL
+      },
     ],
   },
   {
@@ -75,6 +109,12 @@ const experiences: Experience[] = [
       "Developed a viewer for IBM Health Watson (now Merative) using Angular, DotNet, SQL, ML, AI, DICOM, PACS, and other technologies to: a. Improve cancer detection, b. Reduce time taken in performing tumour analysis, and c. Assist in making informed decisions. Created reusable Angular components that reduced front-end development time by 30%. Achieved 95% unit test code coverage throughout the application. Improved application spin-up time from 3 to 1.5 seconds approx. Wrote clean optimized code applying software development principles like OOPS, SOLID, and DRY. Developed a successful POC which was demonstrated at RSNA 2023, leading to new customer acquisitions.",
     logo: "/imgs/logos/citiustech.jpeg",
     technologies: ["Angular", ".NET", "SQL", "ML", "AI", "DICOM", "PACS", "C#"],
+    links: [
+      {
+        label: "CitiusTech Website",
+        href: "https://www.citiustech.com",
+      },
+    ],
     achievements: [
       { icon: TrendingUp, label: "Frontend Dev Time", value: "30% Reduction", color: "from-green-500 to-emerald-500" },
       { icon: Target, label: "Test Coverage", value: "95%", color: "from-purple-500 to-pink-500" },
@@ -94,9 +134,39 @@ const experiences: Experience[] = [
     fullDescription:
       "Worked as a Software Engineer at CitiusTech, contributing to various healthcare technology projects. Utilized Angular, Microsoft SQL Server, and other modern technologies to deliver high-quality software solutions.",
     logo: "/imgs/logos/citiustech.jpeg",
-      technologies: ["Angular", "SQL Server", ".NET", "TypeScript", "Azure"],
+    technologies: ["Angular", "SQL Server", ".NET", "TypeScript", "Azure"],
+    links: [
+      {
+        label: "CitiusTech Website",
+        href: "https://www.citiustech.com",
+      },
+    ],
     achievements: [
       { icon: Code, label: "Healthcare Tech", value: "Enterprise Solutions", color: "from-cyan-500 to-blue-500" },
+    ],
+  },
+  {
+    id: "3a",
+    company: "Homesfy Realty Pvt Ltd",
+    role: "UI/UX Consultant",
+    duration: "10 Feb 2022 - 19 Feb 2022",
+    location: "India",
+    type: "full-time",
+    description:
+      "Provided UI/UX consultancy to Homesfy Realty Pvt Ltd. for their project mymagnet.io.",
+    fullDescription:
+      "Provided UI/UX consultancy to Homesfy Realty Pvt Ltd. for their project mymagnet.io, focusing on improving usability, visual design, and user flows to better support their business goals and user engagement.",
+    logo: "/imgs/logos/homesify.jpeg",
+    technologies: ["UI/UX", "Design Systems"],
+    links: [
+      {
+        label: "Homesfy Website",
+        href: "https://www.homesfy.in",
+      },
+      {
+        label: "MyMagnet.io",
+        href: "https://mymagnet.io",
+      },
     ],
   },
   {
@@ -112,6 +182,12 @@ const experiences: Experience[] = [
     fullDescription:
       "Developed and delivered enterprise-grade applications in an agile environment using Angular, .Net, SQL, CosmosDB, and Azure. Managed Angular libraries and expanded toolkit with reusable components for multiple projects. Applied software development principles (SOLID, ONION) and design patterns (Strategy, Repository) in MVC framework. By continually monitoring and optimizing azure resources and its metrics, saved more than 1000 pounds. Reduced data retrieval time from 5-10 seconds to 0.5-1 seconds, enhancing application performance. Achieved 90-95% unit test code coverage across applications and APIs. Defined branching, release strategies, and CI/CD pipelines in Azure DevOps for diverse environments.",
     technologies: ["Angular", ".NET", "SQL", "CosmosDB", "Azure", "Azure DevOps"],
+    links: [
+      {
+        label: "WTW Website",
+        href: "https://www.wtwco.com",
+      },
+    ],
     achievements: [
       { icon: Award, label: "Cost Savings", value: "£1000+", color: "from-green-500 to-teal-500" },
       { icon: Zap, label: "Data Retrieval", value: "0.5-1s (90% faster)", color: "from-yellow-500 to-amber-500" },
@@ -132,6 +208,12 @@ const experiences: Experience[] = [
     fullDescription:
       "Developed MEAN stack project management application using Angular, Node.js, Express server, and MongoDB (MEAN Stack), increasing the productivity of internal teams by 27% within the first quarter of launch.",
     technologies: ["Angular", "Node.js", "Express", "MongoDB", "MEAN Stack"],
+    links: [
+      {
+        label: "Reliance Industries",
+        href: "https://www.ril.com",
+      },
+    ],
     achievements: [
       { icon: TrendingUp, label: "Productivity", value: "27% Increase", color: "from-green-500 to-emerald-500" },
       { icon: Rocket, label: "Launch", value: "Q1 Success", color: "from-blue-500 to-indigo-500" },
@@ -435,11 +517,11 @@ export default function ExperiencePage() {
                                 <Building2 className="h-6 w-6 text-white/80" />
                               )}
                             </motion.div>
-                            <div className="flex flex-col gap-1">
-                              <h3 className="text-xl font-bold text-white md:text-2xl">
+                            <div className="flex flex-col gap-0">
+                              <h3 className="text-lg font-bold text-white md:text-2xl">
                                 {exp.role}
                               </h3>
-                              <p className="text-lg font-medium text-white/70">
+                              <p className="text-sm font-medium text-white/70">
                                 {exp.company}
                               </p>
                             </div>
@@ -512,6 +594,23 @@ export default function ExperiencePage() {
                               +{exp.technologies.length - 6} more
                             </motion.span>
                           )}
+                        </div>
+                      )}
+
+                      {/* Links */}
+                      {exp.links && exp.links.length > 0 && (
+                        <div className="mb-4 flex flex-wrap gap-2">
+                          {exp.links.map((link) => (
+                            <a
+                              key={link.href}
+                              href={link.href}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center rounded-full bg-white/10 px-3 py-1.5 text-xs font-medium text-white/80 backdrop-blur-sm transition-colors hover:bg-white/20"
+                            >
+                              {link.label}
+                            </a>
+                          ))}
                         </div>
                       )}
 
