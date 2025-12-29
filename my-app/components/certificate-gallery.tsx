@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useMemo } from "react";
 import { X, ChevronLeft, ChevronRight, ArrowLeft, Folder } from "lucide-react";
+import Image from "next/image";
 import { hapticManager } from "@/lib/haptic-manager";
 
 interface Certificate {
@@ -135,10 +136,12 @@ export function CertificateGallery({ certificates, viewMode }: CertificateGaller
           onClick={() => openLightbox(index)}
           className="group relative aspect-[4/3] cursor-pointer overflow-hidden rounded-lg bg-white/5"
         >
-          <img
+          <Image
             src={cert.image}
             alt={cert.title}
-            className="h-full w-full object-cover transition-transform group-hover:scale-110"
+            fill
+            sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            className="object-cover transition-transform group-hover:scale-110"
           />
           <div className="absolute inset-0 bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
             <div className="flex h-full items-center justify-center">
@@ -191,10 +194,12 @@ export function CertificateGallery({ certificates, viewMode }: CertificateGaller
                   onClick={() => openLightbox(globalIndex)}
                   className="group relative aspect-[4/3] cursor-pointer overflow-hidden rounded-lg bg-white/5"
                 >
-                  <img
+                  <Image
                     src={cert.image}
                     alt={cert.title}
-                    className="h-full w-full object-cover transition-transform group-hover:scale-110"
+                    fill
+                    sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                    className="object-cover transition-transform group-hover:scale-110"
                   />
                   <div className="absolute inset-0 bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
                     <div className="flex h-full items-center justify-center">
@@ -219,33 +224,33 @@ export function CertificateGallery({ certificates, viewMode }: CertificateGaller
           const firstCert = certs[0];
           
           return (
-            <motion.div
-              key={category}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.3, delay: index * 0.1 }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => openFolder(category)}
-              className="group relative aspect-[4/3] cursor-pointer overflow-hidden rounded-lg border border-white/10 bg-white/5 transition-all hover:border-white/20 hover:bg-white/10"
-            >
-              <img
-                src={firstCert.image}
-                alt={getCategoryName(category)}
-                className="h-full w-full object-cover transition-transform group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
-                <div className="flex h-full flex-col items-center justify-end p-4 text-center">
-                  <Folder className="mb-2 h-8 w-8 text-white" />
-                  <h3 className="text-lg font-semibold text-white">
-                    {getCategoryName(category)}
-                  </h3>
-                  <p className="mt-1 text-sm text-white/80">
-                    {certs.length} {certs.length === 1 ? "certificate" : "certificates"}
-                  </p>
+            <div key={category}>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3, delay: index * 0.1 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => openFolder(category)}
+                className="group cursor-pointer overflow-hidden rounded-lg border border-white/10 bg-white/5 transition-all hover:border-white/20 hover:bg-white/10"
+              >
+                <div className="relative aspect-[4/3] overflow-hidden">
+                  <Image
+                    src={firstCert.image}
+                    alt={getCategoryName(category)}
+                    fill
+                    sizes="(max-width: 768px) 50vw, 25vw"
+                    className="object-cover transition-transform group-hover:scale-110"
+                  />
                 </div>
+              </motion.div>
+              <div className="mt-2 flex items-center gap-2 text-left">
+                <Folder className="h-4 w-4 text-white/70" />
+                <span className="text-sm text-white">
+                  {getCategoryName(category)} ({certs.length})
+                </span>
               </div>
-            </motion.div>
+            </div>
           );
         })}
       </div>
@@ -319,12 +324,14 @@ export function CertificateGallery({ certificates, viewMode }: CertificateGaller
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
               onClick={(e) => e.stopPropagation()}
-              className="relative mx-4 max-h-[90vh] max-w-4xl"
+              className="relative mx-4 h-[90vh] max-w-4xl"
             >
-              <img
+              <Image
                 src={certificates[selectedIndex].image}
                 alt={certificates[selectedIndex].title}
-                className="max-h-[90vh] w-full object-contain"
+                fill
+                sizes="90vw"
+                className="object-contain"
               />
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6 text-white">
                 <h3 className="text-xl font-semibold">
