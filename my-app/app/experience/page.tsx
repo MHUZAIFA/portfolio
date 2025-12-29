@@ -175,6 +175,7 @@ export default function ExperiencePage() {
   const [scrollProgress, setScrollProgress] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
+  const lastCardRef = useRef<HTMLDivElement>(null);
 
   // Only generate and render particles after hydration to avoid mismatch
   // This is a standard Next.js pattern to prevent hydration errors with random values
@@ -191,7 +192,7 @@ export default function ExperiencePage() {
 
   useEffect(() => {
     const handleScroll = () => {
-      if (!timelineRef.current) return;
+      if (!timelineRef.current || !lastCardRef.current) return;
 
       const timelineRect = timelineRef.current.getBoundingClientRect();
       const timelineTop = timelineRect.top + window.scrollY;
@@ -199,11 +200,43 @@ export default function ExperiencePage() {
       const scrollPosition = window.scrollY + window.innerHeight;
       const timelineStart = timelineTop;
 
-      // Calculate progress: 0 when timeline starts entering viewport, 1 when fully scrolled past
+      // Get last card position relative to viewport
+      const lastCardRect = lastCardRef.current.getBoundingClientRect();
+      const lastCardTop = lastCardRect.top + window.scrollY;
+
+      // Check if last card is completely visible in viewport
+      // Card is fully visible when its top is at or below viewport top (>= 0)
+      // and its bottom is at or above viewport bottom (<= window.innerHeight)
+      const isLastCardFullyVisible = 
+        lastCardRect.top >= 0 && 
+        lastCardRect.bottom <= window.innerHeight;
+
+      // Calculate progress: 0 when timeline starts entering viewport, 1 when last card is fully visible
       let progress = 0;
       if (scrollPosition >= timelineStart) {
-        const scrolled = scrollPosition - timelineStart;
-        progress = Math.min(1, scrolled / (timelineHeight + window.innerHeight * 0.5));
+        // If last card is completely shown, complete the trail
+        if (isLastCardFullyVisible) {
+          progress = 1;
+        } else {
+          // Calculate scroll position needed to make last card fully visible
+          // Scroll until card top reaches viewport top (scrollY = lastCardTop)
+          const targetScrollPosition = lastCardTop;
+          
+          // Check if we've scrolled enough to show the card fully (or as much as possible)
+          if (window.scrollY >= targetScrollPosition) {
+            // Card top has reached viewport top - complete the trail
+            progress = 1;
+          } else if (scrollPosition >= lastCardTop - window.innerHeight) {
+            // Approaching last card - calculate progress smoothly from current position to full visibility
+            const scrolledToLastCard = scrollPosition - timelineStart;
+            const distanceToFullVisibility = targetScrollPosition + window.innerHeight - timelineStart;
+            progress = Math.min(0.98, scrolledToLastCard / distanceToFullVisibility);
+          } else {
+            // Normal progress calculation before reaching last card
+            const scrolled = scrollPosition - timelineStart;
+            progress = Math.min(0.85, scrolled / (timelineHeight + window.innerHeight * 0.5));
+          }
+        }
       }
 
       setScrollProgress(progress);
@@ -323,9 +356,12 @@ export default function ExperiencePage() {
           />
 
           {/* Timeline Nodes */}
-          {experiences.map((exp, index) => (
+          {experiences.map((exp, index) => {
+            const isLastCard = index === experiences.length - 1;
+            return (
           <motion.div
             key={exp.id}
+            ref={isLastCard ? lastCardRef : null}
               initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
@@ -532,7 +568,8 @@ export default function ExperiencePage() {
                 </motion.div>
               </div>
           </motion.div>
-        ))}
+            );
+          })}
       </div>
 
         {/* Floating Particles - Only render after hydration */}
