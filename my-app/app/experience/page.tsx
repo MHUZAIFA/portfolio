@@ -1,5 +1,6 @@
-"use client";
+ "use client";
 
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { useState, useRef, useEffect } from "react";
@@ -55,6 +56,7 @@ const experiences: Experience[] = [
       "Full-stack Development Intern at Flexspring, Montreal, Quebec, Canada. Working with React.js, Java and other modern technologies.",
     fullDescription:
       "Currently working as a Full-stack Development Intern at Flexspring, contributing to the development of modern web applications using React.js, Java, and other cutting-edge technologies. Based in Montreal, Quebec, Canada.",
+    logo: "/imgs/logos/flexspring.jpeg",
     technologies: ["React.js", "Java", "TypeScript", "Node.js"],
     achievements: [
       { icon: Code, label: "Technologies", value: "Modern Stack", color: "from-blue-500 to-cyan-500" },
@@ -71,6 +73,7 @@ const experiences: Experience[] = [
       "Developed a viewer for IBM Health Watson (now Merative) using Angular, DotNet, SQL, ML, AI, DICOM, PACS, and other technologies to improve cancer detection and reduce tumour analysis time.",
     fullDescription:
       "Developed a viewer for IBM Health Watson (now Merative) using Angular, DotNet, SQL, ML, AI, DICOM, PACS, and other technologies to: a. Improve cancer detection, b. Reduce time taken in performing tumour analysis, and c. Assist in making informed decisions. Created reusable Angular components that reduced front-end development time by 30%. Achieved 95% unit test code coverage throughout the application. Improved application spin-up time from 3 to 1.5 seconds approx. Wrote clean optimized code applying software development principles like OOPS, SOLID, and DRY. Developed a successful POC which was demonstrated at RSNA 2023, leading to new customer acquisitions.",
+    logo: "/imgs/logos/citiustech.jpeg",
     technologies: ["Angular", ".NET", "SQL", "ML", "AI", "DICOM", "PACS", "C#"],
     achievements: [
       { icon: TrendingUp, label: "Frontend Dev Time", value: "30% Reduction", color: "from-green-500 to-emerald-500" },
@@ -90,7 +93,8 @@ const experiences: Experience[] = [
       "Software Engineer at CitiusTech, Mumbai, Maharashtra, India. Worked with Angular, Microsoft SQL Server and other technologies.",
     fullDescription:
       "Worked as a Software Engineer at CitiusTech, contributing to various healthcare technology projects. Utilized Angular, Microsoft SQL Server, and other modern technologies to deliver high-quality software solutions.",
-    technologies: ["Angular", "SQL Server", ".NET", "TypeScript", "Azure"],
+    logo: "/imgs/logos/citiustech.jpeg",
+      technologies: ["Angular", "SQL Server", ".NET", "TypeScript", "Azure"],
     achievements: [
       { icon: Code, label: "Healthcare Tech", value: "Enterprise Solutions", color: "from-cyan-500 to-blue-500" },
     ],
@@ -104,6 +108,7 @@ const experiences: Experience[] = [
     type: "full-time",
     description:
       "Developed and delivered enterprise-grade applications in an agile environment using Angular, .Net, SQL, CosmosDB, and Azure.",
+    logo: "/imgs/logos/wtw.png",
     fullDescription:
       "Developed and delivered enterprise-grade applications in an agile environment using Angular, .Net, SQL, CosmosDB, and Azure. Managed Angular libraries and expanded toolkit with reusable components for multiple projects. Applied software development principles (SOLID, ONION) and design patterns (Strategy, Repository) in MVC framework. By continually monitoring and optimizing azure resources and its metrics, saved more than 1000 pounds. Reduced data retrieval time from 5-10 seconds to 0.5-1 seconds, enhancing application performance. Achieved 90-95% unit test code coverage across applications and APIs. Defined branching, release strategies, and CI/CD pipelines in Azure DevOps for diverse environments.",
     technologies: ["Angular", ".NET", "SQL", "CosmosDB", "Azure", "Azure DevOps"],
@@ -123,6 +128,7 @@ const experiences: Experience[] = [
     type: "internship",
     description:
       "Developed MEAN stack project management application using Angular, Node.js, Express server, and MongoDB, increasing productivity of internal teams by 27%.",
+    logo: "/imgs/logos/reliance.jpg",
     fullDescription:
       "Developed MEAN stack project management application using Angular, Node.js, Express server, and MongoDB (MEAN Stack), increasing the productivity of internal teams by 27% within the first quarter of launch.",
     technologies: ["Angular", "Node.js", "Express", "MongoDB", "MEAN Stack"],
@@ -412,24 +418,32 @@ export default function ExperiencePage() {
                     <div className="relative z-10">
                       {/* Header */}
                       <div className="mb-4 flex items-start justify-between">
-                <div className="flex-1">
+                        <div className="flex-1">
                           <div className="mb-2 flex items-center gap-3">
                             <motion.div
-                              className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500/20 to-purple-500/20"
-                              whileHover={{ rotate: 360 }}
-                              transition={{ duration: 0.6 }}
+                              className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-sm bg-white/5"
                             >
-                              <Building2 className="h-6 w-6 text-white/80" />
+                              {exp.logo ? (
+                                <Image
+                                  src={exp.logo}
+                                  alt={`${exp.company} logo`}
+                                  width={48}
+                                  height={48}
+                                  className="h-full w-full object-contain p-1"
+                                />
+                              ) : (
+                                <Building2 className="h-6 w-6 text-white/80" />
+                              )}
                             </motion.div>
-                    <div>
+                            <div className="flex flex-col gap-1">
                               <h3 className="text-xl font-bold text-white md:text-2xl">
-                        {exp.role}
-                      </h3>
+                                {exp.role}
+                              </h3>
                               <p className="text-lg font-medium text-white/70">
                                 {exp.company}
                               </p>
-                    </div>
-                  </div>
+                            </div>
+                          </div>
 
                           {/* Meta Info */}
                           <div className="mb-4 flex flex-wrap items-center gap-4 text-sm text-white/60">
