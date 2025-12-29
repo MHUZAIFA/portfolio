@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { Card } from "@/components/ui/card";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { 
   ChevronDown, 
   ChevronUp, 
@@ -171,12 +171,44 @@ export default function ExperiencePage() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [particles] = useState(() => generateParticles());
+  const [scrollProgress, setScrollProgress] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
+  const timelineRef = useRef<HTMLDivElement>(null);
 
   const toggleExpand = (id: string) => {
     hapticManager.light();
     setExpandedId(expandedId === id ? null : id);
   };
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!timelineRef.current) return;
+
+      const timelineRect = timelineRef.current.getBoundingClientRect();
+      const timelineTop = timelineRect.top + window.scrollY;
+      const timelineHeight = timelineRect.height;
+      const scrollPosition = window.scrollY + window.innerHeight;
+      const timelineStart = timelineTop;
+
+      // Calculate progress: 0 when timeline starts entering viewport, 1 when fully scrolled past
+      let progress = 0;
+      if (scrollPosition >= timelineStart) {
+        const scrolled = scrollPosition - timelineStart;
+        progress = Math.min(1, scrolled / (timelineHeight + window.innerHeight * 0.5));
+      }
+
+      setScrollProgress(progress);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", handleScroll, { passive: true });
+    handleScroll(); // Initial calculation
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleScroll);
+    };
+  }, []);
 
   return (
     <div ref={containerRef} className="relative min-h-screen overflow-hidden">
@@ -267,14 +299,18 @@ export default function ExperiencePage() {
         </motion.section>
 
         {/* Timeline */}
-        <div className="relative">
-          {/* Vertical Timeline Line */}
+        <div ref={timelineRef} className="relative">
+          {/* Vertical Timeline Line Background */}
+          <div className="absolute left-8 top-0 h-full w-0.5 bg-white/10 md:left-12" />
+          
+          {/* Vertical Timeline Line Progress */}
           <motion.div
-            className="absolute left-8 top-0 h-full w-0.5 bg-gradient-to-b from-blue-500 via-purple-500 to-pink-500 md:left-12"
-            initial={{ scaleY: 0 }}
-            animate={{ scaleY: 1 }}
-            transition={{ duration: 1.5, ease: "easeInOut" }}
-            style={{ transformOrigin: "top" }}
+            className="absolute left-8 top-0 w-0.5 bg-gradient-to-b from-blue-500 via-purple-500 to-pink-500 md:left-12"
+            style={{
+              height: `${scrollProgress * 100}%`,
+              boxShadow: scrollProgress > 0 ? "0 0 10px rgba(168, 85, 247, 0.5), 0 0 20px rgba(99, 102, 241, 0.3)" : "none",
+            }}
+            transition={{ duration: 0.1, ease: "linear" }}
           />
 
           {/* Timeline Nodes */}
@@ -285,10 +321,10 @@ export default function ExperiencePage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ delay: index * 0.15, duration: 0.6 }}
-              className="relative mb-12 flex flex-col md:flex-row md:items-center"
+              className="relative mb-12 flex flex-col md:flex-row md:items-start"
             >
               {/* Timeline Node */}
-              <div className="absolute left-8 z-10 md:left-12 md:-translate-x-1/2">
+              <div className="absolute left-8 top-0 z-10 md:left-12 md:-translate-x-1/2">
                 <motion.div
                   className="relative h-6 w-6 rounded-full border-4 border-white/20 bg-gradient-to-br from-blue-500 to-purple-500 shadow-lg shadow-purple-500/50"
                   whileHover={{ scale: 1.5 }}
