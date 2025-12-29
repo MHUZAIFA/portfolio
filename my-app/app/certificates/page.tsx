@@ -3,6 +3,8 @@
 import { CertificateGallery } from "@/components/certificate-gallery";
 import { staggerContainer, staggerItem } from "@/components/providers/motion-provider";
 import { motion } from "framer-motion";
+import { useState } from "react";
+import { Grid, Folder } from "lucide-react";
 
 const certificates = [
   // Angular Certificates
@@ -180,6 +182,8 @@ const certificates = [
 ];
 
 export default function CertificatesPage() {
+  const [viewMode, setViewMode] = useState<"gallery" | "folder">("gallery");
+
   return (
     <motion.div
       initial="initial"
@@ -187,14 +191,43 @@ export default function CertificatesPage() {
       variants={staggerContainer}
       className="mx-auto max-w-7xl px-4 py-24"
     >
-      <motion.h1
-        variants={staggerItem}
-        className="mb-12 text-4xl font-bold text-white md:text-5xl"
-      >
-        Certificates
-      </motion.h1>
+      <div className="mb-12 flex items-center justify-between">
+        <motion.h1
+          variants={staggerItem}
+          className="text-4xl font-bold text-white md:text-5xl"
+        >
+          Certificates
+        </motion.h1>
+        <motion.div
+          variants={staggerItem}
+          className="flex gap-1 rounded-lg border border-white/10 bg-white/5 p-1"
+        >
+          <button
+            onClick={() => setViewMode("gallery")}
+            className={`flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-all ${
+              viewMode === "gallery"
+                ? "bg-white text-black shadow-sm"
+                : "text-white/70 hover:text-white hover:bg-white/10"
+            }`}
+          >
+            <Grid className="h-4 w-4" />
+            Gallery
+          </button>
+          <button
+            onClick={() => setViewMode("folder")}
+            className={`flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-all ${
+              viewMode === "folder"
+                ? "bg-white text-black shadow-sm"
+                : "text-white/70 hover:text-white hover:bg-white/10"
+            }`}
+          >
+            <Folder className="h-4 w-4" />
+            Folders
+          </button>
+        </motion.div>
+      </div>
 
-      <CertificateGallery certificates={certificates} />
+      <CertificateGallery certificates={certificates} viewMode={viewMode} />
     </motion.div>
   );
 }
