@@ -170,10 +170,19 @@ const generateParticles = () => {
 export default function ExperiencePage() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
-  const [particles] = useState(() => generateParticles());
+  const [mounted, setMounted] = useState(false);
+  const [particles, setParticles] = useState<Array<{ left: number; top: number; duration: number; delay: number }>>([]);
   const [scrollProgress, setScrollProgress] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
+
+  // Only generate and render particles after hydration to avoid mismatch
+  // This is a standard Next.js pattern to prevent hydration errors with random values
+  useEffect(() => {
+    setMounted(true);
+    setParticles(generateParticles());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const toggleExpand = (id: string) => {
     hapticManager.light();
@@ -526,8 +535,8 @@ export default function ExperiencePage() {
         ))}
       </div>
 
-        {/* Floating Particles */}
-        {particles.map((particle, i) => (
+        {/* Floating Particles - Only render after hydration */}
+        {mounted && particles.map((particle, i) => (
           <motion.div
             key={i}
             className="absolute h-1 w-1 rounded-full bg-white/20"
