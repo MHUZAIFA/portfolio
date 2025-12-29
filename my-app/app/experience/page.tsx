@@ -343,11 +343,11 @@ export default function ExperiencePage() {
         {/* Timeline */}
         <div ref={timelineRef} className="relative">
           {/* Vertical Timeline Line Background */}
-          <div className="absolute left-8 top-0 h-full w-0.5 bg-white/10 md:left-12" />
+          <div className="absolute left-[calc(2rem-2px)] top-0 h-full w-1 bg-white/10 md:left-[calc(3rem-2px)]" />
           
           {/* Vertical Timeline Line Progress */}
           <motion.div
-            className="absolute left-8 top-0 w-0.5 bg-gradient-to-b from-blue-500 via-purple-500 to-pink-500 md:left-12"
+            className="absolute left-[calc(2rem-2px)] top-0 w-1 bg-gradient-to-b from-blue-500 via-purple-500 to-pink-500 md:left-[calc(3rem-2px)]"
             style={{
               height: `${scrollProgress * 100}%`,
               boxShadow: scrollProgress > 0 ? "0 0 10px rgba(168, 85, 247, 0.5), 0 0 20px rgba(99, 102, 241, 0.3)" : "none",
