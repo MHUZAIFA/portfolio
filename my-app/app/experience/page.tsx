@@ -21,25 +21,54 @@ interface Experience {
 const experiences: Experience[] = [
   {
     id: "1",
-    company: "Company Name",
-    role: "Full Stack Developer",
-    duration: "2023 - Present",
+    company: "Flexspring",
+    role: "Full-stack Development Intern",
+    duration: "Sep 2024 - Present · 1 yr 4 mos",
     description:
-      "Developed and maintained web applications using React, Node.js, and .NET Core.",
+      "Full-stack Development Intern at Flexspring, Montreal, Quebec, Canada. Working with React.js, Java and other modern technologies.",
     fullDescription:
-      "Led development of multiple client projects, implemented RESTful APIs, optimized database queries, and collaborated with cross-functional teams to deliver high-quality software solutions. Mentored junior developers and contributed to code reviews.",
+      "Currently working as a Full-stack Development Intern at Flexspring, contributing to the development of modern web applications using React.js, Java, and other cutting-edge technologies. Based in Montreal, Quebec, Canada.",
   },
   {
     id: "2",
-    company: "Previous Company",
-    role: "Frontend Developer",
-    duration: "2021 - 2023",
+    company: "CitiusTech",
+    role: "Senior Software Engineer",
+    duration: "Apr 2023 - Aug 2023 · 5 mos",
     description:
-      "Built responsive user interfaces using React and Angular frameworks.",
+      "Developed a viewer for IBM Health Watson (now Merative) using Angular, DotNet, SQL, ML, AI, DICOM, PACS, and other technologies to improve cancer detection and reduce tumour analysis time.",
     fullDescription:
-      "Created reusable component libraries, improved application performance, and worked closely with designers to implement pixel-perfect UI designs. Participated in agile development processes and sprint planning.",
+      "Developed a viewer for IBM Health Watson (now Merative) using Angular, DotNet, SQL, ML, AI, DICOM, PACS, and other technologies to: a. Improve cancer detection, b. Reduce time taken in performing tumour analysis, and c. Assist in making informed decisions. Created reusable Angular components that reduced front-end development time by 30%. Achieved 95% unit test code coverage throughout the application. Improved application spin-up time from 3 to 1.5 seconds approx. Wrote clean optimized code applying software development principles like OOPS, SOLID, and DRY. Developed a successful POC which was demonstrated at RSNA 2023, leading to new customer acquisitions.",
   },
-  // Add more experiences as needed
+  {
+    id: "3",
+    company: "CitiusTech",
+    role: "Software Engineer",
+    duration: "Dec 2021 - Mar 2023 · 1 yr 4 mos",
+    description:
+      "Software Engineer at CitiusTech, Mumbai, Maharashtra, India. Worked with Angular, Microsoft SQL Server and other technologies.",
+    fullDescription:
+      "Worked as a Software Engineer at CitiusTech, contributing to various healthcare technology projects. Utilized Angular, Microsoft SQL Server, and other modern technologies to deliver high-quality software solutions.",
+  },
+  {
+    id: "4",
+    company: "Willis Towers Watson",
+    role: "Full Stack Developer",
+    duration: "Jul 2019 - Nov 2021 · 2 yrs 5 mos",
+    description:
+      "Developed and delivered enterprise-grade applications in an agile environment using Angular, .Net, SQL, CosmosDB, and Azure.",
+    fullDescription:
+      "Developed and delivered enterprise-grade applications in an agile environment using Angular, .Net, SQL, CosmosDB, and Azure. Managed Angular libraries and expanded toolkit with reusable components for multiple projects. Applied software development principles (SOLID, ONION) and design patterns (Strategy, Repository) in MVC framework. By continually monitoring and optimizing azure resources and its metrics, saved more than 1000 pounds. Reduced data retrieval time from 5-10 seconds to 0.5-1 seconds, enhancing application performance. Achieved 90-95% unit test code coverage across applications and APIs. Defined branching, release strategies, and CI/CD pipelines in Azure DevOps for diverse environments.",
+  },
+  {
+    id: "5",
+    company: "Reliance Industries Limited",
+    role: "Full-stack Development Intern",
+    duration: "Dec 2018 - Jan 2019 · 2 mos",
+    description:
+      "Developed MEAN stack project management application using Angular, Node.js, Express server, and MongoDB, increasing productivity of internal teams by 27%.",
+    fullDescription:
+      "Developed MEAN stack project management application using Angular, Node.js, Express server, and MongoDB (MEAN Stack), increasing the productivity of internal teams by 27% within the first quarter of launch.",
+  },
 ];
 
 export default function ExperiencePage() {
