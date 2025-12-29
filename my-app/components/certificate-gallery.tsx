@@ -142,6 +142,8 @@ export function CertificateGallery({ certificates, viewMode }: CertificateGaller
             fill
             sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
             className="object-cover transition-transform group-hover:scale-110"
+            draggable={false}
+            onClick={() => openLightbox(index)}
           />
           <div className="absolute inset-0 bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
             <div className="flex h-full items-center justify-center">
@@ -200,6 +202,8 @@ export function CertificateGallery({ certificates, viewMode }: CertificateGaller
                     fill
                     sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                     className="object-cover transition-transform group-hover:scale-110"
+                    draggable={false}
+                    onClick={() => openLightbox(globalIndex)}
                   />
                   <div className="absolute inset-0 bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
                     <div className="flex h-full items-center justify-center">
@@ -241,6 +245,8 @@ export function CertificateGallery({ certificates, viewMode }: CertificateGaller
                     fill
                     sizes="(max-width: 768px) 50vw, 25vw"
                     className="object-cover transition-transform group-hover:scale-110"
+                    draggable={false}
+                    onClick={() => openFolder(category)}
                   />
                 </div>
               </motion.div>
@@ -324,15 +330,20 @@ export function CertificateGallery({ certificates, viewMode }: CertificateGaller
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
               onClick={(e) => e.stopPropagation()}
-              className="relative mx-4 h-[90vh] max-w-4xl"
+              className="relative mx-4 h-[90vh] w-full max-w-4xl"
             >
-              <Image
-                src={certificates[selectedIndex].image}
-                alt={certificates[selectedIndex].title}
-                fill
-                sizes="90vw"
-                className="object-contain"
-              />
+              <div className="relative h-full w-full">
+                <Image
+                  src={certificates[selectedIndex].image}
+                  alt={certificates[selectedIndex].title}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 90vw"
+                  className="object-contain"
+                  draggable={false}
+                  priority
+                  unoptimized
+                />
+              </div>
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6 text-white">
                 <h3 className="text-xl font-semibold">
                   {certificates[selectedIndex].title}
