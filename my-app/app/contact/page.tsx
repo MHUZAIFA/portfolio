@@ -58,9 +58,12 @@ export default function ContactPage() {
       initial="initial"
       animate="animate"
       variants={staggerContainer}
-      className="mx-auto max-w-7xl px-4 md:px-8 py-24"
+      className="mx-auto max-w-7xl px-4 md:px-8 pt-24"
     >
-      <motion.div
+
+      <div className="mb-16 grid gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:items-start">
+        <div>
+        <motion.div
         variants={staggerItem}
         className="mb-10 flex items-center justify-between gap-4"
       >
@@ -92,9 +95,6 @@ export default function ContactPage() {
           })}
         </div>
       </motion.div>
-
-      <div className="mb-16 grid gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:items-start">
-        <div>
           <ContactForm />
         </div>
 
@@ -111,17 +111,16 @@ export default function ContactPage() {
             </p>
           </div>
 
-          <div className="relative">
-            <div className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.25),_transparent_55%),radial-gradient(circle_at_bottom,_rgba(94,234,212,0.18),_transparent_55%)] mix-blend-screen" />
-            <div className="relative z-10 h-[calc(100vh-20rem)] w-full overflow-hidden rounded-b-2xl bg-black">
+          <div className="relative h-[calc(100vh-20rem)] w-full">
+            <div className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(circle_at_top,rgba(56,189,248,0.25),transparent_55%),radial-gradient(circle_at_bottom,rgba(94,234,212,0.18),transparent_55%)] mix-blend-screen" />
+            <div className="relative z-10 h-full w-full overflow-hidden bg-black">
               <iframe
                 title="Map showing Montréal, Canada"
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2795.995746324729!2d-73.56725668443858!3d45.501688979101995!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4cc91a417de4c1c3%3A0x5bcd40ff0fb1921!2sMontr%C3%A9al%2C%20QC!5e0!3m2!1sen!2sca!4v1700000000000!5m2!1sen!2sca"
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
-                className="h-full w-full border-0 filter invert-[0.9] grayscale contrast-[1.1] brightness-[0.6]"
+                className="h-full w-full border-0"
               />
-              <div className="pointer-events-none absolute inset-0 bg-black/55 mix-blend-multiply" />
             </div>
           </div>
         </motion.section>
