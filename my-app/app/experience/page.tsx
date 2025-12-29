@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { useState, useRef } from "react";
 import { 
@@ -14,10 +14,7 @@ import {
   Target,
   Code,
   Rocket,
-  Sparkles,
-  CheckCircle2,
   Building2,
-  Briefcase,
   Cloud
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -38,7 +35,7 @@ interface Experience {
   logo?: string;
   technologies?: string[];
   achievements?: Array<{
-    icon: any;
+    icon: LucideIcon;
     label: string;
     value: string;
     color: string;
@@ -160,14 +157,21 @@ const techIcons: Record<string, IconType | LucideIcon> = {
   "PACS": Cloud,
 };
 
+// Generate particle positions once
+const generateParticles = () => {
+  return Array.from({ length: 20 }, () => ({
+    left: Math.random() * 100,
+    top: Math.random() * 100,
+    duration: 3 + Math.random() * 2,
+    delay: Math.random() * 2,
+  }));
+};
+
 export default function ExperiencePage() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [particles] = useState(() => generateParticles());
   const containerRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start end", "end start"],
-  });
 
   const toggleExpand = (id: string) => {
     hapticManager.light();
@@ -228,38 +232,39 @@ export default function ExperiencePage() {
         </div>
       </div>
 
-      <motion.div
-        initial="initial"
-        animate="animate"
-        variants={staggerContainer}
+    <motion.div
+      initial="initial"
+      animate="animate"
+      variants={staggerContainer}
         className="relative mx-auto max-w-7xl px-4 py-24"
-      >
+    >
         {/* Header */}
-        <motion.div variants={staggerItem} className="mb-16 text-center">
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: "spring", stiffness: 200, damping: 15 }}
-            className="mb-6 inline-block"
-          >
-            <Briefcase className="h-16 w-16 text-white/20" />
-          </motion.div>
-          <motion.h1
-            variants={staggerItem}
-            className="mb-4 text-5xl font-bold text-white md:text-6xl lg:text-7xl"
-          >
-            Professional
-            <span className="block bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-              Experience
-            </span>
-          </motion.h1>
-          <motion.p
-            variants={staggerItem}
-            className="text-lg text-white/60 md:text-xl"
-          >
-            My journey through innovation and growth
-          </motion.p>
-        </motion.div>
+      <motion.h1
+        variants={staggerItem}
+        className="mb-12 text-4xl font-bold text-white md:text-5xl"
+      >
+        Experience
+      </motion.h1>
+
+        <motion.section
+          variants={staggerItem}
+          className="mb-16 space-y-4 text-lg text-white/80"
+        >
+          <p className="text-justify">
+            My professional journey has been marked by continuous growth,
+            innovation, and a commitment to delivering exceptional results. From
+            developing enterprise-grade healthcare solutions to building modern
+            web applications, I&apos;ve had the opportunity to work with
+            cutting-edge technologies and contribute to meaningful projects.
+          </p>
+          <p className="text-justify">
+            Each role has shaped my expertise in full-stack development,
+            software engineering principles, and collaborative problem-solving.
+            I take pride in writing clean, optimized code and achieving
+            measurable improvements in performance, efficiency, and user
+            experience.
+          </p>
+        </motion.section>
 
         {/* Timeline */}
         <div className="relative">
@@ -274,8 +279,8 @@ export default function ExperiencePage() {
 
           {/* Timeline Nodes */}
           {experiences.map((exp, index) => (
-            <motion.div
-              key={exp.id}
+          <motion.div
+            key={exp.id}
               initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
@@ -326,7 +331,7 @@ export default function ExperiencePage() {
                     <div className="relative z-10">
                       {/* Header */}
                       <div className="mb-4 flex items-start justify-between">
-                        <div className="flex-1">
+                <div className="flex-1">
                           <div className="mb-2 flex items-center gap-3">
                             <motion.div
                               className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500/20 to-purple-500/20"
@@ -335,15 +340,15 @@ export default function ExperiencePage() {
                             >
                               <Building2 className="h-6 w-6 text-white/80" />
                             </motion.div>
-                            <div>
+                    <div>
                               <h3 className="text-xl font-bold text-white md:text-2xl">
-                                {exp.role}
-                              </h3>
+                        {exp.role}
+                      </h3>
                               <p className="text-lg font-medium text-white/70">
                                 {exp.company}
                               </p>
-                            </div>
-                          </div>
+                    </div>
+                  </div>
 
                           {/* Meta Info */}
                           <div className="mb-4 flex flex-wrap items-center gap-4 text-sm text-white/60">
@@ -366,21 +371,21 @@ export default function ExperiencePage() {
                               {exp.type === "full-time" ? "Full-time" : "Internship"}
                             </motion.span>
                           </div>
-                        </div>
+                </div>
 
                         {/* Expand Button */}
-                        {exp.fullDescription && (
+                {exp.fullDescription && (
                           <motion.button
-                            onClick={() => toggleExpand(exp.id)}
+                    onClick={() => toggleExpand(exp.id)}
                             whileHover={{ scale: 1.1, rotate: 180 }}
                             whileTap={{ scale: 0.9 }}
                             className="ml-4 rounded-full bg-white/10 p-2 text-white transition-colors hover:bg-white/20"
-                          >
-                            {expandedId === exp.id ? (
-                              <ChevronUp className="h-5 w-5" />
-                            ) : (
-                              <ChevronDown className="h-5 w-5" />
-                            )}
+                  >
+                    {expandedId === exp.id ? (
+                      <ChevronUp className="h-5 w-5" />
+                    ) : (
+                      <ChevronDown className="h-5 w-5" />
+                    )}
                           </motion.button>
                         )}
                       </div>
@@ -481,18 +486,18 @@ export default function ExperiencePage() {
                   </Card>
                 </motion.div>
               </div>
-            </motion.div>
-          ))}
-        </div>
+          </motion.div>
+        ))}
+      </div>
 
         {/* Floating Particles */}
-        {[...Array(20)].map((_, i) => (
+        {particles.map((particle, i) => (
           <motion.div
             key={i}
             className="absolute h-1 w-1 rounded-full bg-white/20"
             style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
+              left: `${particle.left}%`,
+              top: `${particle.top}%`,
             }}
             animate={{
               y: [0, -30, 0],
@@ -500,13 +505,13 @@ export default function ExperiencePage() {
               scale: [1, 1.5, 1],
             }}
             transition={{
-              duration: 3 + Math.random() * 2,
+              duration: particle.duration,
               repeat: Infinity,
-              delay: Math.random() * 2,
+              delay: particle.delay,
             }}
           />
         ))}
-      </motion.div>
+    </motion.div>
     </div>
   );
 }
