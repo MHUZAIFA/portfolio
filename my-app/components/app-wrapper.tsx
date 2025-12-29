@@ -45,7 +45,7 @@ export function AppWrapper({ children }: { children: React.ReactNode }) {
       <MouseEffects />
       <div className="h-screen bg-black text-white">
         <Navigation />
-        <main className="pt-20">{children}</main>
+        <main>{children}</main>
       </div>
     </MotionProvider>
   );

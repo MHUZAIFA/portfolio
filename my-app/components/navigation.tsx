@@ -1,97 +1,326 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { motion } from "framer-motion";
+import { usePathname, useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import { hapticManager } from "@/lib/haptic-manager";
 import { cn } from "@/lib/utils";
+import { useState, useEffect, useRef } from "react";
+import {
+  Home,
+  User,
+  Briefcase,
+  FolderOpen,
+  Award,
+  Heart,
+  Mail,
+  Search,
+  Command,
+  ArrowRight,
+} from "lucide-react";
 
 const navItems = [
-  { href: "/", label: "Home" },
-  { href: "/about", label: "About" },
-  { href: "/experience", label: "Experience" },
-  { href: "/projects", label: "Projects" },
-  { href: "/certificates", label: "Certificates" },
-  { href: "/interests", label: "Interests" },
-  { href: "/contact", label: "Contact" },
+  { href: "/", label: "Home", icon: Home, keywords: ["home", "main", "landing"] },
+  { href: "/about", label: "About", icon: User, keywords: ["about", "me", "info", "profile"] },
+  { href: "/experience", label: "Experience", icon: Briefcase, keywords: ["experience", "work", "career", "jobs", "employment"] },
+  { href: "/projects", label: "Projects", icon: FolderOpen, keywords: ["projects", "portfolio", "work", "apps"] },
+  { href: "/certificates", label: "Certificates", icon: Award, keywords: ["certificates", "certifications", "awards", "credentials"] },
+  { href: "/interests", label: "Interests", icon: Heart, keywords: ["interests", "hobbies", "passions"] },
+  { href: "/contact", label: "Contact", icon: Mail, keywords: ["contact", "email", "reach", "connect", "message"] },
 ];
 
 export function Navigation() {
   const pathname = usePathname();
+  const router = useRouter();
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Filter items based on search query
+  const filteredItems = navItems.filter((item) =>
+    item.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.keywords.some((keyword) => keyword.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+
+  // Keyboard shortcuts (Cmd+K or Ctrl+K)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setIsOpen(true);
+        hapticManager.light();
+      }
+      if (e.key === "Escape" && isOpen) {
+        setIsOpen(false);
+        setSearchQuery("");
+        setSelectedIndex(0);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen]);
+
+  // Handle arrow key navigation
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setSelectedIndex((prev) => (prev + 1) % filteredItems.length);
+        hapticManager.light();
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setSelectedIndex((prev) => (prev - 1 + filteredItems.length) % filteredItems.length);
+        hapticManager.light();
+      } else if (e.key === "Enter" && filteredItems[selectedIndex]) {
+        e.preventDefault();
+        handleNavigate(filteredItems[selectedIndex].href);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, filteredItems, selectedIndex]);
+
+  // Focus input when opened
+  useEffect(() => {
+    if (isOpen && inputRef.current) {
+      setTimeout(() => inputRef.current?.focus(), 100);
+    }
+  }, [isOpen]);
+
+  // Reset selected index when filtered items change
+  useEffect(() => {
+    setSelectedIndex(0);
+  }, [searchQuery]);
+
+  // Close menu when route changes
+  useEffect(() => {
+    setIsOpen(false);
+    setSearchQuery("");
+    setSelectedIndex(0);
+  }, [pathname]);
+
+  const handleNavigate = (href: string) => {
+    router.push(href);
+    setIsOpen(false);
+    setSearchQuery("");
+    setSelectedIndex(0);
+    hapticManager.medium();
+  };
+
+  const isActive = (href: string) => {
+    if (href === "/") {
+      return pathname === "/";
+    }
+    return pathname.startsWith(href);
+  };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-40 border-b border-white/10 bg-black/80 backdrop-blur-sm">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 md:px-6">
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5 }}
+    <>
+      {/* Logo - Fixed top left */}
+      <motion.div
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.5 }}
+        className="fixed top-6 left-6 z-50 md:left-8"
+      >
+        <Link
+          href="/"
+          className="group relative flex items-center gap-2"
+          onClick={() => hapticManager.light()}
         >
-          <Link
-            href="/"
-            className="text-xl font-semibold text-white"
-            onClick={() => hapticManager.light()}
+          <motion.div
+            whileHover={{ scale: 1.1, rotate: 5 }}
+            whileTap={{ scale: 0.95 }}
+            className="relative"
           >
-            MHuzaifa
-          </Link>
-        </motion.div>
+            <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 opacity-0 blur-lg transition-opacity group-hover:opacity-50" />
+            <div className="relative rounded-lg bg-white/5 px-4 py-2 backdrop-blur-sm transition-all group-hover:bg-white/10">
+              <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-lg font-bold text-transparent">
+                MHuzaifa
+              </span>
+            </div>
+          </motion.div>
+        </Link>
+      </motion.div>
 
-        <div className="hidden items-center gap-1 md:flex">
-          {navItems.map((item, index) => (
+      {/* Command Palette Trigger Button */}
+      <motion.button
+        onClick={() => {
+          setIsOpen(true);
+          hapticManager.light();
+        }}
+        className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-full border border-white/10 bg-black/80 px-4 py-3 backdrop-blur-md transition-all hover:border-white/20 hover:bg-white/10 md:bottom-8 md:right-8"
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        aria-label="Open navigation"
+      >
+        <Search className="h-4 w-4 text-white/70" />
+        <span className="hidden text-sm text-white/70 md:inline">Quick Nav</span>
+        <kbd className="hidden items-center gap-1 rounded border border-white/20 bg-white/5 px-2 py-1 text-xs text-white/50 md:flex">
+          <Command className="h-3 w-3" />
+          <span>K</span>
+        </kbd>
+      </motion.button>
+
+      {/* Command Palette Modal */}
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            {/* Backdrop */}
             <motion.div
-              key={item.href}
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.05 }}
-            >
-              <Link
-                href={item.href}
-                onClick={() => hapticManager.light()}
-                className={cn(
-                  "relative px-4 py-2 text-sm font-medium text-white/70 transition-colors hover:text-white",
-                  pathname === item.href && "text-white"
-                )}
-              >
-                {item.label}
-                {pathname === item.href && (
-                  <motion.div
-                    layoutId="activeTab"
-                    className="absolute inset-0 border-b-2 border-white"
-                    initial={false}
-                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                  />
-                )}
-              </Link>
-            </motion.div>
-          ))}
-        </div>
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-40 bg-black/80 backdrop-blur-sm"
+              onClick={() => {
+                setIsOpen(false);
+                setSearchQuery("");
+                setSelectedIndex(0);
+              }}
+            />
 
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5 }}
-          className="md:hidden"
-        >
-          <button
-            onClick={() => hapticManager.light()}
-            className="text-white"
-            aria-label="Menu"
-          >
-            <svg
-              className="h-6 w-6"
-              fill="none"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+            {/* Command Palette */}
+            <motion.div
+              ref={containerRef}
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="fixed left-1/2 top-1/2 z-50 w-[90vw] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-white/10 bg-black/95 p-2 shadow-2xl backdrop-blur-xl md:w-[600px]"
+              onClick={(e) => e.stopPropagation()}
             >
-              <path d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-        </motion.div>
-      </div>
-    </nav>
+              {/* Search Input */}
+              <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+                <Search className="h-5 w-5 text-white/50" />
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search pages... (try 'work', 'projects', 'contact')"
+                  className="flex-1 bg-transparent text-white placeholder:text-white/40 focus:outline-none"
+                />
+                <kbd className="hidden items-center gap-1 rounded border border-white/20 bg-white/5 px-2 py-1 text-xs text-white/50 md:flex">
+                  <span>ESC</span>
+                </kbd>
+              </div>
+
+              {/* Results List */}
+              <div className="mt-2 max-h-96 overflow-y-auto">
+                {filteredItems.length > 0 ? (
+                  <div className="space-y-1 p-2">
+                    {filteredItems.map((item, index) => {
+                      const Icon = item.icon;
+                      const active = isActive(item.href);
+                      const isSelected = index === selectedIndex;
+
+                      return (
+                        <motion.div
+                          key={item.href}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.03 }}
+                        >
+                          <button
+                            onClick={() => handleNavigate(item.href)}
+                            onMouseEnter={() => {
+                              setSelectedIndex(index);
+                              hapticManager.light();
+                            }}
+                            className={cn(
+                              "flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left transition-all",
+                              isSelected
+                                ? "bg-white/10"
+                                : "hover:bg-white/5",
+                              active && "bg-white/5"
+                            )}
+                          >
+                            <div
+                              className={cn(
+                                "flex h-10 w-10 items-center justify-center rounded-lg transition-all",
+                                active
+                                  ? "bg-gradient-to-br from-blue-500 to-purple-500"
+                                  : "bg-white/5"
+                              )}
+                            >
+                              <Icon
+                                className={cn(
+                                  "h-5 w-5",
+                                  active ? "text-white" : "text-white/70"
+                                )}
+                              />
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <span
+                                  className={cn(
+                                    "font-medium",
+                                    active || isSelected ? "text-white" : "text-white/70"
+                                  )}
+                                >
+                                  {item.label}
+                                </span>
+                                {active && (
+                                  <motion.span
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    className="h-2 w-2 rounded-full bg-blue-500"
+                                  />
+                                )}
+                              </div>
+                            </div>
+                            {isSelected && (
+                              <ArrowRight className="h-4 w-4 text-white/50" />
+                            )}
+                          </button>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="p-8 text-center">
+                    <p className="text-white/50">No results found</p>
+                    <p className="mt-2 text-sm text-white/30">
+                      Try searching for "home", "projects", or "contact"
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer Hint */}
+              <div className="mt-2 flex items-center justify-between border-t border-white/10 px-4 py-2 text-xs text-white/40">
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-1">
+                    <kbd className="rounded border border-white/20 bg-white/5 px-1.5 py-0.5">
+                      ↑↓
+                    </kbd>
+                    <span>Navigate</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <kbd className="rounded border border-white/20 bg-white/5 px-1.5 py-0.5">
+                      ↵
+                    </kbd>
+                    <span>Select</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1">
+                  <kbd className="rounded border border-white/20 bg-white/5 px-1.5 py-0.5">
+                    ESC
+                  </kbd>
+                  <span>Close</span>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
-
