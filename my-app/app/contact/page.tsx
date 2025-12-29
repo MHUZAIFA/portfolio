@@ -140,13 +140,16 @@ export default function ContactPage() {
 
           <div className="relative h-[calc(100vh-20rem)] w-full">
             <div className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(circle_at_top,rgba(56,189,248,0.25),transparent_55%),radial-gradient(circle_at_bottom,rgba(94,234,212,0.18),transparent_55%)] mix-blend-screen" />
-            <div className="relative z-10 h-full w-full overflow-hidden bg-black">
-              <iframe
-                title="Map showing Montréal, Canada"
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2795.995746324729!2d-73.56725668443858!3d45.501688979101995!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4cc91a417de4c1c3%3A0x5bcd40ff0fb1921!2sMontr%C3%A9al%2C%20QC!5e0!3m2!1sen!2sca!4v1700000000000!5m2!1sen!2sca"
-                loading="lazy"
+            <div className="relative z-10 h-full w-full overflow-hidden rounded-none bg-black">
+              <iframe 
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d178787.4312134501!2d-73.87668047886544!3d45.55930461097889!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4cc91a541c64b70d%3A0x654e3138211fefef!2sMontreal%2C%20QC!5e0!3m2!1sen!2sca!4v1767002508064!5m2!1sen!2sca" 
+                width="100%" 
+                height="100%" 
+                style={{ border: 0, filter: "invert(1) hue-rotate(180deg) brightness(0.8) contrast(1.2)" }}
+                allowFullScreen
+                loading="lazy" 
                 referrerPolicy="no-referrer-when-downgrade"
-                className="h-full w-full border-0"
+                title="Map showing Montréal, Canada"
               />
             </div>
           </div>
