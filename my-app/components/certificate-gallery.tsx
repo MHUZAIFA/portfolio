@@ -344,7 +344,7 @@ export function CertificateGallery({ certificates, viewMode }: CertificateGaller
                   unoptimized
                 />
               </div>
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6 text-white">
+              {/* <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6 text-white">
                 <h3 className="text-xl font-semibold">
                   {certificates[selectedIndex].title}
                 </h3>
@@ -352,7 +352,7 @@ export function CertificateGallery({ certificates, viewMode }: CertificateGaller
                   {certificates[selectedIndex].issuer} •{" "}
                   {certificates[selectedIndex].date}
                 </p>
-              </div>
+              </div> */}
             </motion.div>
           </motion.div>
         )}
