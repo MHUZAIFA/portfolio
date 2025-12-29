@@ -65,11 +65,26 @@ export default function ContactPage() {
         <div>
         <motion.div
         variants={staggerItem}
+        transition={{ 
+          type: "spring", 
+          stiffness: 100, 
+          damping: 15 
+        }}
         className="mb-10 flex items-center justify-between gap-4"
       >
-        <h1 className="text-4xl font-bold text-white md:text-5xl">
+        <motion.h1 
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ 
+            type: "spring", 
+            stiffness: 100, 
+            damping: 15,
+            delay: 0.1
+          }}
+          className="text-4xl font-bold text-white md:text-5xl"
+        >
           Contact
-        </h1>
+        </motion.h1>
 
         <div className="flex flex-wrap gap-3">
           {socialLinks.map((social, index) => {
@@ -80,10 +95,15 @@ export default function ContactPage() {
                 href={social.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: index * 0.05 }}
-                whileHover={{ scale: 1.1 }}
+                initial={{ opacity: 0, scale: 0.8, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ 
+                  type: "spring",
+                  stiffness: 200,
+                  damping: 20,
+                  delay: 0.2 + index * 0.05
+                }}
+                whileHover={{ scale: 1.15, y: -2 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => hapticManager.light()}
                 className="flex items-center justify-center text-white/70 transition-colors hover:text-white"
@@ -99,7 +119,14 @@ export default function ContactPage() {
         </div>
 
         <motion.section
-          variants={staggerItem}
+          initial={{ opacity: 0, y: 30, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ 
+            type: "spring",
+            stiffness: 100,
+            damping: 20,
+            delay: 0.3
+          }}
           className="overflow-hidden rounded-sm border border-white/10 bg-white/5 shadow-xl"
         >
           <div className="border-b border-white/10 bg-gradient-to-r from-sky-500/20 via-cyan-400/10 to-emerald-400/10 px-5 py-4">

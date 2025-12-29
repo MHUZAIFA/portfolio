@@ -213,7 +213,7 @@ export function ContactForm() {
               id="message"
               value={formData.message}
               onChange={(e) => handleChange("message", e.target.value)}
-              className="min-h-[150px] bg-white/5 border-white/10 text-white placeholder:text-white/40"
+              className="min-h-[145px] bg-white/5 border-white/10 text-white placeholder:text-white/40"
               placeholder="Your message here..."
               disabled={isSubmitting}
             />

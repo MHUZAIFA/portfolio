@@ -53,13 +53,17 @@ export const staggerContainer = {
   initial: {},
   animate: {
     transition: {
-      staggerChildren: 0.1,
+      staggerChildren: 0.08,
+      delayChildren: 0.05,
     },
   },
 };
 
 export const staggerItem = {
   initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
+  animate: { 
+    opacity: 1, 
+    y: 0,
+  },
 };
 
