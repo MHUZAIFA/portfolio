@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { Card } from "@/components/ui/card";
 import { useState, useRef, useEffect } from "react";
 import { 
   Calendar,
@@ -136,7 +135,6 @@ const generateParticles = () => {
 type TabType = "all" | "awards" | "recommendations";
 
 export default function HonorsPage() {
-  const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   const [particles, setParticles] = useState<Array<{ left: number; top: number; duration: number; delay: number }>>([]);
   const [activeTab, setActiveTab] = useState<TabType>("all");
@@ -351,24 +349,9 @@ export default function HonorsPage() {
                   transition={{ delay: index * 0.1, duration: 0.6 }}
                   className="relative"
                 >
-                    <motion.div
-                      onMouseEnter={() => {
-                        setHoveredId(honor.id);
-                        hapticManager.light();
-                      }}
-                      onMouseLeave={() => setHoveredId(null)}
-                      whileHover={{ y: -5 }}
-                      className="h-full"
-                    >
-                      <Card className="group relative h-full overflow-hidden border-white/10 bg-white/5 p-6 backdrop-blur-sm transition-all hover:border-white/20 hover:bg-white/10">
-                        {/* Gradient Border Effect */}
-                        <motion.div
-                          className="absolute inset-0 rounded-lg bg-gradient-to-r from-yellow-500/20 via-orange-500/20 to-red-500/20 opacity-0 transition-opacity group-hover:opacity-100"
-                          initial={false}
-                        />
-
+                    <div className="relative h-full">
                         {/* Award Badge */}
-                        <div className="absolute right-4 top-4 z-10">
+                        <div className="absolute right-0 top-4 z-10">
                           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-yellow-500/20 to-orange-500/20">
                             <Trophy className="h-5 w-5 text-yellow-400" />
                           </div>
@@ -376,16 +359,36 @@ export default function HonorsPage() {
 
                         {/* Content */}
                         <div className="relative z-10">
-                          {/* Header */}
+                          {/* Award Image Preview */}
+                          {honor.image && (
+                            <div className="mb-4">
+                              <motion.div
+                                whileHover={{ scale: 1.02 }}
+                                onClick={() => setSelectedHonor(honor)}
+                                className="relative cursor-pointer overflow-hidden rounded-lg border border-white/10 bg-white/5 group/image"
+                              >
+                                <Image
+                                  src={honor.image}
+                                  alt={`${honor.title} certificate`}
+                                  width={400}
+                                  height={300}
+                                  className="h-auto w-full object-cover transition-transform group-hover/image:scale-105"
+                                />
+                                <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover/image:opacity-100">
+                                  <ZoomIn className="h-8 w-8 text-white" />
+                                </div>
+                              </motion.div>
+                            </div>
+                          )}
                           <div className="mb-4">
-                            <div className="mb-3 flex items-center gap-3">
+                            <div className="mb-3 flex gap-3">
                               {honor.logo ? (
                                 <Image
                                   src={honor.logo}
                                   alt={`${honor.issuer} logo`}
                                   width={48}
                                   height={48}
-                                  className="h-12 w-12 rounded-lg object-contain p-1"
+                                  className="h-12 w-12 rounded-sm"
                                 />
                               ) : (
                                 <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-white/5">
@@ -412,52 +415,18 @@ export default function HonorsPage() {
                                    )}
                                  </div>
                               </div>
-                            </div>
-
-                            {/* Meta Info */}
-                            <div className="mb-3 flex items-center gap-2 text-sm text-white/60">
-                              <Calendar className="h-4 w-4" />
-                              <span>{honor.date}</span>
+                              {/* Date - Top Right */}
+                              <div className="flex mt-1 gap-2 text-sm text-white/60">
+                                <Calendar className="h-4 w-4" />
+                                <span>{honor.date}</span>
+                              </div>
                             </div>
                           </div>
 
                           {/* Description */}
                           <p className="mb-4 text-sm text-white/80 line-clamp-3">{honor.description}</p>
-
-                          {/* Award Image Preview */}
-                          {honor.image && (
-                            <div className="mb-4">
-                              <motion.div
-                                whileHover={{ scale: 1.02 }}
-                                onClick={() => setSelectedHonor(honor)}
-                                className="relative cursor-pointer overflow-hidden rounded-lg border border-white/10 bg-white/5 group/image"
-                              >
-                                <Image
-                                  src={honor.image}
-                                  alt={`${honor.title} certificate`}
-                                  width={400}
-                                  height={300}
-                                  className="h-auto w-full object-cover transition-transform group-hover/image:scale-105"
-                                />
-                                <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover/image:opacity-100">
-                                  <ZoomIn className="h-8 w-8 text-white" />
-                                </div>
-                              </motion.div>
-                            </div>
-                          )}
                         </div>
-
-                        {/* Shine Effect */}
-                        <motion.div
-                          className="absolute inset-0 -z-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
-                          initial={{ x: "-100%" }}
-                          animate={{
-                            x: hoveredId === honor.id ? "100%" : "-100%",
-                          }}
-                          transition={{ duration: 0.6 }}
-                        />
-                      </Card>
-                    </motion.div>
+                    </div>
               </motion.div>
                 ))}
             </div>
