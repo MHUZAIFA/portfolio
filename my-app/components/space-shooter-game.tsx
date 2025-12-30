@@ -115,9 +115,8 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
     if (!canvas) return;
 
     const resize = () => {
-      const navHeight = 80; // Account for nav height
       const width = window.innerWidth;
-      const height = window.innerHeight - navHeight;
+      const height = window.innerHeight;
       canvas.width = width * window.devicePixelRatio;
       canvas.height = height * window.devicePixelRatio;
 
@@ -138,9 +137,8 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
     resize();
 
     // Initialize ship position on mount
-    const navHeight = 80;
     const width = window.innerWidth;
-    const height = window.innerHeight - navHeight;
+    const height = window.innerHeight;
     const initialPos = getInitialShipPosition(width, height);
     spaceshipRef.current.position = initialPos;
     spaceshipRef.current.rotation = 0;
@@ -238,9 +236,8 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
     spawnAnimationStartRef.current = null;
     const canvas = canvasRef.current;
     if (canvas) {
-      const navHeight = 80;
       const width = window.innerWidth;
-      const height = window.innerHeight - navHeight;
+      const height = window.innerHeight;
       const initialPos = getInitialShipPosition(width, height);
       spaceshipRef.current.position = initialPos;
       spaceshipRef.current.rotation = 0; // Face upwards
@@ -253,9 +250,8 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
     // Set ship to bottom center and start game immediately
     const canvas = canvasRef.current;
     if (canvas) {
-      const navHeight = 80;
       const width = window.innerWidth;
-      const height = window.innerHeight - navHeight;
+      const height = window.innerHeight;
 
       const ship = spaceshipRef.current;
       ship.position.x = width / 2;
@@ -291,9 +287,8 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
     // Reset ship to initial position (above bottom-left menu)
     const canvas = canvasRef.current;
     if (canvas) {
-      const navHeight = 80;
       const width = window.innerWidth;
-      const height = window.innerHeight - navHeight;
+      const height = window.innerHeight;
       const initialPos = getInitialShipPosition(width, height);
       spaceshipRef.current.position = initialPos;
       spaceshipRef.current.rotation = 0; // Face upwards
@@ -604,7 +599,7 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
     ctx.font = "500 18px system-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif";
     ctx.textAlign = "right";
     ctx.textBaseline = "top";
-    ctx.fillText(`Score: ${scoreRef.current}`, width - 20, 0);
+    ctx.fillText(`Score: ${scoreRef.current}`, width - 20, 40);
   };
 
   const renderGame = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
@@ -758,7 +753,7 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
     ctx.font = "500 18px system-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif";
     ctx.textAlign = "right";
     ctx.textBaseline = "top";
-    ctx.fillText(`Score: ${scoreRef.current}`, width - 20, 0);
+    ctx.fillText(`Score: ${scoreRef.current}`, width - 20, 40);
   };
 
   // Clean up animation on unmount
@@ -827,7 +822,7 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
   const canStart = status === "idle" || status === "over";
 
   return (
-    <div className={`fixed inset-0 pointer-events-none ${status === "idle" ? "z-0" : "z-20"}`} style={{ top: '5rem' }}>
+    <div className={`fixed inset-0 pointer-events-none ${status === "idle" ? "z-0" : "z-20"}`}>
       <div className="relative h-full w-full">
         <canvas ref={canvasRef} className="h-full w-full pointer-events-auto" />
 
