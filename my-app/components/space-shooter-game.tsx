@@ -631,6 +631,12 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
     ctx.stroke();
 
     ctx.restore();
+
+    // Score - top right (always show latest score)
+    ctx.fillStyle = "rgba(255,255,255,0.9)";
+    ctx.font = "500 18px system-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif";
+    ctx.textAlign = "right";
+    ctx.fillText(`Score: ${scoreRef.current}`, width - 20, 30);
   };
 
   const renderGame = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
@@ -751,11 +757,12 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
 
     ctx.restore();
 
-    // Score
-    ctx.fillStyle = "rgba(255,255,255,0.9)";
+    // Score - top right (always visible during gameplay)
+    ctx.fillStyle = "rgba(255,255,255,0.95)";
     ctx.font = "500 18px system-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText(`Score: ${scoreRef.current}`, width / 2, 30);
+    ctx.textAlign = "right";
+    ctx.textBaseline = "top";
+    ctx.fillText(`Score: ${scoreRef.current}`, width - 20, 20);
   };
 
   // Clean up animation on unmount
