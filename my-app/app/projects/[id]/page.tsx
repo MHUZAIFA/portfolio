@@ -121,13 +121,34 @@ export default function ProjectDetailsPage({
       initial="initial"
       animate="animate"
       variants={staggerContainer}
-      className="min-h-screen"
+      className="min-h-screen relative"
     >
-      <div className="grid grid-cols-1 gap-0 lg:grid-cols-2">
-        <motion.div
-          variants={staggerItem}
-          className="flex flex-col justify-center bg-gradient-to-r from-black via-black/90 to-transparent px-8 py-24 lg:px-16 overflow-y-auto max-h-screen"
-        >
+      {/* Background Image */}
+      <motion.div
+        variants={staggerItem}
+        className="fixed inset-0 z-0"
+      >
+        <motion.img
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6 }}
+          src={project.image}
+          alt={project.name}
+          className="h-full w-full object-cover"
+        />
+        {/* Dark overlay for better text readability */}
+        <div className="absolute inset-0 bg-black/80" />
+      </motion.div>
+
+      {/* Content Overlay */}
+      <motion.div
+        variants={staggerItem}
+        className="relative z-10 flex min-h-screen overflow-y-auto"
+        style={{
+          background: 'linear-gradient(to right, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 1) 50%, rgba(0, 0, 0, 1) 50%, rgba(0, 0, 0, 0.2) 100%)'
+        }}
+      >
+        <div className="w-1/2 flex flex-col justify-center px-8 py-24 lg:px-16">
           <motion.div
             variants={staggerItem}
             className="mb-6"
@@ -261,22 +282,8 @@ export default function ProjectDetailsPage({
               </div>
             </motion.div>
           )}
-        </motion.div>
-
-        <motion.div
-          variants={staggerItem}
-          className="relative min-h-[400px] lg:min-h-screen"
-        >
-          <motion.img
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6 }}
-            src={project.image}
-            alt={project.name}
-            className="h-full w-full object-cover"
-          />
-        </motion.div>
-      </div>
+        </div>
+      </motion.div>
     </motion.div>
   );
 }
