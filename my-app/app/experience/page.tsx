@@ -18,7 +18,8 @@ import {
   Building2,
   Cloud,
   ExternalLink,
-  GraduationCap
+  GraduationCap,
+  Heart
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { hapticManager } from "@/lib/haptic-manager";
@@ -47,7 +48,7 @@ interface Experience {
     value: string;
     color: string;
   }>;
-  type: "full-time" | "internship" | "education";
+  type: "full-time" | "internship" | "education" | "volunteering";
   field?: string; // For education entries
 }
 
@@ -79,7 +80,7 @@ const experiences: Experience[] = [
     id: "1",
     company: "Concordia University",
     role: "Masters of Applied Computer Science",
-    duration: "Sep 2023 - Aug 2025",
+    duration: "Sep 2023 - Aug 2025 (2 yrs)",
     location: "Montreal, Quebec, Canada",
     type: "education",
     description:
@@ -99,7 +100,7 @@ const experiences: Experience[] = [
     id: "2",
     company: "CitiusTech",
     role: "Senior Software Engineer",
-    duration: "Apr 2023 - Aug 2023",
+    duration: "Apr 2023 - Aug 2023 (5 mos)",
     location: "Remote",
     type: "full-time",
     description:
@@ -125,7 +126,7 @@ const experiences: Experience[] = [
     id: "3",
     company: "CitiusTech",
     role: "Software Engineer",
-    duration: "Dec 2021 - Mar 2023",
+    duration: "Dec 2021 - Mar 2023 (1 yr 4 mos)",
     location: "Mumbai, Maharashtra, India",
     type: "full-time",
     description:
@@ -148,7 +149,7 @@ const experiences: Experience[] = [
     id: "3a",
     company: "Homesfy Realty Pvt Ltd",
     role: "UI/UX Consultant",
-    duration: "10 Feb 2022 - 19 Feb 2022",
+    duration: "10 Feb 2022 - 19 Feb 2022 (9 days)",
     location: "India",
     type: "full-time",
     description:
@@ -172,7 +173,7 @@ const experiences: Experience[] = [
     id: "4",
     company: "Willis Towers Watson",
     role: "Full Stack Developer",
-    duration: "Jul 2019 - Nov 2021",
+    duration: "Jul 2019 - Nov 2021 (2 yrs 5 mos)",
     location: "Thane, Maharashtra, India",
     type: "full-time",
     description:
@@ -198,7 +199,7 @@ const experiences: Experience[] = [
     id: "5",
     company: "Reliance Industries Limited",
     role: "Full-stack Development Intern",
-    duration: "Dec 2018 - Jan 2019",
+    duration: "Dec 2018 - Jan 2019 (2 mos)",
     location: "Mumbai, Maharashtra, India",
     type: "internship",
     description:
@@ -221,8 +222,9 @@ const experiences: Experience[] = [
   {
     id: "6",
     company: "University of Mumbai",
-    role: "Bachelor of Engineering - Information Technology",
-    duration: "2015 - 2019",
+    role: "Bachelor of Engineering - BE",
+    field: "Information Technology",
+    duration: "2015 - 2019 (4 yrs)",
     location: "Mumbai, Maharashtra, India",
     type: "education",
     description:
@@ -237,7 +239,203 @@ const experiences: Experience[] = [
       },
     ],
   },
+  {
+    id: "7",
+    company: "HackConcordia",
+    role: "Vice President of Technology",
+    duration: "Apr 2025 - Present",
+    location: "Montreal, Quebec, Canada",
+    type: "volunteering",
+    description:
+      "Vice President of Technology at HackConcordia.",
+    fullDescription:
+      "Vice President of Technology at HackConcordia, leading the technology initiatives and overseeing technical operations for the organization.",
+    links: [
+      {
+        label: "HackConcordia",
+        href: "https://hackconcordia.com",
+      },
+    ],
+  },
+  {
+    id: "8",
+    company: "HackConcordia",
+    role: "Director of Technology",
+    duration: "Apr 2024 - Mar 2025 (1 yr)",
+    location: "Montreal, Quebec, Canada",
+    type: "volunteering",
+    description:
+      "Technology Director at HackConcordia. Designing and developing tech solutions for ConUHacks IX (Quebec's largest hackathon).",
+    fullDescription:
+      "Technology Director at HackConcordia. Designed and developed tech solutions for ConUHacks IX, Quebec's largest hackathon. Led the technical team in creating innovative platforms and tools to enhance the hackathon experience for participants.",
+    technologies: ["Web Development", "Event Management"],
+    links: [
+      {
+        label: "HackConcordia",
+        href: "https://hackconcordia.com",
+      },
+    ],
+  },
+  {
+    id: "9",
+    company: "CSI Computer FCRIT",
+    role: "Mentor",
+    duration: "Feb 2024 (1 mo)",
+    location: "Mumbai, Maharashtra, India",
+    type: "volunteering",
+    field: "Science and Technology",
+    description:
+      "Provided guidance and mentorship to 15 teams throughout the intensive 36-hour Agnethon Hackathon. The projects utilized different technology stacks including but not limited to MEAN, MERN, Python, Java Spring, Django, and Flask.",
+    fullDescription:
+      "Provided guidance and mentorship to 15 teams throughout the intensive 36-hour Agnethon Hackathon. The projects utilized different technology stacks including but not limited to MEAN, MERN, Python, Java Spring, Django, and Flask. Helped teams overcome technical challenges and provided strategic guidance to bring their innovative ideas to life.",
+    technologies: ["MEAN", "MERN", "Python", "Java Spring", "Django", "Flask"],
+  },
+  {
+    id: "10",
+    company: "HackConcordia",
+    role: "Assistant - ConUHacks VIII",
+    duration: "Jan 2024 - Feb 2024 (1 mo)",
+    location: "Montreal, Quebec, Canada",
+    type: "volunteering",
+    field: "Science and Technology",
+    description:
+      "At ConuHack, I assist diverse teams in ensuring an engaging and inclusive hackathon, creating an environment in which participants can display their abilities and new ideas.",
+    fullDescription:
+      "At ConuHack, I assist diverse teams in ensuring an engaging and inclusive hackathon, creating an environment in which participants can display their abilities and new ideas. Worked closely with organizers to facilitate smooth event operations and provide support to participants throughout the hackathon.",
+    links: [
+      {
+        label: "HackConcordia",
+        href: "https://hackconcordia.com",
+      },
+    ],
+  },
+  {
+    id: "11",
+    company: "Fr. Conceicao Rodrigues Institute of Technology",
+    role: "Public Relations",
+    duration: "Feb 2018 - Jul 2018 (6 mos)",
+    location: "Mumbai, Maharashtra, India",
+    type: "volunteering",
+    field: "Arts and Culture",
+    description:
+      "As a member of the public relations team, I had the exciting responsibility of asking musicians, dancers, and various artists to participate in the competitions organized as part of our college events (FACES and ETAMAX).",
+    fullDescription:
+      "As a member of the public relations team, I had the exciting responsibility of asking musicians, dancers, and various artists to participate in the competitions organized as part of our college events (FACES and ETAMAX). Coordinated with artists, managed communications, and contributed to the successful execution of cultural events.",
+  },
+  {
+    id: "12",
+    company: "Fr. Conceicao Rodrigues Institute of Technology",
+    role: "Security Assistant",
+    duration: "Feb 2017 - Mar 2017 (1 mo)",
+    location: "Mumbai, Maharashtra, India",
+    type: "volunteering",
+    field: "Arts and Culture",
+    description:
+      "As part of the security team for the events FACES and ETAMAX, my role was to ensure a safe and enjoyable environment for everyone, contributing to the smooth execution of the events.",
+    fullDescription:
+      "As part of the security team for the events FACES and ETAMAX, my role was to ensure a safe and enjoyable environment for everyone, contributing to the smooth execution of the events. Managed crowd control, coordinated with security personnel, and ensured the safety of all participants and attendees.",
+  },
 ];
+
+// Function to calculate duration between two dates
+const calculateDuration = (startDate: string, endDate: string | null): string => {
+  const parseDate = (dateStr: string): Date => {
+    // Handle formats like "Sep 2024", "10 Feb 2022", "Jan 2024 - Feb 2024", "2015 - 2019"
+    const monthNames: Record<string, number> = {
+      "Jan": 0, "Feb": 1, "Mar": 2, "Apr": 3, "May": 4, "Jun": 5,
+      "Jul": 6, "Aug": 7, "Sep": 8, "Oct": 9, "Nov": 10, "Dec": 11
+    };
+    
+    // Try to parse day month year format first (e.g., "10 Feb 2022")
+    const dayMonthYearMatch = dateStr.match(/(\d{1,2})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{4})/);
+    if (dayMonthYearMatch) {
+      return new Date(parseInt(dayMonthYearMatch[3]), monthNames[dayMonthYearMatch[2]], parseInt(dayMonthYearMatch[1]));
+    }
+    
+    // Try to parse month name format (e.g., "Sep 2024")
+    const monthMatch = dateStr.match(/(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{4})/);
+    if (monthMatch) {
+      return new Date(parseInt(monthMatch[2]), monthNames[monthMatch[1]], 1);
+    }
+    
+    // Try year-only format
+    const yearMatch = dateStr.match(/(\d{4})/);
+    if (yearMatch) {
+      return new Date(parseInt(yearMatch[1]), 0, 1);
+    }
+    
+    return new Date();
+  };
+
+  const start = parseDate(startDate);
+  const end = endDate ? parseDate(endDate) : new Date();
+  
+  const years = end.getFullYear() - start.getFullYear();
+  const months = end.getMonth() - start.getMonth();
+  
+  let totalMonths = years * 12 + months;
+  
+  // Adjust if end day is before start day
+  if (end.getDate() < start.getDate()) {
+    totalMonths--;
+  }
+  
+  const calculatedYears = Math.floor(totalMonths / 12);
+  const calculatedMonths = totalMonths % 12;
+  
+  if (calculatedYears > 0 && calculatedMonths > 0) {
+    return `${calculatedYears} ${calculatedYears === 1 ? "year" : "years"} ${calculatedMonths} ${calculatedMonths === 1 ? "month" : "months"}`;
+  } else if (calculatedYears > 0) {
+    return `${calculatedYears} ${calculatedYears === 1 ? "year" : "years"}`;
+  } else if (calculatedMonths > 0) {
+    return `${calculatedMonths} ${calculatedMonths === 1 ? "month" : "months"}`;
+  } else {
+    return "1 month"; // Default to 1 month for very short durations
+  }
+};
+
+// Function to format duration string with dynamic calculation for Present
+const formatDuration = (duration: string): string => {
+  // If duration already has brackets, check if it needs updating
+  if (duration.includes("Present")) {
+    // Extract start date from duration string
+    const match = duration.match(/(.+?)\s*-\s*Present/);
+    if (match) {
+      const startDate = match[1].trim();
+      const calculatedDuration = calculateDuration(startDate, null);
+      return `${startDate} - Present (${calculatedDuration})`;
+    }
+  }
+  
+  // If duration already has brackets, convert abbreviations to full words
+  if (duration.includes("(")) {
+    return duration
+      .replace(/\b(\d+)\s*yrs?\b/g, (match, num) => `${num} ${parseInt(num) === 1 ? "year" : "years"}`)
+      .replace(/\b(\d+)\s*mos?\b/g, (match, num) => `${num} ${parseInt(num) === 1 ? "month" : "months"}`)
+      .replace(/\b(\d+)\s*mo\b/g, (match, num) => `${num} ${parseInt(num) === 1 ? "month" : "months"}`)
+      .replace(/\bdays?\b/g, (match) => match === "day" ? "day" : "days");
+  }
+  
+  // For entries without Present, try to calculate duration
+  const dateRangeMatch = duration.match(/(.+?)\s*-\s*(.+)/);
+  if (dateRangeMatch) {
+    const startDate = dateRangeMatch[1].trim();
+    const endDate = dateRangeMatch[2].trim();
+    const calculatedDuration = calculateDuration(startDate, endDate);
+    return `${startDate} - ${endDate} (${calculatedDuration})`;
+  }
+  
+  // Single date or year range
+  const yearRangeMatch = duration.match(/(\d{4})\s*-\s*(\d{4})/);
+  if (yearRangeMatch) {
+    const startYear = parseInt(yearRangeMatch[1]);
+    const endYear = parseInt(yearRangeMatch[2]);
+    const years = endYear - startYear + 1;
+    return `${duration} (${years} ${years === 1 ? "year" : "years"})`;
+  }
+  
+  return duration;
+};
 
 // Sort experiences chronologically (most recent first)
 const sortedExperiences = [...experiences].sort((a, b) => {
@@ -287,15 +485,32 @@ const generateParticles = () => {
   }));
 };
 
+type FilterType = "all" | "work" | "education" | "volunteering";
+
 export default function ExperiencePage() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   const [particles, setParticles] = useState<Array<{ left: number; top: number; duration: number; delay: number }>>([]);
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [filter, setFilter] = useState<FilterType>("all");
   const containerRef = useRef<HTMLDivElement>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
   const lastCardRef = useRef<HTMLDivElement>(null);
+
+  // Filter experiences based on selected filter
+  const filteredExperiences = sortedExperiences.filter((exp) => {
+    if (filter === "all") return true;
+    if (filter === "education") return exp.type === "education";
+    if (filter === "work") return exp.type === "full-time" || exp.type === "internship";
+    if (filter === "volunteering") return exp.type === "volunteering";
+    return true;
+  });
+
+  // Count items for each filter
+  const workCount = sortedExperiences.filter((exp) => exp.type === "full-time" || exp.type === "internship").length;
+  const educationCount = sortedExperiences.filter((exp) => exp.type === "education").length;
+  const volunteeringCount = sortedExperiences.filter((exp) => exp.type === "volunteering").length;
 
   // Only generate and render particles after hydration to avoid mismatch
   // This is a standard Next.js pattern to prevent hydration errors with random values
@@ -460,6 +675,73 @@ export default function ExperiencePage() {
           </p>
         </motion.section>
 
+        {/* Filter Buttons */}
+        <motion.div
+          variants={staggerItem}
+          className="mb-8 flex flex-wrap gap-3"
+        >
+          <motion.button
+            onClick={() => {
+              setFilter("all");
+              hapticManager.light();
+            }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className={`rounded-full px-6 py-2.5 text-sm font-medium transition-all ${
+              filter === "all"
+                ? "bg-white text-black shadow-lg shadow-white/20"
+                : "bg-white/10 text-white/80 hover:bg-white/20"
+            }`}
+          >
+            All ({sortedExperiences.length})
+          </motion.button>
+          <motion.button
+            onClick={() => {
+              setFilter("work");
+              hapticManager.light();
+            }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className={`rounded-full px-6 py-2.5 text-sm font-medium transition-all ${
+              filter === "work"
+                ? "bg-blue-500/90 text-white shadow-lg shadow-blue-500/30"
+                : "bg-white/10 text-white/80 hover:bg-white/20"
+            }`}
+          >
+            Work Experience ({workCount})
+          </motion.button>
+          <motion.button
+            onClick={() => {
+              setFilter("education");
+              hapticManager.light();
+            }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className={`rounded-full px-6 py-2.5 text-sm font-medium transition-all ${
+              filter === "education"
+                ? "bg-green-500/90 text-white shadow-lg shadow-green-500/30"
+                : "bg-white/10 text-white/80 hover:bg-white/20"
+            }`}
+          >
+            Education ({educationCount})
+          </motion.button>
+          <motion.button
+            onClick={() => {
+              setFilter("volunteering");
+              hapticManager.light();
+            }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className={`rounded-full px-6 py-2.5 text-sm font-medium transition-all ${
+              filter === "volunteering"
+                ? "bg-orange-500/90 text-white shadow-lg shadow-orange-500/30"
+                : "bg-white/10 text-white/80 hover:bg-white/20"
+            }`}
+          >
+            Volunteering ({volunteeringCount})
+          </motion.button>
+        </motion.div>
+
         {/* Timeline */}
         <div ref={timelineRef} className="relative">
           {/* Vertical Timeline Line Background */}
@@ -476,8 +758,8 @@ export default function ExperiencePage() {
           />
 
           {/* Timeline Nodes */}
-          {sortedExperiences.map((exp, index) => {
-            const isLastCard = index === sortedExperiences.length - 1;
+          {filteredExperiences.map((exp, index) => {
+            const isLastCard = index === filteredExperiences.length - 1;
             return (
           <motion.div
             key={exp.id}
@@ -548,8 +830,10 @@ export default function ExperiencePage() {
                               ) : (
                                 exp.type === "education" ? (
                                   <GraduationCap className="h-6 w-6 text-white/80" />
-                                ) : (
-                                  <Building2 className="h-6 w-6 text-white/80" />
+                                ) : exp.type === "volunteering" ? (
+                                  <Heart className="h-6 w-6 text-white/80" />
+                              ) : (
+                                <Building2 className="h-6 w-6 text-white/80" />
                                 )
                               )}
                             </motion.div>
@@ -583,7 +867,7 @@ export default function ExperiencePage() {
                           <div className="mb-4 flex flex-wrap items-center gap-4 text-sm text-white/60">
                             <div className="flex items-center gap-2">
                               <Calendar className="h-4 w-4" />
-                              <span>{exp.duration}</span>
+                              <span>{formatDuration(exp.duration)}</span>
                             </div>
                             <div className="flex items-center gap-2">
                               <MapPin className="h-4 w-4" />
@@ -593,13 +877,21 @@ export default function ExperiencePage() {
                               className={`rounded-full px-3 py-1 text-xs font-medium ${
                                 exp.type === "education"
                                   ? "bg-green-500/20 text-green-300"
+                                  : exp.type === "volunteering"
+                                  ? "bg-orange-500/20 text-orange-300"
                                   : exp.type === "full-time"
                                   ? "bg-blue-500/20 text-blue-300"
                                   : "bg-purple-500/20 text-purple-300"
                               }`}
                               whileHover={{ scale: 1.1 }}
                             >
-                              {exp.type === "education" ? "Education" : exp.type === "full-time" ? "Full-time" : "Internship"}
+                              {exp.type === "education" 
+                                ? "Education" 
+                                : exp.type === "volunteering"
+                                ? "Volunteering"
+                                : exp.type === "full-time" 
+                                ? "Full-time" 
+                                : "Internship"}
                             </motion.span>
                           </div>
                 </div>
