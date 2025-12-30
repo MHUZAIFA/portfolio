@@ -135,13 +135,13 @@ export function Navigation() {
           onClick={() => hapticManager.light()}
         >
           <motion.div
-            whileHover={{ scale: 1.1, rotate: 5 }}
+            whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
             className="relative"
           >
-            <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 opacity-0 blur-lg transition-opacity group-hover:opacity-50" />
-            <div className="relative rounded-lg bg-white/5 px-4 py-2 backdrop-blur-sm transition-all group-hover:bg-white/10">
-              <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-lg font-bold text-transparent">
+            <div className="absolute inset-0 " />
+            <div className="relative rounded-sm  px-4 py-2 backdrop-blur-sm transition-all">
+              <span className="font-semibold text-xl">
                 MHuzaifa
               </span>
             </div>
@@ -155,7 +155,7 @@ export function Navigation() {
           setIsOpen(true);
           hapticManager.light();
         }}
-        className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-full border border-white/10 bg-black/80 px-4 py-3 backdrop-blur-md transition-all hover:border-white/20 hover:bg-white/10 md:bottom-8 md:right-8"
+        className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-full border border-white/60 bg-black/80 px-4 py-3 backdrop-blur-md transition-all hover:border-white/80 hover:bg-white/10 md:bottom-8 md:right-8"
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         aria-label="Open navigation"
