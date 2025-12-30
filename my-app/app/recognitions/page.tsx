@@ -134,7 +134,7 @@ const generateParticles = () => {
 
 type TabType = "all" | "awards" | "recommendations";
 
-export default function HonorsPage() {
+export default function RecognitionPage() {
   const [mounted, setMounted] = useState(false);
   const [particles, setParticles] = useState<Array<{ left: number; top: number; duration: number; delay: number }>>([]);
   const [activeTab, setActiveTab] = useState<TabType>("all");
@@ -254,7 +254,7 @@ export default function HonorsPage() {
         variants={staggerItem}
         className="mb-6 text-4xl font-bold text-white md:text-5xl"
       >
-        Honors & Awards
+        Recognitions
       </motion.h1>
 
         <motion.section
@@ -649,3 +649,4 @@ export default function HonorsPage() {
     </div>
   );
 }
+
