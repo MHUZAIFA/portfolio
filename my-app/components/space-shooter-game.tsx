@@ -192,17 +192,26 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
   // Keyboard controls
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
-      if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " ", "Space", "w", "a", "s", "d", "q", "e"].includes(e.key)) {
+      // Check if quick nav is open (check if input with quick nav placeholder exists, indicating modal is visible)
+      const quickNavInput = document.querySelector('input[placeholder*="Search pages"]');
+      const isQuickNavOpen = !!quickNavInput;
+      
+      // Only prevent default and handle game controls if quick nav is not open
+      if (!isQuickNavOpen && ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " ", "Space", "w", "a", "s", "d", "q", "e"].includes(e.key)) {
         e.preventDefault();
       }
-      keysRef.current[e.key.toLowerCase()] = true;
+      
+      if (!isQuickNavOpen) {
+        keysRef.current[e.key.toLowerCase()] = true;
 
-      if (e.key === " " || e.code === "Space") {
-        handleShoot();
-      }
+        if (e.key === " " || e.code === "Space") {
+          handleShoot();
+        }
 
-      if ((gameStatusRef.current === "idle" || gameStatusRef.current === "over") && (e.key === "Enter" || e.code === "Space" || e.key.toLowerCase() === "w" || e.key.toLowerCase() === "a" || e.key.toLowerCase() === "s" || e.key.toLowerCase() === "d" || e.key === "ArrowUp" || e.key === "ArrowDown" || e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key.toLowerCase() === "q" || e.key.toLowerCase() === "e")) {
-        startGame();
+        // Don't start game if quick nav is open
+        if ((gameStatusRef.current === "idle" || gameStatusRef.current === "over") && (e.key === "Enter" || e.code === "Space" || e.key.toLowerCase() === "w" || e.key.toLowerCase() === "a" || e.key.toLowerCase() === "s" || e.key.toLowerCase() === "d" || e.key === "ArrowUp" || e.key === "ArrowDown" || e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key.toLowerCase() === "q" || e.key.toLowerCase() === "e")) {
+          startGame();
+        }
       }
     };
     const up = (e: KeyboardEvent) => {
