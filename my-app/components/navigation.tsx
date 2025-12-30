@@ -23,7 +23,7 @@ import {
 const navItems = [
   { href: "/", label: "Home", icon: Home, keywords: ["home", "main", "landing"] },
   { href: "/about", label: "About", icon: User, keywords: ["about", "me", "info", "profile"] },
-  { href: "/experience", label: "Experience & Education", icon: Briefcase, keywords: ["experience", "work", "career", "jobs", "employment", "education", "university", "degree", "school", "academic", "studies"] },
+  { href: "/experience", label: "Experience", icon: Briefcase, keywords: ["experience", "work", "career", "jobs", "employment", "education", "university", "degree", "school", "academic", "studies"] },
   { href: "/projects", label: "Projects", icon: FolderOpen, keywords: ["projects", "portfolio", "work", "apps"] },
   { href: "/certificates", label: "Certificates", icon: Award, keywords: ["certificates", "certifications", "credentials"] },
   { href: "/recognitions", label: "Recognitions", icon: Trophy, keywords: ["honors", "awards", "recognition", "achievements", "rewards", "testimonials", "recommendations", "reviews", "feedback", "endorsements"] },

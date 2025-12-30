@@ -652,7 +652,7 @@ export default function ExperiencePage() {
         variants={staggerItem}
         className="mb-12 text-4xl font-bold text-white md:text-5xl"
       >
-        Experience & Education
+        Experience
       </motion.h1>
 
         <motion.section
