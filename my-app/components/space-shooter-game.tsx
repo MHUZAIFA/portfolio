@@ -80,7 +80,7 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
     width: 36,
     height: 48,
     speed: 380,
-    rotation: -Math.PI / 2, // Start facing up
+    rotation: 0, // Start facing up
     rotationSpeed: 4.5, // radians per second
   });
 
@@ -105,8 +105,8 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
   // Get initial ship position (above bottom-left menu)
   const getInitialShipPosition = (width: number, height: number): Vec2 => {
     return {
-      x: 10, // Left side, above the menu
-      y: height - 180, // Just above the bottom-left overlay (which is at bottom-4 = 16px, so ~120px from bottom)
+      x: 70, // Left side, above the menu
+      y: height - 210, // Just above the bottom-left overlay (which is at bottom-4 = 16px, so ~120px from bottom)
     };
   };
 
@@ -132,7 +132,7 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
       if (gameStatusRef.current === "idle" && !animatingToCenterRef.current) {
         const initialPos = getInitialShipPosition(width, height);
         ship.position = initialPos;
-        ship.rotation = -Math.PI / 2; // Always face upwards when idle
+        ship.rotation = 0; // Always face upwards when idle
       }
     };
 
@@ -144,7 +144,7 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
     const height = window.innerHeight - navHeight;
     const initialPos = getInitialShipPosition(width, height);
     spaceshipRef.current.position = initialPos;
-    spaceshipRef.current.rotation = -Math.PI / 2;
+    spaceshipRef.current.rotation = 0;
 
     // Initial render
     const ctx = canvas.getContext("2d");
@@ -236,7 +236,7 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
       const height = window.innerHeight - navHeight;
       const initialPos = getInitialShipPosition(width, height);
       spaceshipRef.current.position = initialPos;
-      spaceshipRef.current.rotation = -Math.PI / 2; // Face upwards
+      spaceshipRef.current.rotation = 0; // Face upwards
       animatingToCenterRef.current = false;
       targetPositionRef.current = null;
     }
@@ -348,7 +348,7 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
       const height = window.innerHeight - navHeight;
       const initialPos = getInitialShipPosition(width, height);
       spaceshipRef.current.position = initialPos;
-      spaceshipRef.current.rotation = -Math.PI / 2; // Face upwards
+      spaceshipRef.current.rotation = 0; // Face upwards
 
       // Restart idle animation
       const ctx = canvas.getContext("2d");
@@ -841,27 +841,27 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
               <p className="text-xs font-semibold uppercase tracking-[0.25em] text-white/50">
                 {status === "idle" ? "Ready" : "Game Over"}
               </p>
-              {finalScore != null && (
-                <p className="text-sm text-white/80 sm:text-base">
-                  Final score: <span className="font-semibold tabular-nums">{finalScore}</span>
-                </p>
-              )}
-              <button
-                type="button"
-                onClick={startGame}
-                className="inline-flex items-center justify-center rounded-full border border-white/30 bg-white/5 px-4 py-2 text-xs font-medium uppercase tracking-[0.25em] text-white transition hover:border-white/60 hover:bg-white/10 sm:px-6 sm:py-2.5 w-fit"
-              >
-                Play
-              </button>
+              <p className="text-sm text-white/80 sm:text-base">
+                Final score: <span className="font-semibold tabular-nums">{finalScore ?? 0}</span>
+              </p>
+              <div className="flex items-center gap-3 flex-wrap">
+                <button
+                  type="button"
+                  onClick={startGame}
+                  className="inline-flex items-center justify-center rounded-full border border-white bg-white/10 px-4 py-2 text-xs font-medium uppercase tracking-[0.25em] text-white transition hover:bg-white/20 hover:border-white sm:px-6 sm:py-2.5 w-fit"
+                >
+                  Play
+                </button>
+                <Link
+                  href="/leaderboard"
+                  className="pointer-events-auto inline-flex items-center justify-center rounded-full border border-white/20 bg-white/5 px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.25em] text-white/70 transition hover:border-white/40 hover:bg-white/10 hover:text-white/90 sm:px-4 sm:py-2 w-fit"
+                >
+                  Leaderboard
+                </Link>
+              </div>
               <p className="text-[10px] text-white/50 sm:text-xs max-w-xs">
                 <span className="font-semibold">Q/E</span> or <span className="font-semibold">←/→</span> to rotate, <span className="font-semibold">W/A/S/D</span> or <span className="font-semibold">Arrow keys</span> to move, <span className="font-semibold">Space</span> to shoot
               </p>
-              <Link
-                href="/leaderboard"
-                className="pointer-events-auto text-[11px] font-medium text-white/60 underline-offset-4 hover:text-white hover:underline w-fit"
-              >
-                View leaderboard
-              </Link>
             </div>
           </div>
         )}
