@@ -69,9 +69,9 @@ const projects: Record<string, Project> = {
     name: "SNKRS",
     description: "An online e-commerce web application for browsing and buying sneakers",
     fullDescription:
-      "A cross platform progressive e-commerce web application for purchasing sneakers. Users can view, search and filter from a wide range of sneakers to find the sneaker of their choice. LoggedIn users can review, wishlist, buy and track their orders. From browsing to checkout this application delivers the best in class user experience.",
+      "SNKRS is an online e-commerce web application for browsing and buying sneakers. A cross platform progressive e-commerce web application for purchasing sneakers. Users can view, search and filter from a wide range of sneakers to find the sneaker of their choice. LoggedIn users can review, wishlist, buy and track their orders. From browsing to checkout this application delivers the best in class user experience.",
     image: "/imgs/projects/snkrsbg.png",
-    technologies: ["E-Commerce", "PWA", "Cross Platform", "Shopping Cart", "Order Tracking"],
+    technologies: ["E-Commerce", "PWA", "Cross Platform", "Shopping Cart", "Order Tracking", "User Authentication", "Responsive Design"],
     category: "E-Commerce",
     date: "May 2022",
     liveUrl: "https://example.com",
@@ -80,6 +80,18 @@ const projects: Record<string, Project> = {
       "/imgs/projects/snkrsbg.png",
       "/imgs/projects/snkrsmb.png",
       "/imgs/projects/snkrs.png"
+    ],
+    features: [
+      "Cross-Platform: Progressive web application (PWA) accessible across devices.",
+      "Browsing and Shopping: Users can browse a diverse catalog of sneakers.",
+      "Search and Filtering: Enables users to search for specific sneakers and apply filters.",
+      "User Authentication: Secure login and registration functionality.",
+      "User Interaction: Logged-in users can add reviews, wishlist items, purchase sneakers, and track their orders.",
+      "Checkout Process: Smooth and intuitive checkout experience for completing purchases.",
+      "Responsive Design: Ensures usability and functionality across various screen sizes.",
+      "Performance: Optimized for speed and efficiency, providing a seamless user experience.",
+      "Accessibility: Designed to be accessible to users with disabilities.",
+      "Security: Implements best practices to safeguard user data and transactions.",
     ],
   },
   helpdesk: {
@@ -485,10 +497,14 @@ export default function ProjectDetailsPage({
                 {imagesToShow.map((imageUrl, index) => (
                   <motion.div
                     key={index}
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    viewport={{ once: false }}
-                    transition={{ duration: 0.4, delay: index * 0.1 }}
+                    initial={{ opacity: 0, x: -30, y: 20, scale: 0.9 }}
+                    whileInView={{ opacity: 1, x: 0, y: 0, scale: 1 }}
+                    viewport={{ once: false, margin: "-50px" }}
+                    transition={{ 
+                      duration: 0.6, 
+                      delay: index * 0.15,
+                      ease: [0.25, 0.46, 0.45, 0.94]
+                    }}
                     className="relative h-[170px] overflow-hidden rounded-sm bg-white/5 cursor-pointer flex items-center justify-center"
                     onClick={() => openLightbox(index)}
                   >
