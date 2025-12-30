@@ -29,15 +29,27 @@ const projects: Record<string, Project> = {
   metricstics: {
     id: "metricstics",
     name: "Metricstics",
-    description: "Discover the Power of Metrics and Statistics",
+    description: "Your Statistical Calculator - A Python-based statistical calculator with a sleek Tkinter GUI",
     fullDescription:
-      "METRICSTICS, a fusion of METRICS and STATISTICS, is your tool developed using purely python for calculating essential statistical values - m, M, o, d, μ, MAD, and σ. This system processes random data sets, enabling accurate descriptive statistics calculations. METRICSTICS streamlines complex statistical calculations for analysts, researchers, and data scientists, offering precise insights crucial for informed decision-making in diverse industries.",
-    image: "/imgs/projects/metricstics.png",
-    technologies: ["Python", "Statistics", "Data Analysis", "Descriptive Statistics"],
+      "Welcome to METRICSTICS, a Python-based statistical calculator with a sleek Tkinter GUI. METRICSTICS not only computes standard statistical measures but also provides an intuitive interface for loading and storing session information. It features a beautiful dark theme, ensuring a pleasant user experience. METRICSTICS helps in calculating descriptive statistics. The purpose of descriptive statistics is to quantitatively describe a collection of data by measures of central tendency, measures of frequency, and measures of variability. The system calculates essential statistical values including minimum (m), maximum (M), mode (o), median (d), mean (μ), Mean Absolute Deviation (MAD), and Standard Deviation (σ).",
+    image: "/imgs/projects/metricsticsBg.png",
+    technologies: ["Python", "Tkinter", "Statistics", "Data Analysis", "MVC Pattern", "GUI"],
     category: "Productivity & Utilities",
     date: "November 2023",
-    liveUrl: "https://example.com",
-    githubUrl: "https://github.com/example/metricstics",
+    // liveUrl: "https://example.com",
+    githubUrl: "https://github.com/MHUZAIFA/METRICSTICS",
+    features: [
+      "Calculate statistics: Calculate essential statistical measures including min, max, mean, median, mode, MAD, and standard deviation.",
+      "User-friendly GUI: Built with Tkinter providing an intuitive and modern interface for statistical calculations.",
+      "Sleek dark theme: Features a beautiful dark theme for a modern and comfortable user experience.",
+      "Multiple input methods: Input data through keyboard, file upload, or the interactive randomizer button.",
+      "Session management: Convenient store and load functionality for your statistical sessions effortlessly.",
+      "MVC design pattern: Follows the Model-View-Controller design pattern for a clean and modular code structure.",
+    ],
+    additionalImages: [
+      "/imgs/projects/metricsticsBg.png",
+      "/imgs/projects/metricstics.png"
+    ],
   },
   mytasks: {
     id: "mytasks",
@@ -58,12 +70,17 @@ const projects: Record<string, Project> = {
     description: "An online e-commerce web application for browsing and buying sneakers",
     fullDescription:
       "A cross platform progressive e-commerce web application for purchasing sneakers. Users can view, search and filter from a wide range of sneakers to find the sneaker of their choice. LoggedIn users can review, wishlist, buy and track their orders. From browsing to checkout this application delivers the best in class user experience.",
-    image: "/imgs/projects/mockup_snkr_store.png",
+    image: "/imgs/projects/snkrsbg.png",
     technologies: ["E-Commerce", "PWA", "Cross Platform", "Shopping Cart", "Order Tracking"],
     category: "E-Commerce",
     date: "May 2022",
     liveUrl: "https://example.com",
     githubUrl: "https://github.com/example/snkrs",
+    additionalImages: [
+      "/imgs/projects/snkrsbg.png",
+      "/imgs/projects/snkrsmb.png",
+      "/imgs/projects/snkrs.png"
+    ],
   },
   helpdesk: {
     id: "helpdesk",
@@ -208,13 +225,36 @@ export default function ProjectDetailsPage({
         variants={staggerItem}
         className="relative z-10 flex min-h-screen overflow-y-auto"
         style={{
-          background: 'linear-gradient(to right, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 1) 50%, rgba(0, 0, 0, 1) 50%, rgba(0, 0, 0, 0.2) 100%)'
+          backgroundColor: "black",
+          willChange: "opacity",
+          WebkitMaskImage: `
+            linear-gradient(
+              to right,
+              black 0%,
+              black 25%,
+              rgba(0,0,0,0.9) 35%,
+              rgba(0,0,0,0.3) 70%,
+              rgba(0,0,0,0.15) 85%,
+              rgba(0,0,0,0) 100%
+            )
+          `,
+          maskImage: `
+            linear-gradient(
+              to right,
+              black 0%,
+              black 45%,
+              rgba(0,0,0,0.9) 55%,
+              rgba(0,0,0,0.6) 70%,
+              rgba(0,0,0,0.3) 85%,
+              transparent 100%
+            )
+          `
         }}
       >
         <div className="w-1/2 flex flex-col justify-center px-8 py-24 lg:px-16">
           <motion.div
             variants={staggerItem}
-            className="mb-6"
+            className="mb-12 mt-16"
           >
             <Button
               onClick={() => {
@@ -229,7 +269,16 @@ export default function ProjectDetailsPage({
             </Button>
           </motion.div>
 
-          {(project.category || project.date) && (
+          {project.date && (
+            <motion.div
+              variants={staggerItem}
+              className="mb-4 flex flex-wrap gap-4 text-sm text-white/60"
+            >
+              {project.date && <span>{project.date}</span>}
+            </motion.div>
+          )}
+
+          {project.category && (
             <motion.div
               variants={staggerItem}
               className="mb-4 flex flex-wrap gap-4 text-sm text-white/60"
@@ -239,7 +288,6 @@ export default function ProjectDetailsPage({
                   {project.category}
                 </span>
               )}
-              {project.date && <span>{project.date}</span>}
             </motion.div>
           )}
 
@@ -433,7 +481,7 @@ export default function ProjectDetailsPage({
               <h3 className="mb-6 text-2xl font-semibold text-white">
                 Gallery
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex gap-4">
                 {imagesToShow.map((imageUrl, index) => (
                   <motion.div
                     key={index}
@@ -441,14 +489,15 @@ export default function ProjectDetailsPage({
                     whileInView={{ opacity: 1, scale: 1 }}
                     viewport={{ once: false }}
                     transition={{ duration: 0.4, delay: index * 0.1 }}
-                    className="relative overflow-hidden rounded-lg aspect-video bg-white/5 cursor-pointer"
+                    className="relative h-[170px] overflow-hidden rounded-sm bg-white/5 cursor-pointer flex items-center justify-center"
                     onClick={() => openLightbox(index)}
                   >
                     <Image
                       src={imageUrl}
                       alt={`${project.name} - Image ${index + 1}`}
-                      fill
-                      className="object-cover hover:scale-105 transition-transform duration-300"
+                      width={1200}
+                      height={800}
+                      className="max-h-full max-w-full w-auto h-auto object-contain hover:scale-105 transition-transform duration-300"
                     />
                   </motion.div>
                 ))}

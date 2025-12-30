@@ -70,7 +70,7 @@ const projects = [
     name: "SNKRS",
     description:
       "An online e-commerce web application for browsing and buying sneakers.",
-    thumbnail: "/imgs/projects/mockup_snkr_store.png",
+    thumbnail: "/imgs/projects/snkrsbg.png",
     technologies: ["E-Commerce", "PWA", "Cross Platform"],
     sortDate: "May 2022",
   },
