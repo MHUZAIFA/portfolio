@@ -99,6 +99,7 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
   const elapsedRef = useRef(0);
   const lastShotTimeRef = useRef(0);
   const idleAnimationRef = useRef<number | null>(null);
+  const spawnAnimationStartRef = useRef<number | null>(null);
 
   // Get initial ship position (above bottom-left menu)
   const getInitialShipPosition = (width: number, height: number): Vec2 => {
@@ -225,6 +226,7 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
     elapsedRef.current = 0;
     lastShotTimeRef.current = 0;
     lastTimeRef.current = null;
+    spawnAnimationStartRef.current = null;
     const canvas = canvasRef.current;
     if (canvas) {
       const navHeight = 80;
@@ -248,8 +250,11 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
 
       const ship = spaceshipRef.current;
       ship.position.x = width / 2;
-      ship.position.y = height - 80; // Bottom center
+      ship.position.y = height - 120; // Starting position - a bit higher
     }
+
+    // Start spawn animation
+    spawnAnimationStartRef.current = performance.now();
 
     gameStatusRef.current = "running";
     setStatus("running");
@@ -631,17 +636,44 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
 
     // Spaceship
     const ship = spaceshipRef.current;
+    
+    // Spawn animation
+    let spawnScale = 1;
+    let spawnAlpha = 1;
+    let spawnOffsetY = 0;
+    let isSpawning = false;
+    const spawnDuration = 1200; // milliseconds - slower animation
+    
+    if (spawnAnimationStartRef.current !== null) {
+      const elapsed = performance.now() - spawnAnimationStartRef.current;
+      if (elapsed < spawnDuration) {
+        isSpawning = true;
+        const progress = elapsed / spawnDuration;
+        // Ease in-out for smoother animation
+        const eased = progress < 0.5 
+          ? 2 * progress * progress 
+          : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+        spawnScale = 0.4 + (1 - 0.4) * eased;
+        spawnAlpha = eased;
+        spawnOffsetY = (1 - eased) * 100; // Start from below screen and move up to position
+      } else {
+        spawnAnimationStartRef.current = null; // Animation complete
+      }
+    }
+    
     ctx.save();
-    ctx.translate(ship.position.x, ship.position.y);
+    ctx.translate(ship.position.x, ship.position.y + spawnOffsetY);
+    ctx.scale(spawnScale, spawnScale);
     ctx.rotate(ship.rotation);
+    ctx.globalAlpha = spawnAlpha;
 
     const keys = keysRef.current;
     const isMovingForward = keys["w"] || keys["arrowup"];
     const isMovingBackward = keys["s"] || keys["arrowdown"];
     const isMoving = isMovingForward || isMovingBackward || keys["a"] || keys["d"];
 
-    // Thrust (behind ship when moving forward)
-    if (isMovingForward) {
+    // Thrust (behind ship when moving forward or during spawn animation)
+    if (isMovingForward || isSpawning) {
       const flameHeight = ship.height * 0.7;
       const flicker = Math.sin(performance.now() * 0.02) * 4;
       const gradient = ctx.createLinearGradient(0, ship.height / 2, 0, ship.height / 2 + flameHeight);
@@ -689,6 +721,7 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
     ctx.closePath();
     ctx.stroke();
 
+    ctx.globalAlpha = 1; // Reset alpha
     ctx.restore();
 
     // Score - top right (always visible during gameplay)
