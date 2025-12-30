@@ -60,9 +60,9 @@ const projects = [
     id: "mytasks",
     name: "MyTasks",
     description:
-      "A lucid to do application for managing and tracking day to day activities.",
+      "A user-friendly cross-platform to-do application for efficiently managing and tracking day-to-day activities.",
     thumbnail: "/imgs/projects/mockup_todo.png",
-    technologies: ["PWA", "Cross Platform", "Cloud-Based"],
+    technologies: ["Angular", "PWA", "Cross Platform", "Cloud-Based", "Firebase"],
     sortDate: "December 2022",
   },
   {

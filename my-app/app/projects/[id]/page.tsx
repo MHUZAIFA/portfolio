@@ -54,15 +54,29 @@ const projects: Record<string, Project> = {
   mytasks: {
     id: "mytasks",
     name: "MyTasks",
-    description: "A lucid to do application for managing and tracking day to day activities",
+    description: "A user-friendly cross-platform to-do application for efficiently managing and tracking day-to-day activities",
     fullDescription:
-      "MyTasks is a cross platform cloud-based progressive web application for task management. It allows users to manage their tasks from a smartphone, tablet and computer. A lucid to do application for managing and tracking day to day activities.",
-    image: "/imgs/projects/mockup_todo.png",
-    technologies: ["PWA", "Cross Platform", "Cloud-Based", "Task Management"],
+      "MyTasks is a user-friendly to-do application designed to efficiently manage and track day-to-day activities. Whether you're on your smartphone, tablet, or computer, MyTasks provides a seamless experience with its cross-platform, cloud-based progressive web application. Built with Angular and Firebase, MyTasks offers a modern, intuitive interface for effortless task management. As a progressive web application, MyTasks doesn't require installation from an app store - simply visit the web app on your preferred browser to get started.",
+    image: "/imgs/projects/todobg.png",
+    technologies: ["Angular", "PWA", "Cross Platform", "Cloud-Based", "Firebase", "TypeScript", "Progressive Web App"],
     category: "Productivity & Tracking",
     date: "December 2022",
-    liveUrl: "https://example.com",
-    githubUrl: "https://github.com/example/mytasks",
+    liveUrl: "https://ha-todo.web.app",
+    githubUrl: "https://github.com/MHUZAIFA/MyTasks",
+    features: [
+      "Cross-Platform Compatibility: Access MyTasks from any device - smartphone, tablet, or computer for a seamless experience across all your devices.",
+      "Cloud-Based Storage: Store your tasks securely in the cloud for easy access and synchronization across all your devices in real-time.",
+      "Intuitive Interface: User-friendly design with a clean and modern interface for effortless task management and navigation.",
+      "Task Organization: Categorize tasks, set priorities, and track progress easily with powerful organizational features.",
+      "Progressive Web App: No installation required - access MyTasks directly from your web browser with app-like functionality.",
+      "Offline Support: Continue managing your tasks even when offline, with automatic synchronization when connection is restored.",
+      "Real-Time Synchronization: Changes sync instantly across all your devices, ensuring your task list is always up to date.",
+    ],
+    additionalImages: [
+      "/imgs/projects/todobg.png",
+      "/imgs/projects/todomb.png",
+      "/imgs/projects/todo.png"
+    ],
   },
   snkrs: {
     id: "snkrs",
@@ -244,8 +258,8 @@ export default function ProjectDetailsPage({
               to right,
               black 0%,
               black 25%,
-              rgba(0,0,0,0.9) 35%,
-              rgba(0,0,0,0.3) 70%,
+              rgba(0,0,0,0.9) 40%,
+              rgba(0,0,0,0.3) 50%,
               rgba(0,0,0,0.15) 85%,
               rgba(0,0,0,0) 100%
             )
