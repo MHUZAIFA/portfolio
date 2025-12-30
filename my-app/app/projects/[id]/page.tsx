@@ -112,6 +112,20 @@ export default function ProjectDetailsPage({
     }
   }, [project, router]);
 
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        router.push("/projects");
+      }
+    };
+
+    window.addEventListener("keydown", handleEscape);
+
+    return () => {
+      window.removeEventListener("keydown", handleEscape);
+    };
+  }, [router]);
+
   if (!project) {
     return null;
   }
@@ -189,7 +203,7 @@ export default function ProjectDetailsPage({
 
           <motion.p
             variants={staggerItem}
-            className="mb-8 text-lg text-white/80"
+            className="mb-8 text-lg text-white/80 text-justify"
           >
             {project.fullDescription}
           </motion.p>
@@ -266,20 +280,95 @@ export default function ProjectDetailsPage({
               <h3 className="mb-6 text-2xl font-semibold text-white">
                 Features
               </h3>
-              <div className="space-y-4">
-                {project.features.map((feature, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, x: -20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: false }}
-                    transition={{ duration: 0.4, delay: index * 0.1 }}
-                    className="p-4 rounded-lg bg-white/5 border border-white/10"
-                  >
-                    <p className="text-white/90 leading-relaxed">{feature}</p>
-                  </motion.div>
-                ))}
-              </div>
+              <ul className="space-y-3 list-none">
+                {project.features.map((feature, index) => {
+                  // Split feature into title and description
+                  const colonIndex = feature.indexOf(": ");
+                  const title = colonIndex !== -1 ? feature.substring(0, colonIndex) : "";
+                  const description = colonIndex !== -1 ? feature.substring(colonIndex + 2) : feature;
+                  
+                  // Key phrases to highlight
+                  const keyPhrases = [
+                    "visual cues", "user confidence", "engagement", "waste-sorting",
+                    "emotional satisfaction", "emotional response",
+                    "gamification", "habitual", "engaging", "fun",
+                    "environmental awareness", "tracks", "insights", "contribution",
+                    "image recognition", "classify", "accuracy", "effectively", "correctly"
+                  ];
+                  
+                  // Function to render text with highlights
+                  const renderWithHighlights = (text: string) => {
+                    const parts: (string | React.ReactElement)[] = [];
+                    let lastIndex = 0;
+                    let key = 0;
+                    
+                    // Find all matches
+                    const matches: Array<{ start: number; end: number; text: string }> = [];
+                    keyPhrases.forEach(phrase => {
+                      const regex = new RegExp(`\\b${phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, "gi");
+                      let match;
+                      while ((match = regex.exec(text)) !== null) {
+                        matches.push({
+                          start: match.index,
+                          end: match.index + match[0].length,
+                          text: match[0]
+                        });
+                      }
+                    });
+                    
+                    // Sort matches by position
+                    matches.sort((a, b) => a.start - b.start);
+                    
+                    // Remove overlapping matches
+                    const nonOverlapping: typeof matches = [];
+                    for (const match of matches) {
+                      if (nonOverlapping.length === 0 || match.start >= nonOverlapping[nonOverlapping.length - 1].end) {
+                        nonOverlapping.push(match);
+                      }
+                    }
+                    
+                    // Build parts array
+                    nonOverlapping.forEach(match => {
+                      if (match.start > lastIndex) {
+                        parts.push(text.substring(lastIndex, match.start));
+                      }
+                      parts.push(
+                        <span key={key++} className="font-semibold text-white">
+                          {match.text}
+                        </span>
+                      );
+                      lastIndex = match.end;
+                    });
+                    
+                    if (lastIndex < text.length) {
+                      parts.push(text.substring(lastIndex));
+                    }
+                    
+                    return parts.length > 0 ? parts : text;
+                  };
+                  
+                  return (
+                    <motion.li
+                      key={index}
+                      initial={{ opacity: 0, x: -20 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: false }}
+                      transition={{ duration: 0.4, delay: index * 0.1 }}
+                      className="text-white/90 leading-relaxed text-justify pl-0 flex items-start"
+                    >
+                      <span className="mr-4 h-2 w-2 rotate-45 bg-white/50 shrink-0 mt-2.5"></span>
+                      <span className="flex-1">
+                        {title && (
+                          <>
+                            <span className="font-semibold text-white">{title}:</span>{" "}
+                          </>
+                        )}
+                        {renderWithHighlights(description)}
+                      </span>
+                    </motion.li>
+                  );
+                })}
+              </ul>
             </motion.div>
           )}
         </div>
