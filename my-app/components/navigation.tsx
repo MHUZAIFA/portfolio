@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { hapticManager } from "@/lib/haptic-manager";
 import { cn } from "@/lib/utils";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
   Home,
   User,
@@ -39,12 +39,22 @@ export function Navigation() {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   // Filter items based on search query
   const filteredItems = navItems.filter((item) =>
     item.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
     item.keywords.some((keyword) => keyword.toLowerCase().includes(searchQuery.toLowerCase()))
   );
+
+  const handleNavigate = useCallback((href: string) => {
+    router.push(href);
+    setIsOpen(false);
+    setSearchQuery("");
+    setSelectedIndex(0);
+    hapticManager.medium();
+  }, [router]);
 
   // Keyboard shortcuts (Cmd+K or Ctrl+K)
   useEffect(() => {
@@ -86,7 +96,7 @@ export function Navigation() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, filteredItems, selectedIndex]);
+  }, [isOpen, filteredItems, selectedIndex, handleNavigate]);
 
   // Focus input when opened
   useEffect(() => {
@@ -98,7 +108,18 @@ export function Navigation() {
   // Reset selected index when filtered items change
   useEffect(() => {
     setSelectedIndex(0);
+    itemRefs.current = [];
   }, [searchQuery]);
+
+  // Scroll selected item into view
+  useEffect(() => {
+    if (isOpen && itemRefs.current[selectedIndex]) {
+      itemRefs.current[selectedIndex]?.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    }
+  }, [selectedIndex, isOpen]);
 
   // Close menu when route changes
   useEffect(() => {
@@ -106,14 +127,6 @@ export function Navigation() {
     setSearchQuery("");
     setSelectedIndex(0);
   }, [pathname]);
-
-  const handleNavigate = (href: string) => {
-    router.push(href);
-    setIsOpen(false);
-    setSearchQuery("");
-    setSelectedIndex(0);
-    hapticManager.medium();
-  };
 
   const isActive = (href: string) => {
     if (href === "/") {
@@ -215,7 +228,7 @@ export function Navigation() {
               </div>
 
               {/* Results List */}
-              <div className="mt-2 max-h-96 overflow-y-auto">
+              <div ref={scrollContainerRef} className="mt-2 max-h-96 overflow-y-auto">
                 {filteredItems.length > 0 ? (
                   <div className="space-y-1 p-2">
                     {filteredItems.map((item, index) => {
@@ -231,6 +244,9 @@ export function Navigation() {
                           transition={{ delay: index * 0.03 }}
                         >
                           <button
+                            ref={(el) => {
+                              itemRefs.current[index] = el;
+                            }}
                             onClick={() => handleNavigate(item.href)}
                             onMouseEnter={() => {
                               setSelectedIndex(index);
@@ -290,7 +306,7 @@ export function Navigation() {
                   <div className="p-8 text-center">
                     <p className="text-white/50">No results found</p>
                     <p className="mt-2 text-sm text-white/30">
-                      Try searching for "home", "projects", or "contact"
+                      Try searching for &quot;home&quot;, &quot;projects&quot;, or &quot;contact&quot;
                     </p>
                   </div>
                 )}
