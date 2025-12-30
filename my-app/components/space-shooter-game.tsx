@@ -810,7 +810,7 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
                 {status === "idle" ? "Ready" : "Game Over"}
               </p>
               <p className="text-sm text-white/80 sm:text-base">
-                Session best: <span className="font-semibold tabular-nums">{sessionBestScore}</span>
+              Best Score: <span className="font-semibold tabular-nums">{sessionBestScore}</span>
               </p>
               <div className="flex items-center gap-3 flex-wrap">
                 <button
