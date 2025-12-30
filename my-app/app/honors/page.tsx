@@ -5,8 +5,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { useState, useRef, useEffect } from "react";
 import { 
-  ChevronDown, 
-  ChevronUp, 
   Calendar,
   Award,
   ExternalLink,
@@ -138,12 +136,11 @@ const generateParticles = () => {
 type TabType = "all" | "awards" | "recommendations";
 
 export default function HonorsPage() {
-  const [expandedId, setExpandedId] = useState<string | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   const [particles, setParticles] = useState<Array<{ left: number; top: number; duration: number; delay: number }>>([]);
   const [activeTab, setActiveTab] = useState<TabType>("all");
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedHonor, setSelectedHonor] = useState<Honor | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Sort honors chronologically (most recent first)
@@ -168,7 +165,7 @@ export default function HonorsPage() {
   }, []);
 
   useEffect(() => {
-    if (selectedImage) {
+    if (selectedHonor) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "unset";
@@ -176,12 +173,23 @@ export default function HonorsPage() {
     return () => {
       document.body.style.overflow = "unset";
     };
-  }, [selectedImage]);
+  }, [selectedHonor]);
 
-  const toggleExpand = (id: string) => {
-    hapticManager.light();
-    setExpandedId(expandedId === id ? null : id);
-  };
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && selectedHonor) {
+        setSelectedHonor(null);
+      }
+    };
+
+    if (selectedHonor) {
+      window.addEventListener("keydown", handleEscape);
+    }
+
+    return () => {
+      window.removeEventListener("keydown", handleEscape);
+    };
+  }, [selectedHonor]);
 
   return (
     <div ref={containerRef} className="relative min-h-screen overflow-hidden">
@@ -421,7 +429,7 @@ export default function HonorsPage() {
                             <div className="mb-4">
                               <motion.div
                                 whileHover={{ scale: 1.02 }}
-                                onClick={() => setSelectedImage(honor.image || null)}
+                                onClick={() => setSelectedHonor(honor)}
                                 className="relative cursor-pointer overflow-hidden rounded-lg border border-white/10 bg-white/5 group/image"
                               >
                                 <Image
@@ -437,47 +445,6 @@ export default function HonorsPage() {
                               </motion.div>
                             </div>
                           )}
-
-                          {/* Expand Button */}
-                          {honor.fullDescription && (
-                            <motion.button
-                              onClick={() => toggleExpand(honor.id)}
-                              whileHover={{ scale: 1.1 }}
-                              whileTap={{ scale: 0.9 }}
-                              className="w-full rounded-lg bg-white/10 px-4 py-2 text-sm text-white transition-colors hover:bg-white/20"
-                            >
-                              {expandedId === honor.id ? (
-                                <span className="flex items-center justify-center gap-2">
-                                  <ChevronUp className="h-4 w-4" />
-                                  Show Less
-                                </span>
-                              ) : (
-                                <span className="flex items-center justify-center gap-2">
-                                  <ChevronDown className="h-4 w-4" />
-                                  Read More
-                                </span>
-                              )}
-                            </motion.button>
-                          )}
-
-                          {/* Expanded Description */}
-                          <AnimatePresence>
-                            {expandedId === honor.id && honor.fullDescription && (
-                              <motion.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: "auto" }}
-                                exit={{ opacity: 0, height: 0 }}
-                                transition={{ duration: 0.3 }}
-                                className="mt-4 overflow-hidden"
-                              >
-                                <div className="rounded-lg border border-white/10 bg-white/5 p-4">
-                                  <p className="text-sm whitespace-pre-line text-white/80">
-                                    {honor.fullDescription}
-                                  </p>
-                                </div>
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
                         </div>
 
                         {/* Shine Effect */}
@@ -585,40 +552,103 @@ export default function HonorsPage() {
         </motion.div>
         )}
 
-        {/* Image Modal */}
+        {/* Honor Detail Modal - Instagram Style */}
         <AnimatePresence>
-          {selectedImage && (
+          {selectedHonor && (
             <>
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
-                onClick={() => setSelectedImage(null)}
+                onClick={() => setSelectedHonor(null)}
               >
                 <motion.button
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.8 }}
-                  onClick={() => setSelectedImage(null)}
+                  onClick={() => setSelectedHonor(null)}
                   className="absolute right-4 top-4 z-10 rounded-full bg-white/10 p-3 text-white backdrop-blur-sm transition-colors hover:bg-white/20"
                 >
                   <X className="h-6 w-6" />
                 </motion.button>
                 <motion.div
-                  initial={{ scale: 0.9, opacity: 0 }}
+                  initial={{ scale: 0.95, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 0.9, opacity: 0 }}
-                  className="relative max-h-[90vh] max-w-4xl"
+                  exit={{ scale: 0.95, opacity: 0 }}
+                  className="relative flex w-full max-w-7xl flex-col overflow-hidden rounded-lg bg-white/5 backdrop-blur-sm md:flex-row md:items-stretch"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <Image
-                    src={selectedImage}
-                    alt="Award certificate"
-                    width={1200}
-                    height={900}
-                    className="h-auto w-full rounded-lg object-contain"
-                  />
+                  {/* Image Section - Left */}
+                  {selectedHonor.image && (
+                    <div className="flex w-full items-center justify-center bg-black/20 p-1 md:w-2/3 md:flex-shrink-0">
+                      <Image
+                        src={selectedHonor.image}
+                        alt={`${selectedHonor.title} certificate`}
+                        width={1600}
+                        height={2400}
+                        className="h-auto max-h-[90vh] w-full object-contain"
+                      />
+                    </div>
+                  )}
+                  
+                  {/* Details Section - Right */}
+                  <div className="flex w-full flex-col overflow-y-auto p-6 md:h-auto md:w-1/3 md:p-8">
+                    {/* Header */}
+                    <div className="mb-6 border-b border-white/10 pb-6">
+                      <div className="mb-4 flex items-center gap-3">
+                        {selectedHonor.logo ? (
+                          <Image
+                            src={selectedHonor.logo}
+                            alt={`${selectedHonor.issuer} logo`}
+                            width={56}
+                            height={56}
+                            className="h-14 w-14 rounded-lg object-contain p-1"
+                          />
+                        ) : (
+                          <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-white/10">
+                            <Award className="h-7 w-7 text-white/80" />
+                          </div>
+                        )}
+                        <div className="flex-1">
+                          <h3 className="text-2xl font-bold text-white">
+                            {selectedHonor.title}
+                          </h3>
+                          <div className="mt-1 flex items-center gap-2">
+                            <p className="text-base font-medium text-white/70">
+                              {selectedHonor.issuer}
+                            </p>
+                            {selectedHonor.links && selectedHonor.links.length > 0 && (
+                              <a
+                                href={selectedHonor.links[0].href}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-white/50 hover:text-white/80"
+                              >
+                                <ExternalLink className="h-4 w-4" />
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Meta Info */}
+                      <div className="flex items-center gap-2 text-sm text-white/60">
+                        <Calendar className="h-4 w-4" />
+                        <span>{selectedHonor.date}</span>
+                      </div>
+                    </div>
+
+                    {/* Description */}
+                    <div className="flex-1">
+                      <h4 className="mb-3 text-sm font-semibold uppercase tracking-wide text-white/60">
+                        Description
+                      </h4>
+                      <p className="text-base leading-relaxed text-white/90 whitespace-pre-line">
+                        {selectedHonor.fullDescription || selectedHonor.description}
+                      </p>
+                    </div>
+                  </div>
                 </motion.div>
               </motion.div>
             </>
