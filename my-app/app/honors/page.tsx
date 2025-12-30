@@ -10,7 +10,9 @@ import {
   Calendar,
   Award,
   Building2,
-  ExternalLink
+  ExternalLink,
+  Quote,
+  User
 } from "lucide-react";
 import { hapticManager } from "@/lib/haptic-manager";
 import { staggerContainer, staggerItem } from "@/components/providers/motion-provider";
@@ -28,6 +30,17 @@ interface Honor {
     label: string;
     href: string;
   }>;
+}
+
+interface Testimonial {
+  id: string;
+  name: string;
+  title: string;
+  company: string;
+  connection: string;
+  date: string;
+  relationship: string;
+  text: string;
 }
 
 const honors: Honor[] = [
@@ -84,6 +97,29 @@ const honors: Honor[] = [
         href: "https://www.wtwco.com",
       },
     ],
+  },
+];
+
+const testimonials: Testimonial[] = [
+  {
+    id: "0",
+    name: "Jithin Jain",
+    title: "Solutions Architect",
+    company: "CitiusTech",
+    connection: "1st degree connection",
+    date: "February 18, 2024",
+    relationship: "Jithin managed Mohammed directly",
+    text: "Huzaifa is very passionate about his work and very dedicated. He is a quick learner and a complete full stack developer. He is really good with his technical skills. Had it not been his higher education, I would have loved to see him continue and grow in my team. The client was also happy with his work. Wish you the best for your future endeavours!",
+  },
+  {
+    id: "1",
+    name: "Chris Bass",
+    title: "Senior Product Owner",
+    company: "DXC Technology",
+    connection: "1st degree connection",
+    date: "February 5, 2024",
+    relationship: "Chris worked with Mohammed on the same team",
+    text: "I worked in the same team as Huzaifa for just under 2 years as Product Owner when he was a Developer at WTW.\n\nHuzaifa was a great communicator. He was vocal in meetings, whilst allowing others to speak, he had great ideas and solutions and articulated them in a clear and concise way, he asked very sensible questions and took the answers on board and applied them to whatever was required.\n\nHuzaifa was a great developer and I always new that whatever he delivered would be done efficiently and according to the ACs & designs with, thoughts for future proofing, and this always gave me good confidence in the quality of the products that we delivered.\n\nOn a social aspect, I always got on well with Huzaifa and found him a really enjoyable character to work with and he was a good team player.\n\nI have no doubt the Huzaifa will be successful in whatever he puts his talents too and will continue to develop, grow and succeed",
   },
 ];
 
@@ -206,7 +242,7 @@ export default function HonorsPage() {
           <p className="text-justify">
             Throughout my career, I&apos;ve been fortunate to receive recognition
             for my contributions to various projects and initiatives. These awards
-            reflect my commitment to excellence, innovation, and delivering
+            and recommendations reflect my commitment to excellence, innovation, and delivering
             exceptional results.
           </p>
           <p className="text-justify">
@@ -366,6 +402,114 @@ export default function HonorsPage() {
           </motion.div>
             ))}
       </div>
+
+        {/* Recommendations Section */}
+        <motion.div
+          variants={staggerItem}
+          className="mt-24"
+        >
+          <motion.h2
+            variants={staggerItem}
+            className="mb-8 text-3xl font-bold text-white md:text-4xl"
+          >
+            Recommendations
+          </motion.h2>
+
+          <motion.section
+            variants={staggerItem}
+            className="mb-12 space-y-4 text-lg text-white/80"
+          >
+            <p className="text-justify">
+              I&apos;m grateful to have worked with exceptional colleagues and
+              managers who have provided valuable feedback and recommendations.
+              These testimonials reflect the collaborative relationships I&apos;ve
+              built and the impact of my work across different projects and teams.
+            </p>
+          </motion.section>
+
+          {/* Recommendations Grid */}
+          <div className="grid gap-8 md:grid-cols-2">
+            {testimonials.map((testimonial, index) => (
+            <motion.div
+              key={testimonial.id}
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-100px" }}
+                transition={{ delay: index * 0.15, duration: 0.6 }}
+                className="relative"
+              >
+                  <Card className="group relative h-full overflow-hidden border-white/10 bg-white/5 p-6 backdrop-blur-sm transition-all hover:border-white/20 hover:bg-white/10 md:p-8">
+                    {/* Gradient Border Effect */}
+                    <motion.div
+                      className="absolute inset-0 rounded-lg bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 opacity-0 transition-opacity group-hover:opacity-100"
+                      initial={false}
+                    />
+
+                    {/* Quote Icon */}
+                    <div className="absolute right-4 top-4 opacity-10">
+                      <Quote className="h-16 w-16 text-white" />
+                    </div>
+
+                    {/* Content */}
+                    <div className="relative z-10">
+                      {/* Testimonial Text */}
+                      <div className="mb-6">
+                        <p className="text-white/90 leading-relaxed whitespace-pre-line">
+                          {testimonial.text}
+                        </p>
+                      </div>
+
+                      {/* Author Info */}
+                      <div className="border-t border-white/10 pt-6">
+                        <div className="mb-2 flex items-center gap-3">
+                          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-500">
+                            <User className="h-6 w-6 text-white" />
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="text-lg font-bold text-white">
+                              {testimonial.name}
+                            </h3>
+                            <p className="text-sm text-white/70">
+                              {testimonial.title}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Meta Info */}
+                        <div className="mt-4 space-y-2 text-sm text-white/60">
+                          <div className="flex items-center gap-2">
+                            <Building2 className="h-4 w-4" />
+                            <span>{testimonial.company}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4" />
+                            <span>{testimonial.date}</span>
+                          </div>
+                          <div className="text-xs text-white/50">
+                            {testimonial.relationship}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Shine Effect */}
+                    <motion.div
+                      className="absolute inset-0 -z-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
+                      initial={{ x: "-100%" }}
+                      animate={{
+                        x: "100%",
+                      }}
+                      transition={{ 
+                        duration: 3,
+                        repeat: Infinity,
+                        repeatDelay: 5,
+                      }}
+                    />
+                  </Card>
+            </motion.div>
+              ))}
+        </div>
+        </motion.div>
 
         {/* Floating Particles - Only render after hydration */}
         {mounted && particles.map((particle, i) => (

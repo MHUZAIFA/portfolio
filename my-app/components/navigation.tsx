@@ -26,7 +26,7 @@ const navItems = [
   { href: "/experience", label: "Experience & Education", icon: Briefcase, keywords: ["experience", "work", "career", "jobs", "employment", "education", "university", "degree", "school", "academic", "studies"] },
   { href: "/projects", label: "Projects", icon: FolderOpen, keywords: ["projects", "portfolio", "work", "apps"] },
   { href: "/certificates", label: "Certificates", icon: Award, keywords: ["certificates", "certifications", "credentials"] },
-  { href: "/honors", label: "Honors & Awards", icon: Trophy, keywords: ["honors", "awards", "recognition", "achievements", "rewards"] },
+  { href: "/honors", label: "Honors & Awards", icon: Trophy, keywords: ["honors", "awards", "recognition", "achievements", "rewards", "testimonials", "recommendations", "reviews", "feedback", "endorsements"] },
   { href: "/interests", label: "Interests", icon: Heart, keywords: ["interests", "hobbies", "passions"] },
   { href: "/contact", label: "Contact", icon: Mail, keywords: ["contact", "email", "reach", "connect", "message"] },
 ];
