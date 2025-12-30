@@ -22,7 +22,7 @@ import {
 const navItems = [
   { href: "/", label: "Home", icon: Home, keywords: ["home", "main", "landing"] },
   { href: "/about", label: "About", icon: User, keywords: ["about", "me", "info", "profile"] },
-  { href: "/experience", label: "Experience", icon: Briefcase, keywords: ["experience", "work", "career", "jobs", "employment"] },
+  { href: "/experience", label: "Experience & Education", icon: Briefcase, keywords: ["experience", "work", "career", "jobs", "employment", "education", "university", "degree", "school", "academic", "studies"] },
   { href: "/projects", label: "Projects", icon: FolderOpen, keywords: ["projects", "portfolio", "work", "apps"] },
   { href: "/certificates", label: "Certificates", icon: Award, keywords: ["certificates", "certifications", "awards", "credentials"] },
   { href: "/interests", label: "Interests", icon: Heart, keywords: ["interests", "hobbies", "passions"] },
@@ -246,14 +246,14 @@ export function Navigation() {
                               className={cn(
                                 "flex h-10 w-10 items-center justify-center rounded-lg transition-all",
                                 active
-                                  ? "bg-gradient-to-br from-blue-500 to-purple-500"
+                                  ? "bg-white"
                                   : "bg-white/5"
                               )}
                             >
                               <Icon
                                 className={cn(
                                   "h-5 w-5",
-                                  active ? "text-white" : "text-white/70"
+                                  active ? "text-black" : "text-white/70"
                                 )}
                               />
                             </div>

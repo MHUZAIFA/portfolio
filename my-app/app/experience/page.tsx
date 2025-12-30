@@ -17,12 +17,13 @@ import {
   Rocket,
   Building2,
   Cloud,
-  ExternalLink
+  ExternalLink,
+  GraduationCap
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { hapticManager } from "@/lib/haptic-manager";
 import { staggerContainer, staggerItem } from "@/components/providers/motion-provider";
-import { SiReact, SiAngular, SiDotnet, SiJavascript, SiTypescript, SiMongodb, SiNodedotjs, SiDocker, SiKubernetes, SiExpress } from "react-icons/si";
+import { SiReact, SiAngular, SiDotnet, SiJavascript, SiTypescript, SiMongodb, SiNodedotjs, SiDocker, SiKubernetes, SiExpress, SiApachecassandra } from "react-icons/si";
 import { FaJava, FaAws } from "react-icons/fa";
 import type { IconType } from "react-icons";
 
@@ -46,7 +47,8 @@ interface Experience {
     value: string;
     color: string;
   }>;
-  type: "full-time" | "internship";
+  type: "full-time" | "internship" | "education";
+  field?: string; // For education entries
 }
 
 const experiences: Experience[] = [
@@ -76,24 +78,20 @@ const experiences: Experience[] = [
   {
     id: "1",
     company: "Concordia University",
-    role: "MACS Graduate Student",
-    duration: "Sep 2023 - Present",
+    role: "Masters of Applied Computer Science",
+    duration: "Sep 2023 - Aug 2025",
     location: "Montreal, Quebec, Canada",
-    type: "full-time",
+    type: "education",
     description:
-      "MACS Graduate Student at Concordia University, focusing on containerization, databases, software measurement, and advanced CS topics.",
+      "Pursuing a Master's degree in Applied Computer Science at Concordia University, focusing on advanced topics in computer science including distributed systems, database management, software engineering, and measurement methodologies.",
     fullDescription:
-      "Ever since discovering the realm of computer science following my high school education, I've been on a passionate journey of self-improvement and exploration of technology. This relentless pursuit of knowledge has equipped me with a diverse skill set and an unwavering commitment to innovation.\n\nMy journey into the tech field began post-high school, prompting an ardent dedication to daily improvement. Through roles at CitiusTech and Willis Towers Watson, I've delved into software development, healthcare systems, and agile methodologies, all while adhering to software principles like OOPS, SOLID, and more. Crafting solutions that leverage AI technology to enhance medical imaging processes at CitiusTech encapsulated the impactful work that drives my passion for problem-solving.\n\nMy first semester in the master's program at Concordia University has provided me with practical experience in essential technologies, including containerization, Cassandra database management, software measurement methodologies, problem-solving, and Python and Java programming languages. Looking forward, I am excited about the upcoming coursework in areas such as Human-Computer Interaction (HCI), Data Structures, Machine Learning (ML), and Artificial Intelligence (AI). These studies will further augment my skill set and align seamlessly with my practical expertise developed as a Senior Software Developer.",
+      "Pursuing a Master's degree in Applied Computer Science at Concordia University, focusing on advanced topics in computer science including distributed systems, database management, software engineering, and measurement methodologies. The program emphasizes practical application of theoretical concepts through hands-on projects and research.\n\nMy first semester in the master's program has provided me with practical experience in essential technologies, including containerization, Cassandra database management, software measurement methodologies, problem-solving, and Python and Java programming languages. Looking forward, I am excited about the upcoming coursework in areas such as Human-Computer Interaction (HCI), Data Structures, Machine Learning (ML), and Artificial Intelligence (AI). These studies will further augment my skill set and align seamlessly with my practical expertise developed as a Senior Software Developer.",
     logo: "/imgs/logos/concordia.png",
-      technologies: ["Containerization", "Cassandra", "Software Measurement", "Python", "Java"],
+    technologies: ["Cassandra", "Software Measurement"],
     links: [
       {
         label: "Concordia MACS Program",
         href: "https://www.concordia.ca/academics/graduate/macs.html",
-      },
-      {
-        label: "LinkedIn Profile",
-        href: "https://www.linkedin.com", // TODO: replace with your actual profile URL
       },
     ],
   },
@@ -220,7 +218,39 @@ const experiences: Experience[] = [
       { icon: Rocket, label: "Launch", value: "Q1 Success", color: "from-blue-500 to-indigo-500" },
     ],
   },
+  {
+    id: "6",
+    company: "University of Mumbai",
+    role: "Bachelor of Engineering - Information Technology",
+    duration: "2015 - 2019",
+    location: "Mumbai, Maharashtra, India",
+    type: "education",
+    description:
+      "Completed Bachelor of Engineering in Information Technology from University of Mumbai. The program provided a strong foundation in computer science fundamentals, software engineering, database systems, networking, and web technologies.",
+    logo: "/imgs/logos/university-of-mumbai.png",
+    fullDescription:
+      "Completed Bachelor of Engineering in Information Technology from University of Mumbai. The program provided a strong foundation in computer science fundamentals, software engineering, database systems, networking, and web technologies. Gained hands-on experience through various projects and coursework that prepared me for a career in software development.",
+    links: [
+      {
+        label: "University of Mumbai",
+        href: "https://mu.ac.in",
+      },
+    ],
+  },
 ];
+
+// Sort experiences chronologically (most recent first)
+const sortedExperiences = [...experiences].sort((a, b) => {
+  // Extract year from duration string
+  const getYear = (duration: string) => {
+    // For "Present" or ongoing, use current year + 1 to put it first
+    if (duration.includes("Present")) return new Date().getFullYear() + 1;
+    // Extract year from strings like "Sep 2023 - Aug 2025" or "2015 - 2019"
+    const yearMatch = duration.match(/\d{4}/);
+    return yearMatch ? parseInt(yearMatch[0]) : 0;
+  };
+  return getYear(b.duration) - getYear(a.duration);
+});
 
 const techIcons: Record<string, IconType | LucideIcon> = {
   "React.js": SiReact,
@@ -244,6 +274,7 @@ const techIcons: Record<string, IconType | LucideIcon> = {
   "AI": Cloud,
   "DICOM": Cloud,
   "PACS": Cloud,
+  "Cassandra": SiApachecassandra,
 };
 
 // Generate particle positions once
@@ -406,7 +437,7 @@ export default function ExperiencePage() {
         variants={staggerItem}
         className="mb-12 text-4xl font-bold text-white md:text-5xl"
       >
-        Experience
+        Experience & Education
       </motion.h1>
 
         <motion.section
@@ -414,18 +445,18 @@ export default function ExperiencePage() {
           className="mb-16 space-y-4 text-lg text-white/80"
         >
           <p className="text-justify">
-            My professional journey has been marked by continuous growth,
-            innovation, and a commitment to delivering exceptional results. From
-            developing enterprise-grade healthcare solutions to building modern
-            web applications, I&apos;ve had the opportunity to work with
+            My journey has been marked by continuous growth, innovation, and a
+            commitment to delivering exceptional results. From developing
+            enterprise-grade healthcare solutions to building modern web
+            applications, I&apos;ve had the opportunity to work with
             cutting-edge technologies and contribute to meaningful projects.
           </p>
           <p className="text-justify">
-            Each role has shaped my expertise in full-stack development,
-            software engineering principles, and collaborative problem-solving.
-            I take pride in writing clean, optimized code and achieving
-            measurable improvements in performance, efficiency, and user
-            experience.
+            Each role and educational milestone has shaped my expertise in
+            full-stack development, software engineering principles, and
+            collaborative problem-solving. I take pride in writing clean,
+            optimized code and achieving measurable improvements in performance,
+            efficiency, and user experience.
           </p>
         </motion.section>
 
@@ -445,8 +476,8 @@ export default function ExperiencePage() {
           />
 
           {/* Timeline Nodes */}
-          {experiences.map((exp, index) => {
-            const isLastCard = index === experiences.length - 1;
+          {sortedExperiences.map((exp, index) => {
+            const isLastCard = index === sortedExperiences.length - 1;
             return (
           <motion.div
             key={exp.id}
@@ -515,7 +546,11 @@ export default function ExperiencePage() {
                                   className="h-full w-full object-contain p-1"
                                 />
                               ) : (
-                                <Building2 className="h-6 w-6 text-white/80" />
+                                exp.type === "education" ? (
+                                  <GraduationCap className="h-6 w-6 text-white/80" />
+                                ) : (
+                                  <Building2 className="h-6 w-6 text-white/80" />
+                                )
                               )}
                             </motion.div>
                             <div className="flex flex-col gap-1">
@@ -536,6 +571,11 @@ export default function ExperiencePage() {
                                    </a>
                                  )}
                                </div>
+                               {exp.field && (
+                                 <p className="text-sm text-white/60">
+                                   {exp.field}
+                                 </p>
+                               )}
                             </div>
                           </div>
 
@@ -551,13 +591,15 @@ export default function ExperiencePage() {
                             </div>
                             <motion.span
                               className={`rounded-full px-3 py-1 text-xs font-medium ${
-                                exp.type === "full-time"
+                                exp.type === "education"
+                                  ? "bg-green-500/20 text-green-300"
+                                  : exp.type === "full-time"
                                   ? "bg-blue-500/20 text-blue-300"
                                   : "bg-purple-500/20 text-purple-300"
                               }`}
                               whileHover={{ scale: 1.1 }}
                             >
-                              {exp.type === "full-time" ? "Full-time" : "Internship"}
+                              {exp.type === "education" ? "Education" : exp.type === "full-time" ? "Full-time" : "Internship"}
                             </motion.span>
                           </div>
                 </div>
