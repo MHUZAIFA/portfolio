@@ -36,7 +36,11 @@ const letterVariants = {
   },
 };
 
-export function HeroSection() {
+type HeroSectionProps = {
+  gameActive?: boolean;
+};
+
+export function HeroSection({ gameActive = false }: HeroSectionProps = {}) {
   const [currentRoleIndex, setCurrentRoleIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
@@ -45,9 +49,12 @@ export function HeroSection() {
     offset: ["start start", "end start"],
   });
 
-  const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
+  const scrollOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
   const scale = useTransform(scrollYProgress, [0, 0.5], [1, 0.8]);
   const y = useTransform(scrollYProgress, [0, 0.5], [0, -100]);
+  
+  // Use scroll opacity, text opacity will be controlled by animate prop
+  const opacity = scrollOpacity;
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -276,7 +283,7 @@ export function HeroSection() {
           <motion.div
             variants={staggerItem}
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            animate={{ opacity: gameActive ? 0.15 : 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
             className="mb-6 text-base font-light tracking-[0.4em] text-white/70 md:text-lg lg:text-xl"
           >
@@ -289,6 +296,8 @@ export function HeroSection() {
             className="mb-8 flex flex-wrap justify-center items-center gap-x-2 gap-y-1 text-6xl font-bold leading-[0.95] text-white md:text-8xl"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
+            animate={{ opacity: gameActive ? 0.15 : 1 }}
+            transition={{ duration: 0.3 }}
           >
             {nameArray.map((letter, index) => (
               <motion.span
@@ -317,6 +326,8 @@ export function HeroSection() {
           <motion.div
             variants={staggerItem}
             className="mb-10 flex items-center justify-center h-20 md:h-28 lg:h-32"
+            animate={{ opacity: gameActive ? 0.15 : 1 }}
+            transition={{ duration: 0.3 }}
           >
             <AnimatedRoles currentIndex={currentRoleIndex} roles={roles} />
           </motion.div>
@@ -325,6 +336,8 @@ export function HeroSection() {
           <motion.p
             variants={staggerItem}
             className="mb-12 max-w-3xl mx-auto text-base leading-relaxed text-white/75 md:text-lg lg:text-xl px-4"
+            animate={{ opacity: gameActive ? 0.15 : 0.75 }}
+            transition={{ duration: 0.3 }}
           >
             Fuelled by a passion for developing web applications and designing
             compelling products, I have deep desire to excel and continuously
