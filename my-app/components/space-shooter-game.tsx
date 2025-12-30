@@ -99,8 +99,6 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
   const elapsedRef = useRef(0);
   const lastShotTimeRef = useRef(0);
   const idleAnimationRef = useRef<number | null>(null);
-  const animatingToCenterRef = useRef(false);
-  const targetPositionRef = useRef<Vec2 | null>(null);
 
   // Get initial ship position (above bottom-left menu)
   const getInitialShipPosition = (width: number, height: number): Vec2 => {
@@ -129,7 +127,7 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
 
       // Reset ship to initial position if game not started
       const ship = spaceshipRef.current;
-      if (gameStatusRef.current === "idle" && !animatingToCenterRef.current) {
+      if (gameStatusRef.current === "idle") {
         const initialPos = getInitialShipPosition(width, height);
         ship.position = initialPos;
         ship.rotation = 0; // Always face upwards when idle
@@ -168,12 +166,10 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
 
     const idleLoop = () => {
       if (gameStatusRef.current === "idle" || gameStatusRef.current === "over") {
-        if (!animatingToCenterRef.current) {
-          const ctx = canvas.getContext("2d");
-          if (ctx) {
-            const rect = canvas.getBoundingClientRect();
-            renderIdle(ctx, rect.width, rect.height);
-          }
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          const rect = canvas.getBoundingClientRect();
+          renderIdle(ctx, rect.width, rect.height);
         }
         idleAnimationRef.current = requestAnimationFrame(idleLoop);
       } else {
@@ -237,94 +233,32 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
       const initialPos = getInitialShipPosition(width, height);
       spaceshipRef.current.position = initialPos;
       spaceshipRef.current.rotation = 0; // Face upwards
-      animatingToCenterRef.current = false;
-      targetPositionRef.current = null;
     }
   };
 
   const startGame = () => {
     resetGameState();
 
-    // Animate ship to bottom center before starting game
+    // Set ship to bottom center and start game immediately
     const canvas = canvasRef.current;
     if (canvas) {
       const navHeight = 80;
       const width = window.innerWidth;
       const height = window.innerHeight - navHeight;
 
-      targetPositionRef.current = {
-        x: width / 2,
-        y: height - 80, // Bottom center
-      };
-      animatingToCenterRef.current = true;
-
-      // Start animation loop to move ship to center
-      let lastAnimTime = performance.now();
-      const animateToCenter = (currentTime: number) => {
-        if (!animatingToCenterRef.current || !targetPositionRef.current) {
-          gameStatusRef.current = "running";
-          setStatus("running");
-          setFinalScore(null);
-          onStatusChange?.("running");
-          if (animationRef.current !== null) {
-            cancelAnimationFrame(animationRef.current);
-          }
-          animationRef.current = requestAnimationFrame(loop);
-          return;
-        }
-
-        const delta = (currentTime - lastAnimTime) / 1000;
-        lastAnimTime = currentTime;
-
-        const ship = spaceshipRef.current;
-        const target = targetPositionRef.current;
-        const dx = target.x - ship.position.x;
-        const dy = target.y - ship.position.y;
-        const distance = Math.hypot(dx, dy);
-
-        if (distance < 5) {
-          ship.position.x = target.x;
-          ship.position.y = target.y;
-          animatingToCenterRef.current = false;
-          targetPositionRef.current = null;
-
-          gameStatusRef.current = "running";
-          setStatus("running");
-          setFinalScore(null);
-          onStatusChange?.("running");
-          if (animationRef.current !== null) {
-            cancelAnimationFrame(animationRef.current);
-          }
-          animationRef.current = requestAnimationFrame(loop);
-          return;
-        }
-
-        const speed = 400;
-        const moveX = (dx / distance) * speed * delta;
-        const moveY = (dy / distance) * speed * delta;
-        ship.position.x += moveX;
-        ship.position.y += moveY;
-
-        const ctx = canvas.getContext("2d");
-        if (ctx) {
-          const rect = canvas.getBoundingClientRect();
-          renderIdle(ctx, rect.width, rect.height);
-        }
-
-        requestAnimationFrame(animateToCenter);
-      };
-
-      requestAnimationFrame(animateToCenter);
-    } else {
-      gameStatusRef.current = "running";
-      setStatus("running");
-      setFinalScore(null);
-      onStatusChange?.("running");
-      if (animationRef.current !== null) {
-        cancelAnimationFrame(animationRef.current);
-      }
-      animationRef.current = requestAnimationFrame(loop);
+      const ship = spaceshipRef.current;
+      ship.position.x = width / 2;
+      ship.position.y = height - 80; // Bottom center
     }
+
+    gameStatusRef.current = "running";
+    setStatus("running");
+    setFinalScore(null);
+    onStatusChange?.("running");
+    if (animationRef.current !== null) {
+      cancelAnimationFrame(animationRef.current);
+    }
+    animationRef.current = requestAnimationFrame(loop);
   };
 
   const endGame = () => {
