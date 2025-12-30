@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 const SCORE_STORAGE_KEY = "space-shooter-scores";
 
@@ -23,10 +24,22 @@ function loadScores(): number[] {
 
 export default function LeaderboardPage() {
   const [scores, setScores] = useState<number[]>([]);
+  const router = useRouter();
 
   useEffect(() => {
     setScores(loadScores());
   }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        router.push("/");
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [router]);
 
   return (
     <main className="min-h-[calc(100vh-5rem)] px-4 py-12 sm:px-6 lg:px-8">
