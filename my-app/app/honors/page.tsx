@@ -9,7 +9,6 @@ import {
   ChevronUp, 
   Calendar,
   Award,
-  Building2,
   ExternalLink,
   Quote,
   User,
@@ -166,7 +165,6 @@ export default function HonorsPage() {
   useEffect(() => {
     setMounted(true);
     setParticles(generateParticles());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -183,12 +181,6 @@ export default function HonorsPage() {
   const toggleExpand = (id: string) => {
     hapticManager.light();
     setExpandedId(expandedId === id ? null : id);
-  };
-
-  const filteredContent = {
-    awards: sortedHonors,
-    recommendations: testimonials,
-    all: [...sortedHonors, ...testimonials.map(t => ({ ...t, type: "recommendation" as const }))],
   };
 
   return (
@@ -258,46 +250,6 @@ export default function HonorsPage() {
       >
         Honors & Awards
       </motion.h1>
-
-        {/* Statistics */}
-        <motion.div
-          variants={staggerItem}
-          className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3"
-        >
-          <Card className="border-white/10 bg-gradient-to-br from-yellow-500/10 to-orange-500/10 p-6 backdrop-blur-sm">
-            <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-yellow-500/20 to-orange-500/20">
-                <Trophy className="h-6 w-6 text-yellow-400" />
-              </div>
-              <div>
-                <p className="text-3xl font-bold text-white">{honors.length}</p>
-                <p className="text-sm text-white/60">Awards</p>
-              </div>
-            </div>
-          </Card>
-          <Card className="border-white/10 bg-gradient-to-br from-blue-500/10 to-purple-500/10 p-6 backdrop-blur-sm">
-            <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-500/20 to-purple-500/20">
-                <Quote className="h-6 w-6 text-blue-400" />
-              </div>
-              <div>
-                <p className="text-3xl font-bold text-white">{testimonials.length}</p>
-                <p className="text-sm text-white/60">Recommendations</p>
-              </div>
-            </div>
-          </Card>
-          <Card className="border-white/10 bg-gradient-to-br from-green-500/10 to-emerald-500/10 p-6 backdrop-blur-sm">
-            <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-green-500/20 to-emerald-500/20">
-                <Award className="h-6 w-6 text-green-400" />
-              </div>
-              <div>
-                <p className="text-3xl font-bold text-white">{honors.length + testimonials.length}</p>
-                <p className="text-sm text-white/60">Total Recognition</p>
-              </div>
-            </div>
-          </Card>
-        </motion.div>
 
         <motion.section
           variants={staggerItem}
@@ -573,8 +525,8 @@ export default function HonorsPage() {
               </p>
             </motion.section>
 
-            {/* Recommendations Grid */}
-            <div className="grid gap-8 md:grid-cols-2">
+            {/* Recommendations List */}
+            <div className="space-y-12">
               {testimonials.map((testimonial, index) => {
                 // Get company logo if available
                 const companyLogo = testimonial.company === "CitiusTech" 
@@ -586,129 +538,46 @@ export default function HonorsPage() {
                 return (
               <motion.div
                 key={testimonial.id}
-                  initial={{ opacity: 0, y: 50 }}
+                  initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: "-100px" }}
-                  transition={{ delay: index * 0.15, duration: 0.6 }}
+                  transition={{ delay: index * 0.1, duration: 0.5 }}
                   className="relative"
-                  onMouseEnter={() => {
-                    setHoveredId(`testimonial-${testimonial.id}`);
-                    hapticManager.light();
-                  }}
-                  onMouseLeave={() => setHoveredId(null)}
                 >
-                  <Card className="group relative h-full overflow-hidden border-white/10 bg-gradient-to-br from-white/5 via-white/5 to-white/[0.02] p-8 backdrop-blur-sm transition-all hover:border-white/20 hover:bg-white/10 hover:shadow-xl hover:shadow-blue-500/10">
-                    {/* Gradient Border Effect */}
-                    <motion.div
-                      className="absolute inset-0 rounded-lg bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 opacity-0 transition-opacity group-hover:opacity-100"
-                      initial={false}
-                    />
-
-                    {/* Decorative Quote Icon - Top Left */}
-                    <div className="absolute left-6 top-6 opacity-20">
-                      <Quote className="h-12 w-12 text-blue-400" fill="currentColor" />
+                  <div className={index < testimonials.length - 1 ? 'pb-12 border-b border-white/10' : ''}>
+                    {/* Testimonial Text */}
+                    <div className="mb-8 flex gap-4">
+                      <Quote className="h-5 w-5 shrink-0 text-blue-400 mt-0.5" />
+                      <p className="text-base leading-relaxed text-white/90 whitespace-pre-line">
+                        {testimonial.text}
+                      </p>
                     </div>
 
-                    {/* Content */}
-                    <div className="relative z-10">
-                      {/* Opening Quote */}
-                      <div className="mb-4">
-                        <Quote className="h-8 w-8 text-blue-400/50" fill="currentColor" />
-                      </div>
-
-                      {/* Testimonial Text */}
-                      <div className="mb-8">
-                        <p className="text-lg leading-relaxed text-white/95 whitespace-pre-line font-light">
-                          {testimonial.text}
+                    {/* Author Info */}
+                    <div className="flex items-center gap-4 pl-9">
+                      {companyLogo ? (
+                        <Image
+                          src={companyLogo}
+                          alt={`${testimonial.company} logo`}
+                          width={40}
+                          height={40}
+                          className="h-10 w-10 rounded-sm object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-10 w-10 items-center justify-center rounded-sm bg-white/10">
+                          <User className="h-5 w-5 text-white/60" />
+                        </div>
+                      )}
+                      <div>
+                        <p className="text-sm font-semibold text-white">
+                          {testimonial.name}
+                        </p>
+                        <p className="text-xs text-white/60 mt-0.5">
+                          {testimonial.title} · {testimonial.company}
                         </p>
                       </div>
-
-                      {/* Closing Quote */}
-                      <div className="mb-6 flex justify-end">
-                        <Quote className="h-8 w-8 rotate-180 text-blue-400/50" fill="currentColor" />
-                      </div>
-
-                      {/* Author Info Card */}
-                      <div className="rounded-xl border border-white/10 bg-gradient-to-br from-white/10 to-white/5 p-5 backdrop-blur-sm">
-                        <div className="flex items-start gap-4">
-                          {/* Avatar */}
-                          <motion.div
-                            whileHover={{ scale: 1.1 }}
-                            className="relative flex-shrink-0"
-                          >
-                            {companyLogo ? (
-                              <div className="relative">
-                                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 blur-sm opacity-50" />
-                                <Image
-                                  src={companyLogo}
-                                  alt={`${testimonial.company} logo`}
-                                  width={64}
-                                  height={64}
-                                  className="relative h-16 w-16 rounded-full object-cover ring-2 ring-white/20"
-                                />
-                              </div>
-                            ) : (
-                              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 ring-2 ring-white/20">
-                                <User className="h-8 w-8 text-white" />
-                              </div>
-                            )}
-                          </motion.div>
-
-                          {/* Author Details */}
-                          <div className="flex-1 min-w-0">
-                            <h3 className="mb-1 text-xl font-bold text-white">
-                              {testimonial.name}
-                            </h3>
-                            <p className="mb-2 text-sm font-medium text-blue-300">
-                              {testimonial.title}
-                            </p>
-                            
-                            {/* Meta Info */}
-                            <div className="space-y-1.5 text-xs text-white/60">
-                              <div className="flex items-center gap-2">
-                                <Building2 className="h-3.5 w-3.5 shrink-0" />
-                                <span className="truncate">{testimonial.company}</span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <Calendar className="h-3.5 w-3.5 shrink-0" />
-                                <span>{testimonial.date}</span>
-                              </div>
-                              <div className="pt-1 text-xs text-white/50 italic">
-                                {testimonial.relationship}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
                     </div>
-
-                    {/* Animated Background Gradient */}
-                    <motion.div
-                      className="absolute inset-0 -z-0 bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-pink-500/5 opacity-0 transition-opacity group-hover:opacity-100"
-                      animate={{
-                        background: [
-                          "linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(168, 85, 247, 0.05) 50%, rgba(236, 72, 153, 0.05) 100%)",
-                          "linear-gradient(135deg, rgba(168, 85, 247, 0.05) 0%, rgba(236, 72, 153, 0.05) 50%, rgba(59, 130, 246, 0.05) 100%)",
-                          "linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(168, 85, 247, 0.05) 50%, rgba(236, 72, 153, 0.05) 100%)",
-                        ],
-                      }}
-                      transition={{
-                        duration: 8,
-                        repeat: Infinity,
-                        ease: "easeInOut",
-                      }}
-                    />
-
-                    {/* Shine Effect */}
-                    <motion.div
-                      className="absolute inset-0 -z-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
-                      initial={{ x: "-100%" }}
-                      animate={{
-                        x: hoveredId === `testimonial-${testimonial.id}` ? "100%" : "-100%",
-                      }}
-                      transition={{ duration: 0.6 }}
-                    />
-                  </Card>
+                  </div>
             </motion.div>
                 );
               })}
