@@ -2,11 +2,12 @@
 
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Github, ArrowLeft } from "lucide-react";
+import { ExternalLink, Github, ArrowLeft, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { hapticManager } from "@/lib/haptic-manager";
 import { staggerContainer, staggerItem } from "@/components/providers/motion-provider";
-import { useEffect, use } from "react";
+import { useEffect, use, useState } from "react";
 
 interface Project {
   id: string;
@@ -21,6 +22,7 @@ interface Project {
   githubUrl?: string;
   otherLinks?: { label: string; url: string }[];
   features?: string[];
+  additionalImages?: string[];
 }
 
 const projects: Record<string, Project> = {
@@ -105,6 +107,12 @@ export default function ProjectDetailsPage({
   const router = useRouter();
   const { id } = use(params);
   const project = projects[id];
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  const imagesToShow = project?.additionalImages && project.additionalImages.length > 0 
+    ? project.additionalImages 
+    : project?.image ? [project.image] : [];
 
   useEffect(() => {
     if (!project) {
@@ -115,16 +123,57 @@ export default function ProjectDetailsPage({
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        router.push("/projects");
+        if (lightboxOpen) {
+          setLightboxOpen(false);
+        } else {
+          router.push("/projects");
+        }
+      }
+    };
+
+    const handleArrowKeys = (event: KeyboardEvent) => {
+      if (lightboxOpen) {
+        if (event.key === "ArrowLeft") {
+          setCurrentImageIndex((prev) => 
+            prev > 0 ? prev - 1 : imagesToShow.length - 1
+          );
+        } else if (event.key === "ArrowRight") {
+          setCurrentImageIndex((prev) => 
+            prev < imagesToShow.length - 1 ? prev + 1 : 0
+          );
+        }
       }
     };
 
     window.addEventListener("keydown", handleEscape);
+    window.addEventListener("keydown", handleArrowKeys);
 
     return () => {
       window.removeEventListener("keydown", handleEscape);
+      window.removeEventListener("keydown", handleArrowKeys);
     };
-  }, [router]);
+  }, [router, lightboxOpen, imagesToShow.length]);
+
+  const openLightbox = (index: number) => {
+    setCurrentImageIndex(index);
+    setLightboxOpen(true);
+  };
+
+  const closeLightbox = () => {
+    setLightboxOpen(false);
+  };
+
+  const goToPrevious = () => {
+    setCurrentImageIndex((prev) => 
+      prev > 0 ? prev - 1 : imagesToShow.length - 1
+    );
+  };
+
+  const goToNext = () => {
+    setCurrentImageIndex((prev) => 
+      prev < imagesToShow.length - 1 ? prev + 1 : 0
+    );
+  };
 
   if (!project) {
     return null;
@@ -369,6 +418,119 @@ export default function ProjectDetailsPage({
                   );
                 })}
               </ul>
+            </motion.div>
+          )}
+
+          {imagesToShow.length > 0 && (
+            <motion.div
+              variants={staggerItem}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: false }}
+              transition={{ duration: 0.5 }}
+              className="mt-8 pt-8 border-t border-white/10"
+            >
+              <h3 className="mb-6 text-2xl font-semibold text-white">
+                Gallery
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {imagesToShow.map((imageUrl, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    viewport={{ once: false }}
+                    transition={{ duration: 0.4, delay: index * 0.1 }}
+                    className="relative overflow-hidden rounded-lg aspect-video bg-white/5 cursor-pointer"
+                    onClick={() => openLightbox(index)}
+                  >
+                    <Image
+                      src={imageUrl}
+                      alt={`${project.name} - Image ${index + 1}`}
+                      fill
+                      className="object-cover hover:scale-105 transition-transform duration-300"
+                    />
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {/* Lightbox Modal */}
+          {lightboxOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/95"
+              onClick={closeLightbox}
+            >
+              {/* Close Button */}
+              <button
+                onClick={closeLightbox}
+                className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+                aria-label="Close lightbox"
+              >
+                <X className="h-6 w-6 text-white" />
+              </button>
+
+              {/* Previous Button */}
+              {imagesToShow.length > 1 && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    goToPrevious();
+                  }}
+                  className="absolute left-4 p-3 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+                  aria-label="Previous image"
+                >
+                  <ChevronLeft className="h-8 w-8 text-white" />
+                </button>
+              )}
+
+              {/* Next Button */}
+              {imagesToShow.length > 1 && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    goToNext();
+                  }}
+                  className="absolute right-4 p-3 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+                  aria-label="Next image"
+                >
+                  <ChevronRight className="h-8 w-8 text-white" />
+                </button>
+              )}
+
+              {/* Image Counter */}
+              {imagesToShow.length > 1 && (
+                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-full bg-white/10 text-white text-sm">
+                  {currentImageIndex + 1} / {imagesToShow.length}
+                </div>
+              )}
+
+              {/* Main Image */}
+              <div
+                className="relative max-w-7xl max-h-[90vh] w-full h-full flex items-center justify-center p-4"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <motion.div
+                  key={currentImageIndex}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ duration: 0.3 }}
+                  className="relative w-full h-full"
+                >
+                  <Image
+                    src={imagesToShow[currentImageIndex]}
+                    alt={`${project.name} - Image ${currentImageIndex + 1}`}
+                    fill
+                    className="object-contain"
+                    priority
+                  />
+                </motion.div>
+              </div>
             </motion.div>
           )}
         </div>
