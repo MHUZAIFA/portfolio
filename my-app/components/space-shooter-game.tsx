@@ -105,8 +105,8 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
   // Get initial ship position (above bottom-left menu)
   const getInitialShipPosition = (width: number, height: number): Vec2 => {
     return {
-      x: 100, // Left side, above the menu
-      y: height - 120, // Just above the bottom-left overlay (which is at bottom-4 = 16px, so ~120px from bottom)
+      x: 10, // Left side, above the menu
+      y: height - 180, // Just above the bottom-left overlay (which is at bottom-4 = 16px, so ~120px from bottom)
     };
   };
 
