@@ -353,6 +353,8 @@ export function HeroSection({ gameActive = false }: HeroSectionProps = {}) {
             onClick={handleDownload}
             whileHover={{ scale: 1.02, y: -2 }}
             whileTap={{ scale: 0.98 }}
+            animate={{ opacity: gameActive ? 0.3 : 1 }}
+            transition={{ duration: 0.3 }}
             className="group relative overflow-hidden rounded-lg border border-white/20 bg-white/5 px-8 py-4 text-base font-medium text-white backdrop-blur-sm transition-all duration-300 hover:border-white/40 hover:bg-white/10 md:px-10 md:py-5 md:text-lg"
           >
             {/* Animated background gradient */}

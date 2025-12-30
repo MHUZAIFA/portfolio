@@ -98,6 +98,17 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
   const spawnIntervalRef = useRef(1200);
   const elapsedRef = useRef(0);
   const lastShotTimeRef = useRef(0);
+  const idleAnimationRef = useRef<number | null>(null);
+  const animatingToCenterRef = useRef(false);
+  const targetPositionRef = useRef<Vec2 | null>(null);
+
+  // Get initial ship position (above bottom-left menu)
+  const getInitialShipPosition = (width: number, height: number): Vec2 => {
+    return {
+      x: 100, // Left side, above the menu
+      y: height - 120, // Just above the bottom-left overlay (which is at bottom-4 = 16px, so ~120px from bottom)
+    };
+  };
 
   // Resize canvas to viewport
   useEffect(() => {
@@ -116,13 +127,31 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
         ctx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
       }
 
-      // Center spaceship on resize if game not started yet
+      // Reset ship to initial position if game not started
       const ship = spaceshipRef.current;
-      ship.position.x = width / 2;
-      ship.position.y = height * 0.75;
+      if (gameStatusRef.current === "idle" && !animatingToCenterRef.current) {
+        const initialPos = getInitialShipPosition(width, height);
+        ship.position = initialPos;
+        ship.rotation = -Math.PI / 2; // Always face upwards when idle
+      }
     };
 
     resize();
+
+    // Initialize ship position on mount
+    const navHeight = 80;
+    const width = window.innerWidth;
+    const height = window.innerHeight - navHeight;
+    const initialPos = getInitialShipPosition(width, height);
+    spaceshipRef.current.position = initialPos;
+    spaceshipRef.current.rotation = -Math.PI / 2;
+
+    // Initial render
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      renderIdle(ctx, width, height);
+    }
+
     window.addEventListener("resize", resize);
     return () => window.removeEventListener("resize", resize);
   }, []);
@@ -131,6 +160,37 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
   useEffect(() => {
     setStoredTopScores(loadStoredScores());
   }, []);
+
+  // Idle animation loop to always show the ship
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const idleLoop = () => {
+      if (gameStatusRef.current === "idle" || gameStatusRef.current === "over") {
+        if (!animatingToCenterRef.current) {
+          const ctx = canvas.getContext("2d");
+          if (ctx) {
+            const rect = canvas.getBoundingClientRect();
+            renderIdle(ctx, rect.width, rect.height);
+          }
+        }
+        idleAnimationRef.current = requestAnimationFrame(idleLoop);
+      } else {
+        idleAnimationRef.current = null;
+      }
+    };
+
+    if (gameStatusRef.current === "idle" || gameStatusRef.current === "over") {
+      idleAnimationRef.current = requestAnimationFrame(idleLoop);
+    }
+
+    return () => {
+      if (idleAnimationRef.current !== null) {
+        cancelAnimationFrame(idleAnimationRef.current);
+      }
+    };
+  }, [status]);
 
   // Keyboard controls
   useEffect(() => {
@@ -144,7 +204,7 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
         handleShoot();
       }
 
-      if (gameStatusRef.current === "idle" && (e.key === "Enter" || e.code === "Space" || e.key.toLowerCase() === "w" || e.key.toLowerCase() === "a" || e.key.toLowerCase() === "s" || e.key.toLowerCase() === "d" || e.key === "ArrowUp" || e.key === "ArrowDown" || e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key.toLowerCase() === "q" || e.key.toLowerCase() === "e")) {
+      if ((gameStatusRef.current === "idle" || gameStatusRef.current === "over") && (e.key === "Enter" || e.code === "Space" || e.key.toLowerCase() === "w" || e.key.toLowerCase() === "a" || e.key.toLowerCase() === "s" || e.key.toLowerCase() === "d" || e.key === "ArrowUp" || e.key === "ArrowDown" || e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key.toLowerCase() === "q" || e.key.toLowerCase() === "e")) {
         startGame();
       }
     };
@@ -174,24 +234,97 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
       const navHeight = 80;
       const width = window.innerWidth;
       const height = window.innerHeight - navHeight;
-      spaceshipRef.current.position = {
-        x: width / 2,
-        y: height * 0.75,
-      };
-      spaceshipRef.current.rotation = -Math.PI / 2; // Reset to facing up
+      const initialPos = getInitialShipPosition(width, height);
+      spaceshipRef.current.position = initialPos;
+      spaceshipRef.current.rotation = -Math.PI / 2; // Face upwards
+      animatingToCenterRef.current = false;
+      targetPositionRef.current = null;
     }
   };
 
   const startGame = () => {
     resetGameState();
-    gameStatusRef.current = "running";
-    setStatus("running");
-    setFinalScore(null);
-    onStatusChange?.("running");
-    if (animationRef.current !== null) {
-      cancelAnimationFrame(animationRef.current);
+
+    // Animate ship to bottom center before starting game
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const navHeight = 80;
+      const width = window.innerWidth;
+      const height = window.innerHeight - navHeight;
+
+      targetPositionRef.current = {
+        x: width / 2,
+        y: height - 80, // Bottom center
+      };
+      animatingToCenterRef.current = true;
+
+      // Start animation loop to move ship to center
+      let lastAnimTime = performance.now();
+      const animateToCenter = (currentTime: number) => {
+        if (!animatingToCenterRef.current || !targetPositionRef.current) {
+          gameStatusRef.current = "running";
+          setStatus("running");
+          setFinalScore(null);
+          onStatusChange?.("running");
+          if (animationRef.current !== null) {
+            cancelAnimationFrame(animationRef.current);
+          }
+          animationRef.current = requestAnimationFrame(loop);
+          return;
+        }
+
+        const delta = (currentTime - lastAnimTime) / 1000;
+        lastAnimTime = currentTime;
+
+        const ship = spaceshipRef.current;
+        const target = targetPositionRef.current;
+        const dx = target.x - ship.position.x;
+        const dy = target.y - ship.position.y;
+        const distance = Math.hypot(dx, dy);
+
+        if (distance < 5) {
+          ship.position.x = target.x;
+          ship.position.y = target.y;
+          animatingToCenterRef.current = false;
+          targetPositionRef.current = null;
+
+          gameStatusRef.current = "running";
+          setStatus("running");
+          setFinalScore(null);
+          onStatusChange?.("running");
+          if (animationRef.current !== null) {
+            cancelAnimationFrame(animationRef.current);
+          }
+          animationRef.current = requestAnimationFrame(loop);
+          return;
+        }
+
+        const speed = 400;
+        const moveX = (dx / distance) * speed * delta;
+        const moveY = (dy / distance) * speed * delta;
+        ship.position.x += moveX;
+        ship.position.y += moveY;
+
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          const rect = canvas.getBoundingClientRect();
+          renderIdle(ctx, rect.width, rect.height);
+        }
+
+        requestAnimationFrame(animateToCenter);
+      };
+
+      requestAnimationFrame(animateToCenter);
+    } else {
+      gameStatusRef.current = "running";
+      setStatus("running");
+      setFinalScore(null);
+      onStatusChange?.("running");
+      if (animationRef.current !== null) {
+        cancelAnimationFrame(animationRef.current);
+      }
+      animationRef.current = requestAnimationFrame(loop);
     }
-    animationRef.current = requestAnimationFrame(loop);
   };
 
   const endGame = () => {
@@ -205,6 +338,24 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
     if (animationRef.current !== null) {
       cancelAnimationFrame(animationRef.current);
       animationRef.current = null;
+    }
+
+    // Reset ship to initial position (above bottom-left menu)
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const navHeight = 80;
+      const width = window.innerWidth;
+      const height = window.innerHeight - navHeight;
+      const initialPos = getInitialShipPosition(width, height);
+      spaceshipRef.current.position = initialPos;
+      spaceshipRef.current.rotation = -Math.PI / 2; // Face upwards
+
+      // Restart idle animation
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        const rect = canvas.getBoundingClientRect();
+        renderIdle(ctx, rect.width, rect.height);
+      }
     }
   };
 
@@ -442,20 +593,51 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
     }
   };
 
-  const renderGame = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
+  const renderIdle = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
     ctx.clearRect(0, 0, width, height);
 
-    // Background
-    ctx.fillStyle = "rgba(15, 23, 42, 0.9)";
-    ctx.fillRect(0, 0, width, height);
+    const ship = spaceshipRef.current;
+    ctx.save();
+    ctx.translate(ship.position.x, ship.position.y);
+    ctx.rotate(ship.rotation);
 
-    // Subtle stars
-    ctx.fillStyle = "rgba(255,255,255,0.1)";
-    for (let i = 0; i < 35; i++) {
-      const x = (i * 97) % width;
-      const y = ((i * 53 + performance.now() * 0.03) % height + height) % height;
-      ctx.fillRect(x, y, 1.2, 1.2);
-    }
+    ctx.strokeStyle = "rgba(255,255,255,0.9)";
+    ctx.lineWidth = 1.5;
+    ctx.fillStyle = "rgba(255,255,255,0.14)";
+
+    ctx.beginPath();
+    ctx.moveTo(0, -ship.height * 0.6);
+    ctx.lineTo(-ship.width * 0.45, ship.height * 0.4);
+    ctx.lineTo(0, ship.height * 0.15);
+    ctx.lineTo(ship.width * 0.45, ship.height * 0.4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.ellipse(0, -ship.height * 0.2, ship.width * 0.2, ship.height * 0.22, 0, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(255,255,255,0.9)";
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(-ship.width * 0.55, ship.height * 0.25);
+    ctx.lineTo(-ship.width * 0.9, ship.height * 0.65);
+    ctx.lineTo(-ship.width * 0.3, ship.height * 0.4);
+    ctx.closePath();
+    ctx.moveTo(ship.width * 0.55, ship.height * 0.25);
+    ctx.lineTo(ship.width * 0.9, ship.height * 0.65);
+    ctx.lineTo(ship.width * 0.3, ship.height * 0.4);
+    ctx.closePath();
+    ctx.stroke();
+
+    ctx.restore();
+  };
+
+  const renderGame = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
+    // Clear with transparent background
+    ctx.clearRect(0, 0, width, height);
+
+    // No background fill - transparent so hero section shows through
 
     // Lasers
     for (const laser of lasersRef.current) {
@@ -647,8 +829,8 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
         <canvas ref={canvasRef} className="h-full w-full pointer-events-auto" />
 
         {status !== "running" && (
-          <div className="pointer-events-auto absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-b from-black/60 via-black/30 to-black/60 backdrop-blur-[2px]">
-            <div className="flex flex-col items-center gap-4 px-4 text-center text-white">
+          <div className="pointer-events-auto absolute inset-0">
+            <div className="absolute bottom-4 left-4 flex flex-col gap-3 px-4 text-left text-white">
               <p className="text-xs font-semibold uppercase tracking-[0.25em] text-white/50">
                 {status === "idle" ? "Ready" : "Game Over"}
               </p>
@@ -660,16 +842,16 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
               <button
                 type="button"
                 onClick={startGame}
-                className="inline-flex items-center justify-center rounded-full border border-white/30 bg-white/5 px-4 py-2 text-xs font-medium uppercase tracking-[0.25em] text-white transition hover:border-white/60 hover:bg-white/10 sm:px-6 sm:py-2.5"
+                className="inline-flex items-center justify-center rounded-full border border-white/30 bg-white/5 px-4 py-2 text-xs font-medium uppercase tracking-[0.25em] text-white transition hover:border-white/60 hover:bg-white/10 sm:px-6 sm:py-2.5 w-fit"
               >
-                {status === "idle" ? "Start Game" : "Restart"}
+                Play
               </button>
-              <p className="text-[10px] text-white/50 sm:text-xs">
+              <p className="text-[10px] text-white/50 sm:text-xs max-w-xs">
                 <span className="font-semibold">Q/E</span> or <span className="font-semibold">←/→</span> to rotate, <span className="font-semibold">W/A/S/D</span> or <span className="font-semibold">Arrow keys</span> to move, <span className="font-semibold">Space</span> to shoot
               </p>
               <Link
                 href="/leaderboard"
-                className="pointer-events-auto text-[11px] font-medium text-white/60 underline-offset-4 hover:text-white hover:underline"
+                className="pointer-events-auto text-[11px] font-medium text-white/60 underline-offset-4 hover:text-white hover:underline w-fit"
               >
                 View leaderboard
               </Link>
