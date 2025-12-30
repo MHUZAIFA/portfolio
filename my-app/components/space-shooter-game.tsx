@@ -799,7 +799,7 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
   const canStart = status === "idle" || status === "over";
 
   return (
-    <div className="fixed inset-0 z-20 pointer-events-none" style={{ top: '5rem' }}>
+    <div className={`fixed inset-0 pointer-events-none ${status === "idle" ? "z-0" : "z-20"}`} style={{ top: '5rem' }}>
       <div className="relative h-full w-full">
         <canvas ref={canvasRef} className="h-full w-full pointer-events-auto" />
 
