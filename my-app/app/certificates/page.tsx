@@ -189,7 +189,7 @@ export default function CertificatesPage() {
       initial="initial"
       animate="animate"
       variants={staggerContainer}
-      className="mx-auto max-w-7xl px-4 py-24"
+      className="mx-auto max-w-7xl px-4 py-24 mt-12"
     >
       <div className="mb-12 flex items-center justify-between">
         <motion.h1

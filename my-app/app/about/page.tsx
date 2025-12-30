@@ -356,7 +356,7 @@ export default function AboutPage() {
       initial="initial"
       animate="animate"
       variants={staggerContainer}
-      className="mx-auto max-w-7xl px-4 md:px-6 py-24"
+      className="mx-auto max-w-7xl px-4 md:px-6 py-24 mt-12"
     >
       <motion.h1
         variants={staggerItem}

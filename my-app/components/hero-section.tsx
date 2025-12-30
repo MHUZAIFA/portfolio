@@ -277,7 +277,7 @@ export function HeroSection({ gameActive = false }: HeroSectionProps = {}) {
       </div>
 
       {/* Main content - properly centered */}
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="relative z-10 w-full max-w-7xl pt-12 mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col items-center justify-center text-center">
           {/* Greeting */}
           <motion.div

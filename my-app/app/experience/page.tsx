@@ -645,7 +645,7 @@ export default function ExperiencePage() {
       initial="initial"
       animate="animate"
       variants={staggerContainer}
-        className="relative mx-auto max-w-7xl px-4 py-24"
+        className="relative mx-auto max-w-7xl px-4 py-24 mt-12"
     >
         {/* Header */}
       <motion.h1

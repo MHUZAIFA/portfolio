@@ -58,7 +58,7 @@ export default function ContactPage() {
       initial="initial"
       animate="animate"
       variants={staggerContainer}
-      className="mx-auto max-w-7xl px-4 md:px-8 pt-24"
+      className="mx-auto max-w-7xl px-4 md:px-8 pt-24 mt-12"
     >
 
       <div className="mb-16 grid gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:items-start">
