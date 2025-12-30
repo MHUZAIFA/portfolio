@@ -155,13 +155,13 @@ export function Navigation() {
           setIsOpen(true);
           hapticManager.light();
         }}
-        className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-full border border-white/60 bg-black/80 px-4 py-3 backdrop-blur-md transition-all hover:border-white/80 hover:bg-white/10 md:bottom-8 md:right-8"
+        className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-full border-2 border-white/60 bg-black/80 px-4 py-3 backdrop-blur-md transition-all hover:border-white/80 hover:bg-white/10 md:bottom-8 md:right-8"
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         aria-label="Open navigation"
       >
         <Search className="h-4 w-4 text-white/70" />
-        <span className="hidden text-sm text-white/70 md:inline">Quick Nav</span>
+        <span className="text-sm text-white/70 md:inline">Quick Nav</span>
         <kbd className="hidden items-center gap-1 rounded border border-white/20 bg-white/5 px-2 py-1 text-xs text-white/50 md:flex">
           <Command className="h-3 w-3" />
           <span>K</span>
