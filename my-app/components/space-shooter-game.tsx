@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 
 type Vec2 = {
@@ -100,6 +100,7 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
   const lastShotTimeRef = useRef(0);
   const idleAnimationRef = useRef<number | null>(null);
   const spawnAnimationStartRef = useRef<number | null>(null);
+  const quitGameRef = useRef<(() => void) | null>(null);
 
   // Get initial ship position (above bottom-left menu)
   const getInitialShipPosition = (width: number, height: number): Vec2 => {
@@ -193,6 +194,13 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
       // Check if quick nav is open (check if input with quick nav placeholder exists, indicating modal is visible)
       const quickNavInput = document.querySelector('input[placeholder*="Search pages"]');
       const isQuickNavOpen = !!quickNavInput;
+      
+      // Handle Escape key to quit game (always works, even if quick nav is open)
+      if (e.key === "Escape" && gameStatusRef.current === "running") {
+        e.preventDefault();
+        quitGameRef.current?.();
+        return;
+      }
       
       // Only prevent default and handle game controls if quick nav is not open
       if (!isQuickNavOpen && ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " ", "Space", "w", "a", "s", "d", "q", "e"].includes(e.key)) {
@@ -301,6 +309,25 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
       }
     }
   };
+
+  const quitGame = useCallback(() => {
+    if (gameStatusRef.current !== "running") return;
+    // Save score before quitting
+    const final = scoreRef.current;
+    saveScore(final);
+    // Update session best score if this score is higher
+    setSessionBestScore((prev) => Math.max(prev, final));
+    setStoredTopScores(loadStoredScores());
+    
+    // End the game
+    endGame();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Update ref whenever quitGame changes
+  useEffect(() => {
+    quitGameRef.current = quitGame;
+  }, [quitGame]);
 
   const handleShoot = () => {
     const now = performance.now();
@@ -825,6 +852,20 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
     <div className={`fixed inset-0 pointer-events-none ${status === "idle" ? "z-0" : "z-20"}`}>
       <div className="relative h-full w-full">
         <canvas ref={canvasRef} className="h-full w-full pointer-events-auto" />
+
+        {status === "running" && (
+          <div className="pointer-events-auto absolute inset-0">
+            <div className="absolute bottom-4 left-4">
+              <button
+                type="button"
+                onClick={quitGame}
+                className="inline-flex items-center justify-center rounded-full border border-white/30 bg-white/10 px-4 py-2 text-xs font-medium uppercase tracking-[0.25em] text-white/90 transition hover:bg-white/20 hover:border-white/50 hover:text-white sm:px-6 sm:py-2.5"
+              >
+                Quit Game (Esc)
+              </button>
+            </div>
+          </div>
+        )}
 
         {status !== "running" && (
           <div className="pointer-events-auto absolute inset-0">
