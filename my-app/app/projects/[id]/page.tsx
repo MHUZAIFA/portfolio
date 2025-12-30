@@ -265,7 +265,10 @@ export default function ProjectDetailsPage({
       >
         <div className="w-1/2 flex flex-col justify-center px-8 py-24 lg:px-16">
           <motion.div
-            variants={staggerItem}
+            initial={{ opacity: 0, x: -15 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
             className="mb-12 mt-16"
           >
             <Button
@@ -283,7 +286,10 @@ export default function ProjectDetailsPage({
 
           {project.date && (
             <motion.div
-              variants={staggerItem}
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
               className="mb-4 flex flex-wrap gap-4 text-sm text-white/60"
             >
               {project.date && <span>{project.date}</span>}
@@ -292,98 +298,146 @@ export default function ProjectDetailsPage({
 
           {project.category && (
             <motion.div
-              variants={staggerItem}
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
               className="mb-4 flex flex-wrap gap-4 text-sm text-white/60"
             >
               {project.category && (
-                <span className="rounded-full bg-white/10 px-3 py-1">
+                <motion.span
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true, margin: "-50px" }}
+                  transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                  className="rounded-full bg-white/10 px-3 py-1"
+                >
                   {project.category}
-                </span>
+                </motion.span>
               )}
             </motion.div>
           )}
 
           <motion.h1
-            variants={staggerItem}
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.9, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
             className="mb-6 text-4xl font-bold text-white md:text-5xl"
           >
             {project.name}
           </motion.h1>
 
           <motion.p
-            variants={staggerItem}
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.9, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
             className="mb-8 text-lg text-white/80 text-justify"
           >
             {project.fullDescription}
           </motion.p>
 
-          <motion.div variants={staggerItem} className="mb-8">
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            className="mb-8"
+          >
             <h3 className="mb-4 text-xl font-semibold text-white">
               Technologies
             </h3>
             <div className="flex flex-wrap gap-2">
-              {project.technologies.map((tech) => (
-                <span
+              {project.technologies.map((tech, index) => (
+                <motion.span
                   key={tech}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true, margin: "-50px" }}
+                  transition={{ duration: 0.6, delay: index * 0.08, ease: [0.16, 1, 0.3, 1] }}
                   className="rounded-full bg-white/10 px-4 py-2 text-sm text-white"
                 >
                   {tech}
-                </span>
+                </motion.span>
               ))}
             </div>
           </motion.div>
 
           <motion.div
-            variants={staggerItem}
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
             className="flex flex-wrap gap-4 mb-8"
           >
             {project.liveUrl && (
-              <Button
-                onClick={() => hapticManager.medium()}
-                className="bg-white text-black hover:bg-white/90"
-                asChild
+              <motion.div
+                initial={{ opacity: 0, x: -15 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ duration: 0.7, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
               >
-                <a href={project.liveUrl} target="_blank" rel="noopener noreferrer">
-                  <ExternalLink className="mr-2 h-4 w-4" />
-                  Live Demo
-                </a>
-              </Button>
+                <Button
+                  onClick={() => hapticManager.medium()}
+                  className="bg-white text-black hover:bg-white/90"
+                  asChild
+                >
+                  <a href={project.liveUrl} target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="mr-2 h-4 w-4" />
+                    Live Demo
+                  </a>
+                </Button>
+              </motion.div>
             )}
             {project.githubUrl && (
-              <Button
-                onClick={() => hapticManager.medium()}
-                variant="outline"
-                className="border-white/20 text-white hover:bg-white/10"
-                asChild
+              <motion.div
+                initial={{ opacity: 0, x: -15 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ duration: 0.7, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
               >
-                <a href={project.githubUrl} target="_blank" rel="noopener noreferrer">
-                  <Github className="mr-2 h-4 w-4" />
-                  GitHub
-                </a>
-              </Button>
+                <Button
+                  onClick={() => hapticManager.medium()}
+                  variant="outline"
+                  className="border-white/20 text-white hover:bg-white/10"
+                  asChild
+                >
+                  <a href={project.githubUrl} target="_blank" rel="noopener noreferrer">
+                    <Github className="mr-2 h-4 w-4" />
+                    GitHub
+                  </a>
+                </Button>
+              </motion.div>
             )}
-            {project.otherLinks?.map((link) => (
-              <Button
+            {project.otherLinks?.map((link, index) => (
+              <motion.div
                 key={link.url}
-                onClick={() => hapticManager.medium()}
-                variant="outline"
-                className="border-white/20 text-white hover:bg-white/10"
-                asChild
+                initial={{ opacity: 0, x: -15 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ duration: 0.7, delay: 0.3 + index * 0.1, ease: [0.16, 1, 0.3, 1] }}
               >
-                <a href={link.url} target="_blank" rel="noopener noreferrer">
-                  {link.label}
-                </a>
-              </Button>
+                <Button
+                  onClick={() => hapticManager.medium()}
+                  variant="outline"
+                  className="border-white/20 text-white hover:bg-white/10"
+                  asChild
+                >
+                  <a href={link.url} target="_blank" rel="noopener noreferrer">
+                    {link.label}
+                  </a>
+                </Button>
+              </motion.div>
             ))}
           </motion.div>
 
           {project.features && project.features.length > 0 && (
             <motion.div
-              variants={staggerItem}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 10 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: false }}
-              transition={{ duration: 0.5 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
               className="mt-8 pt-8 border-t border-white/10"
             >
               <h3 className="mb-6 text-2xl font-semibold text-white">
@@ -459,10 +513,10 @@ export default function ProjectDetailsPage({
                   return (
                     <motion.li
                       key={index}
-                      initial={{ opacity: 0, x: -20 }}
+                      initial={{ opacity: 0, x: -15 }}
                       whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: false }}
-                      transition={{ duration: 0.4, delay: index * 0.1 }}
+                      viewport={{ once: true, margin: "-50px" }}
+                      transition={{ duration: 0.7, delay: index * 0.08, ease: [0.16, 1, 0.3, 1] }}
                       className="text-white/90 leading-relaxed text-justify pl-0 flex items-start"
                     >
                       <span className="mr-4 h-2 w-2 rotate-45 bg-white/50 shrink-0 mt-2.5"></span>
@@ -483,11 +537,10 @@ export default function ProjectDetailsPage({
 
           {imagesToShow.length > 0 && (
             <motion.div
-              variants={staggerItem}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 10 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: false }}
-              transition={{ duration: 0.5 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
               className="mt-8 pt-8 border-t border-white/10"
             >
               <h3 className="mb-6 text-2xl font-semibold text-white">
@@ -497,13 +550,13 @@ export default function ProjectDetailsPage({
                 {imagesToShow.map((imageUrl, index) => (
                   <motion.div
                     key={index}
-                    initial={{ opacity: 0, x: -30, y: 20, scale: 0.9 }}
+                    initial={{ opacity: 0, x: -20, y: 10, scale: 0.95 }}
                     whileInView={{ opacity: 1, x: 0, y: 0, scale: 1 }}
-                    viewport={{ once: false, margin: "-50px" }}
+                    viewport={{ once: true, margin: "-50px" }}
                     transition={{ 
-                      duration: 0.6, 
-                      delay: index * 0.15,
-                      ease: [0.25, 0.46, 0.45, 0.94]
+                      duration: 0.8, 
+                      delay: index * 0.12,
+                      ease: [0.16, 1, 0.3, 1]
                     }}
                     className="relative h-[170px] overflow-hidden rounded-sm bg-white/5 cursor-pointer flex items-center justify-center"
                     onClick={() => openLightbox(index)}
