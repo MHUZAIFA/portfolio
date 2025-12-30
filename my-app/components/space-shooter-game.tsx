@@ -105,7 +105,7 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
   const getInitialShipPosition = (width: number, height: number): Vec2 => {
     return {
       x: 70, // Left side, above the menu
-      y: height - 210, // Just above the bottom-left overlay (which is at bottom-4 = 16px, so ~120px from bottom)
+      y: height - 220, // Just above the bottom-left overlay (which is at bottom-4 = 16px, so ~120px from bottom)
     };
   };
 
@@ -536,9 +536,28 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
     ctx.clearRect(0, 0, width, height);
 
     const ship = spaceshipRef.current;
+    
+    // Subtle up and down floating animation
+    const floatOffset = Math.sin(performance.now() * 0.001) * 8; // Slow, subtle movement
+    
     ctx.save();
-    ctx.translate(ship.position.x, ship.position.y);
+    ctx.translate(ship.position.x, ship.position.y + floatOffset);
     ctx.rotate(ship.rotation);
+    
+    // Boosters/thrust effect (always on in idle state)
+    const flameHeight = ship.height * 0.6;
+    const flicker = Math.sin(performance.now() * 0.025) * 3;
+    const gradient = ctx.createLinearGradient(0, ship.height / 2, 0, ship.height / 2 + flameHeight);
+    gradient.addColorStop(0, "rgba(255,255,255,0.8)");
+    gradient.addColorStop(0.4, "rgba(255,255,255,0.5)");
+    gradient.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.moveTo(-ship.width * 0.3, ship.height * 0.3);
+    ctx.lineTo(0, ship.height * 0.5 + flameHeight + flicker);
+    ctx.lineTo(ship.width * 0.3, ship.height * 0.3);
+    ctx.closePath();
+    ctx.fill();
 
     ctx.strokeStyle = "rgba(255,255,255,0.9)";
     ctx.lineWidth = 1.5;
