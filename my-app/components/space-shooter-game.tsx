@@ -91,7 +91,7 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
   const scoreRef = useRef(0);
   const [score, setScore] = useState(0);
   const [status, setStatus] = useState<GameStatus>("idle");
-  const [finalScore, setFinalScore] = useState<number | null>(null);
+  const [sessionBestScore, setSessionBestScore] = useState(0);
   const [storedTopScores, setStoredTopScores] = useState<number[]>([]);
 
   const spawnTimerRef = useRef(0);
@@ -258,7 +258,6 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
 
     gameStatusRef.current = "running";
     setStatus("running");
-    setFinalScore(null);
     onStatusChange?.("running");
     if (animationRef.current !== null) {
       cancelAnimationFrame(animationRef.current);
@@ -271,8 +270,9 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
     setStatus("over");
     onStatusChange?.("over");
     const final = scoreRef.current;
-    setFinalScore(final);
     saveScore(final);
+    // Update session best score if this score is higher
+    setSessionBestScore((prev) => Math.max(prev, final));
     setStoredTopScores(loadStoredScores());
     if (animationRef.current !== null) {
       cancelAnimationFrame(animationRef.current);
@@ -571,11 +571,12 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
 
     ctx.restore();
 
-    // Score - top right (always show latest score)
+    // Score - top right (aligned with nav header)
     ctx.fillStyle = "rgba(255,255,255,0.9)";
     ctx.font = "500 18px system-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif";
     ctx.textAlign = "right";
-    ctx.fillText(`Score: ${scoreRef.current}`, width - 20, 30);
+    ctx.textBaseline = "top";
+    ctx.fillText(`Score: ${scoreRef.current}`, width - 20, 0);
   };
 
   const renderGame = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
@@ -724,12 +725,12 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
     ctx.globalAlpha = 1; // Reset alpha
     ctx.restore();
 
-    // Score - top right (always visible during gameplay)
+    // Score - top right (aligned with nav header)
     ctx.fillStyle = "rgba(255,255,255,0.95)";
     ctx.font = "500 18px system-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif";
     ctx.textAlign = "right";
     ctx.textBaseline = "top";
-    ctx.fillText(`Score: ${scoreRef.current}`, width - 20, 20);
+    ctx.fillText(`Score: ${scoreRef.current}`, width - 20, 0);
   };
 
   // Clean up animation on unmount
@@ -809,7 +810,7 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
                 {status === "idle" ? "Ready" : "Game Over"}
               </p>
               <p className="text-sm text-white/80 sm:text-base">
-                Final score: <span className="font-semibold tabular-nums">{finalScore ?? 0}</span>
+                Session best: <span className="font-semibold tabular-nums">{sessionBestScore}</span>
               </p>
               <div className="flex items-center gap-3 flex-wrap">
                 <button
