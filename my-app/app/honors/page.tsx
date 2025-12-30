@@ -514,7 +514,7 @@ export default function HonorsPage() {
                   <div className={index < testimonials.length - 1 ? 'pb-12 border-b border-white/10' : ''}>
                     {/* Testimonial Text */}
                     <div className="mb-8 flex gap-4">
-                      <Quote className="h-5 w-5 shrink-0 text-blue-400 mt-0.5" />
+                      <Quote className="h-5 w-5 shrink-0 text-white mt-0.5" />
                       <p className="text-base leading-relaxed text-white/90 whitespace-pre-line">
                         {testimonial.text}
                       </p>
