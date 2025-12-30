@@ -655,7 +655,7 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
           : 1 - Math.pow(-2 * progress + 2, 3) / 2;
         spawnScale = 0.4 + (1 - 0.4) * eased;
         spawnAlpha = eased;
-        spawnOffsetY = (1 - eased) * 100; // Start from below screen and move up to position
+        spawnOffsetY = (1 - eased) * 150; // Start from well below screen and move up to position
       } else {
         spawnAnimationStartRef.current = null; // Animation complete
       }
