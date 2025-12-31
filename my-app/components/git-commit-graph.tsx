@@ -108,7 +108,7 @@ function generateGitGraph(): Branch[] {
     { id: 2, color: "#f59e0b", commits: [] }, // hotfix branch - yellow/orange
   ];
 
-  const commitSpacing = 60;
+  const commitSpacing = 140; // Increased spacing to fit project cards between commits
   const branchHorizontalSpacing = 30; // 30px spacing between parallel branches
   const totalCommits = 10;
   const startY = 40;
@@ -230,11 +230,12 @@ export function GitCommitGraph() {
 
     const paddingX = 80; // Keep padding for overall SVG dimensions
     const paddingY = 40;
+    const extensionHeight = 100; // Height for infinite extension lines at bottom
     return {
       branches: graphData,
       dimensions: {
         width: maxX - minX + paddingX * 2,
-        height: maxY - minY + paddingY * 2,
+        height: maxY - minY + paddingY * 2 + extensionHeight, // Add extra height for extensions
       },
     };
   }, []);
@@ -382,6 +383,86 @@ export function GitCommitGraph() {
               />
             ))}
 
+            {/* Infinite extension lines at the bottom */}
+            {(() => {
+              const extensionHeight = 100;
+              const bottomYValue = Math.max(...branches.flatMap(b => b.commits.map(c => c.y)));
+              
+              // Blue branch extension (from bottom commit)
+              const blueBottomCommit = branches[0].commits.find(c => c.y === bottomYValue && !c.isHidden);
+              if (blueBottomCommit) {
+                const blueXPos = blueBottomCommit.x + offsetX;
+                const blueYPos = blueBottomCommit.y + offsetY;
+                return (
+                  <>
+                    <defs>
+                      <linearGradient id="blueGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.6" />
+                        <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
+                      </linearGradient>
+                      <linearGradient id="yellowGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.6" />
+                        <stop offset="100%" stopColor="#f59e0b" stopOpacity="0" />
+                      </linearGradient>
+                      <linearGradient id="greenGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stopColor="#10b981" stopOpacity="0.6" />
+                        <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
+                      </linearGradient>
+                    </defs>
+                    {/* Blue branch extension */}
+                    <line
+                      x1={blueXPos}
+                      y1={blueYPos}
+                      x2={blueXPos}
+                      y2={blueYPos + extensionHeight}
+                      stroke="url(#blueGradient)"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                    />
+                    {/* Yellow branch extension */}
+                    {branches[2].commits
+                      .filter(c => c.branch === 2 && c.y === bottomYValue)
+                      .map((yellowCommit) => {
+                        const yellowXPos = yellowCommit.x + offsetX;
+                        const yellowYPos = yellowCommit.y + offsetY;
+                        return (
+                          <line
+                            key="yellow-extension"
+                            x1={yellowXPos}
+                            y1={yellowYPos}
+                            x2={yellowXPos}
+                            y2={yellowYPos + extensionHeight}
+                            stroke="url(#yellowGradient)"
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                          />
+                        );
+                      })}
+                    {/* Green branch extension */}
+                    {branches[1].commits
+                      .filter(c => c.branch === 1 && c.y === bottomYValue)
+                      .map((greenCommit) => {
+                        const greenXPos = greenCommit.x + offsetX;
+                        const greenYPos = greenCommit.y + offsetY;
+                        return (
+                          <line
+                            key="green-extension"
+                            x1={greenXPos}
+                            y1={greenYPos}
+                            x2={greenXPos}
+                            y2={greenYPos + extensionHeight}
+                            stroke="url(#greenGradient)"
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                          />
+                        );
+                      })}
+                  </>
+                );
+              }
+              return null;
+            })()}
+
             {/* Render commits */}
             {branches.map((branch) =>
               branch.commits.map((commit, commitIndex) => {
@@ -443,9 +524,9 @@ export function GitCommitGraph() {
                           delay: commitIndex * 0.1 + branch.id * 0.2 + 0.3,
                         }}
                         x={x}
-                        y={y - 12}
+                        y={y - 70}
                         textAnchor="middle"
-                        className="text-[10px] font-semibold fill-white/80"
+                        className="font-semibold fill-white/80"
                       >
                         HEAD
                       </motion.text>
@@ -479,10 +560,11 @@ export function GitCommitGraph() {
                   transition={{ delay: idx * 0.1 + 0.5 }}
                   className="absolute pointer-events-auto"
                   style={{
-                    left: `calc(${leftPercent}% + 40px)`,
+                    left: `calc(${leftPercent}% + 20px)`,
+                    right: '0',
                     top: `${topPercent}%`,
                     transform: 'translateY(-50%)',
-                    width: '280px',
+                    width: 'auto',
                     zIndex: 10,
                   }}
                 >
@@ -543,39 +625,6 @@ export function GitCommitGraph() {
                       </div>
                     </Card>
                   </Link>
-                </motion.div>
-              );
-            })}
-
-          {/* Projects label and description to the right of HEAD */}
-          {branches[0].commits
-            .filter(commit => commit.isHead)
-            .map((headCommit) => {
-              const x = headCommit.x + offsetX;
-              const y = headCommit.y + offsetY;
-              
-              const leftPercent = (x / dimensions.width) * 100;
-              const topPercent = (y / dimensions.height) * 100;
-              
-              return (
-                <motion.div
-                  key="projects-label"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 1 }}
-                  className="absolute pointer-events-auto"
-                  style={{
-                    left: `calc(${leftPercent}% + 40px)`,
-                    top: `${topPercent}%`,
-                    transform: 'translateY(-50%)',
-                    width: '200px',
-                    zIndex: 10,
-                  }}
-                >
-                  <h4 className="text-base font-semibold text-white mb-1">Projects</h4>
-                  <p className="text-xs text-white/60 leading-relaxed">
-                    A collection of my work and creative endeavors showcasing various technologies and solutions
-                  </p>
                 </motion.div>
               );
             })}
