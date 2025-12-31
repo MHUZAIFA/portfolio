@@ -39,6 +39,15 @@ function parseDate(dateString: string): Date {
 
 const projects = [
   {
+    id: "ai-bots",
+    name: "AI_Bots",
+    description:
+      "Applied AI project featuring comparative analysis of ML models and CNN-based image classification.",
+    thumbnail: "/imgs/projects/ai.png",
+    technologies: ["Machine Learning", "Deep Learning", "Python", "CNN", "SVM"],
+    sortDate: "May 29, 2025 - Jun 22, 2025",
+  },
+  {
     id: "recyclevision",
     name: "RecycleVision",
     description:
@@ -46,6 +55,15 @@ const projects = [
     thumbnail: "/imgs/projects/RecycleVision.png",
     technologies: ["Mobile", "Image Recognition", "HCI", "Gamification"],
     sortDate: "Feb 18, 2024 - May 1, 2024",
+  },
+  {
+    id: "ai-report-workflow",
+    name: "AI-Driven Report Generation",
+    description:
+      "An automated reporting system built using n8n that generates reports using natural language prompts.",
+    thumbnail: "/imgs/projects/n8nlogo.png",
+    technologies: ["n8n", "Automation", "AI", "REST APIs", "Workflow"],
+    sortDate: "Dec 2025",
   },
   {
     id: "metricstics",

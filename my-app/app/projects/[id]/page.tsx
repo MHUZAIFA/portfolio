@@ -26,6 +26,59 @@ interface Project {
 }
 
 const projects: Record<string, Project> = {
+  "ai-bots": {
+    id: "ai-bots",
+    name: "AI_Bots",
+    description: "Applied AI project featuring comparative analysis of ML models and CNN-based image classification",
+    fullDescription:
+      "AI_Bots is a comprehensive Applied AI project (COMP-6721) developed by Team AI_Bots. This project consists of two main phases: Phase 1 focuses on a detailed comparative analysis of classical machine learning models (SVM, Decision Trees, and Random Forests) on benchmark datasets, including data preprocessing, hyperparameter tuning, and comprehensive evaluation across multiple metrics. Phase 2 involves the development and training of a custom Convolutional Neural Network (CNN) on the MNIST dataset, focusing on model design, training pipelines, and performance evaluation with visualizations including accuracy and loss curves. The project demonstrates expertise in both classical machine learning and deep learning approaches, with detailed Jupyter notebooks, comprehensive reports, and well-documented code.",
+    image: "/imgs/projects/ai.png",
+    technologies: ["Python", "Machine Learning", "Deep Learning", "CNN", "SVM", "Decision Trees", "Random Forests", "TensorFlow", "PyTorch", "scikit-learn", "Jupyter Notebook"],
+    category: "Machine Learning & AI",
+    date: "May 29, 2025 - Jun 22, 2025",
+    githubUrl: "https://github.com/MHUZAIFA/COMP-6721-Applied-AI",
+    features: [
+      "Phase 1 - Comparative Analysis: Detailed evaluation of SVM, Decision Trees, and Random Forests on benchmark datasets with comprehensive metrics including accuracy, precision, and recall.",
+      "Data Preprocessing: Advanced data preprocessing techniques including feature engineering, normalization, and handling missing values for optimal model performance.",
+      "Hyperparameter Tuning: Systematic hyperparameter optimization to achieve best model performance across different algorithms.",
+      "Phase 2 - CNN Image Classification: Development and training of a custom Convolutional Neural Network on the MNIST dataset for handwritten digit recognition.",
+      "Model Design: Custom CNN architecture design with proper layer configurations, activation functions, and optimization strategies.",
+      "Performance Visualization: Comprehensive visualizations including accuracy/loss curves, confusion matrices, and performance metrics for model evaluation.",
+      "Jupyter Notebooks: Well-documented Jupyter notebooks with detailed explanations, code comments, and step-by-step analysis for both phases.",
+      "Team Collaboration: Collaborative project with clear task distribution and contributions from team members Shurrab Mohammed, Oleksandr Yasinovskyy, and Huzaifa Mohammed.",
+      "Comprehensive Reports: Detailed project reports (PDF) documenting methodology, results, analysis, and future work ideas for both phases.",
+      "Future Work Extensions: Proposed extensions including XGBoost integration, SVM with RBF kernels, deeper CNN architectures, and data augmentation techniques.",
+    ],
+  },
+  "ai-report-workflow": {
+    id: "ai-report-workflow",
+    name: "AI-Driven Report Generation Workflow",
+    description: "An automated reporting system built using n8n that generates reports using natural language prompts",
+    fullDescription:
+      "The AI-Driven Report Generation Workflow is an automated reporting system built using n8n that allows users to generate reports using natural language prompts. Users can request reports on demand, preview the generated content, and send finalized reports via email. The workflow securely retrieves data from external APIs using Bearer token authentication and query parameters. The collected data is processed, analyzed, and summarized using AI to produce clear and structured reports. This solution reduces manual reporting effort while giving users full control over report generation and delivery.",
+    image: "/imgs/projects/n8nReportWithAI.png",
+    technologies: ["n8n", "Automation", "AI Prompt Processing", "REST APIs", "Bearer Token Authentication", "Query Parameters", "Workflow Orchestration", "Email Services", "Webhook Triggers"],
+    category: "Automation / Reporting",
+    date: "December 2024",
+    githubUrl: "https://github.com/example/ai-report-workflow",
+    features: [
+      "Prompt-Based Report Generation: Users can generate reports by providing natural language prompts, making report creation intuitive and accessible.",
+      "Secure API Data Retrieval: Fetches data from external APIs using Bearer token authentication and query parameters, ensuring secure and flexible data access.",
+      "Data Processing: Processes and aggregates API responses before report creation, ensuring clean and organized data for analysis.",
+      "AI-Powered Summarization: Uses AI to convert raw data into readable and meaningful reports, transforming complex data into actionable insights.",
+      "Report Preview: Allows users to preview generated reports before sending them, ensuring quality and accuracy before delivery.",
+      "User Approval Flow: Reports are only sent after user confirmation, giving users full control over the report generation and delivery process.",
+      "Email Delivery: Sends finalized reports automatically via email, streamlining the distribution process and ensuring timely delivery.",
+      "On-Demand Execution: Reports can be generated anytime through user input, providing flexibility and immediate access to insights.",
+      "Error Handling: Handles API failures, invalid tokens, and missing parameters gracefully, ensuring robust and reliable operation.",
+      "Scalable Design: Easily extendable to support additional APIs and report formats, allowing for future growth and customization.",
+    ],
+    additionalImages: [
+      "/imgs/projects/n8nlogo.png",
+      "/imgs/projects/n8nReportWithAI.png",
+      "/imgs/projects/n8nReport.png"
+    ],
+  },
   metricstics: {
     id: "metricstics",
     name: "Metricstics",
@@ -247,8 +300,8 @@ export default function ProjectDetailsPage({
       </motion.div>
 
       {/* Content Overlay */}
-      <motion.div
-        variants={staggerItem}
+        <motion.div
+          variants={staggerItem}
         className="relative z-10 flex min-h-screen overflow-y-auto"
         style={{
           backgroundColor: "black",
@@ -392,16 +445,16 @@ export default function ProjectDetailsPage({
                 viewport={{ once: true, margin: "-50px" }}
                 transition={{ duration: 0.7, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
               >
-                <Button
-                  onClick={() => hapticManager.medium()}
-                  className="bg-white text-black hover:bg-white/90"
-                  asChild
-                >
-                  <a href={project.liveUrl} target="_blank" rel="noopener noreferrer">
-                    <ExternalLink className="mr-2 h-4 w-4" />
-                    Live Demo
-                  </a>
-                </Button>
+              <Button
+                onClick={() => hapticManager.medium()}
+                className="bg-white text-black hover:bg-white/90"
+                asChild
+              >
+                <a href={project.liveUrl} target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="mr-2 h-4 w-4" />
+                  Live Demo
+                </a>
+              </Button>
               </motion.div>
             )}
             {project.githubUrl && (
@@ -411,17 +464,17 @@ export default function ProjectDetailsPage({
                 viewport={{ once: true, margin: "-50px" }}
                 transition={{ duration: 0.7, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
               >
-                <Button
-                  onClick={() => hapticManager.medium()}
-                  variant="outline"
-                  className="border-white/20 text-white hover:bg-white/10"
-                  asChild
-                >
-                  <a href={project.githubUrl} target="_blank" rel="noopener noreferrer">
-                    <Github className="mr-2 h-4 w-4" />
-                    GitHub
-                  </a>
-                </Button>
+              <Button
+                onClick={() => hapticManager.medium()}
+                variant="outline"
+                className="border-white/20 text-white hover:bg-white/10"
+                asChild
+              >
+                <a href={project.githubUrl} target="_blank" rel="noopener noreferrer">
+                  <Github className="mr-2 h-4 w-4" />
+                  GitHub
+                </a>
+              </Button>
               </motion.div>
             )}
             {project.otherLinks?.map((link, index) => (
@@ -433,15 +486,15 @@ export default function ProjectDetailsPage({
                 transition={{ duration: 0.7, delay: 0.3 + index * 0.1, ease: [0.16, 1, 0.3, 1] }}
               >
                 <Button
-                  onClick={() => hapticManager.medium()}
-                  variant="outline"
-                  className="border-white/20 text-white hover:bg-white/10"
-                  asChild
-                >
-                  <a href={link.url} target="_blank" rel="noopener noreferrer">
-                    {link.label}
-                  </a>
-                </Button>
+                onClick={() => hapticManager.medium()}
+                variant="outline"
+                className="border-white/20 text-white hover:bg-white/10"
+                asChild
+              >
+                <a href={link.url} target="_blank" rel="noopener noreferrer">
+                  {link.label}
+                </a>
+              </Button>
               </motion.div>
             ))}
           </motion.div>
@@ -585,12 +638,12 @@ export default function ProjectDetailsPage({
                   </motion.div>
                 ))}
               </div>
-            </motion.div>
+        </motion.div>
           )}
 
           {/* Lightbox Modal */}
           {lightboxOpen && (
-            <motion.div
+        <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -648,8 +701,8 @@ export default function ProjectDetailsPage({
               >
                 <motion.div
                   key={currentImageIndex}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
                   transition={{ duration: 0.3 }}
                   className="relative w-full h-full"
@@ -660,9 +713,9 @@ export default function ProjectDetailsPage({
                     fill
                     className="object-contain"
                     priority
-                  />
-                </motion.div>
-              </div>
+          />
+        </motion.div>
+      </div>
             </motion.div>
           )}
         </div>
