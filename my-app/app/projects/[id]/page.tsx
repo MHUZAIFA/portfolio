@@ -177,20 +177,25 @@ const projects: Record<string, Project> = {
   recyclevision: {
     id: "recyclevision",
     name: "RecycleVision",
-    description: "A mobile application that simplifies waste sorting using visual cues and image recognition",
+    description: "A mobile application that simplifies waste sorting using ML/AI-powered object detection and classification",
     fullDescription:
-      "RecycleVision is an application developed as part of the SOEN 6751 HCI course. In this project, we aim to develop a mobile application that simplifies the process of waste sorting. The application will use visual cues and gamification to engage users and increase their confidence in waste disposal practices. It will also leverage image recognition technology to classify different types of waste, thereby reducing confusion and increasing accuracy in waste disposal.",
+      "RecycleVision is an application developed as part of the SOEN 6751 HCI course. This mobile application simplifies the process of waste sorting by leveraging machine learning and artificial intelligence technologies. The application integrates with the Hugging Face API to provide advanced object detection and classification capabilities, allowing users to identify different types of waste materials accurately. By combining ML/AI-powered image recognition with visual cues and gamification, RecycleVision engages users and increases their confidence in waste disposal practices. The application uses computer vision models from Hugging Face to detect and classify waste objects in real-time, providing instant feedback and guidance on proper waste sorting, thereby reducing confusion and increasing accuracy in waste disposal.",
     image: "/imgs/projects/RecycleVision.png",
-    technologies: ["Mobile", "Image Recognition", "HCI", "Gamification", "React Native"],
+    technologies: ["Mobile", "Machine Learning", "Artificial Intelligence", "Hugging Face API", "Object Detection", "Image Classification", "Computer Vision", "HCI", "Gamification", "React Native"],
     category: "Mobile Application",
     date: "Feb 18, 2024 - May 1, 2024",
     liveUrl: "https://example.com",
     githubUrl: "https://github.com/example/recyclevision",
     features: [
+      "ML/AI-Powered Object Detection: Leverages Hugging Face API's advanced machine learning models to detect waste objects in real-time from camera input, providing accurate identification of different waste materials.",
+      "Intelligent Waste Classification: Uses AI classification models to categorize detected waste into appropriate recycling categories (recyclable, compostable, hazardous, etc.) with high accuracy.",
+      "Hugging Face API Integration: Seamlessly integrates with Hugging Face's pre-trained computer vision models for robust and reliable object detection and classification without requiring local model training.",
+      "Real-Time Image Processing: Processes camera images instantly to provide immediate feedback on waste classification, enabling users to make quick sorting decisions.",
       "Visual Cues for Waste Sorting: The application uses visual cues to enhance user confidence and engagement in waste-sorting practices. This feature helps users to identify and sort waste correctly.",
       "Emotional Satisfaction: The application is designed to impact the user's emotional response positively. It provides satisfaction to users by enabling them to dispose of waste effectively and correctly.",
       "Gamification of Waste Sorting: The application incorporates gamification elements to encourage habitual correct waste sorting. This feature makes the waste sorting process more engaging and fun for users.",
       "Environmental Awareness: The application aims to increase user's environmental awareness. It tracks the user's waste sorting practices before and after using the application, providing insights into their contribution to broader environmental practices.",
+      "Confidence Building: By providing accurate AI-powered classifications, the application builds user confidence in waste sorting decisions, reducing uncertainty and improving sorting accuracy.",
     ],
   },
 };

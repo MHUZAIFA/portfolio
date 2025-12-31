@@ -51,9 +51,9 @@ const projects = [
     id: "recyclevision",
     name: "RecycleVision",
     description:
-      "A mobile application that simplifies waste sorting using visual cues and image recognition technology.",
+      "A mobile application that simplifies waste sorting using ML/AI-powered object detection and classification via Hugging Face API.",
     thumbnail: "/imgs/projects/RecycleVision.png",
-    technologies: ["Mobile", "Image Recognition", "HCI", "Gamification"],
+    technologies: ["Mobile", "ML/AI", "Hugging Face API", "Image Recognition", "HCI", "Gamification"],
     sortDate: "Feb 18, 2024 - May 1, 2024",
   },
   {
@@ -79,7 +79,7 @@ const projects = [
     name: "MyTasks",
     description:
       "A user-friendly cross-platform to-do application for efficiently managing and tracking day-to-day activities.",
-    thumbnail: "/imgs/projects/mockup_todo.png",
+    thumbnail: "/imgs/projects/todobg.png",
     technologies: ["Angular", "PWA", "Cross Platform", "Cloud-Based", "Firebase"],
     sortDate: "December 2022",
   },
