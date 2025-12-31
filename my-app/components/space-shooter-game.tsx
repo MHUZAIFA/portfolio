@@ -873,23 +873,17 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
               <p className="text-xs font-semibold uppercase tracking-[0.25em] text-white/50">
                 {status === "idle" ? "Ready" : "Game Over"}
               </p>
-              <p className="text-sm text-white/80 sm:text-base">
+              <p className="text-xs text-white/80 sm:text-base">
               Best Score: <span className="font-semibold tabular-nums">{sessionBestScore}</span>
               </p>
               <div className="flex items-center gap-3 flex-wrap">
                 <button
                   type="button"
                   onClick={startGame}
-                  className="inline-flex items-center justify-center rounded-full border border-white bg-white/10 px-4 py-2 text-xs font-medium uppercase tracking-[0.25em] text-white transition hover:bg-white/20 hover:border-white sm:px-6 sm:py-2.5 w-fit"
+                  className="inline-flex items-center justify-center rounded-full border border-white bg-white/10 px-4 py-2 text-xs font-medium uppercase tracking-[0.25em] text-white transition hover:bg-white/20 hover:border-white sm:px-8 sm:py-2.5 w-fit"
                 >
                   Play
                 </button>
-                <Link
-                  href="/leaderboard"
-                  className="pointer-events-auto inline-flex items-center justify-center rounded-full border border-white/20 bg-white/5 px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.25em] text-white/70 transition hover:border-white/40 hover:bg-white/10 hover:text-white/90 sm:px-4 sm:py-2 w-fit"
-                >
-                  Leaderboard
-                </Link>
               </div>
               <p className="text-[10px] text-white/50 sm:text-xs max-w-xs">
                 <span className="font-semibold">Q/E</span> or <span className="font-semibold">←/→</span> to rotate, <span className="font-semibold">W/A/S/D</span> or <span className="font-semibold">Arrow keys</span> to move, <span className="font-semibold">Space</span> to shoot
