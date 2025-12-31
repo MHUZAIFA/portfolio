@@ -3,8 +3,9 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { ProjectCard } from "@/components/project-card";
+import { GitCommitGraph } from "@/components/git-commit-graph";
 import { staggerContainer, staggerItem } from "@/components/providers/motion-provider";
-import { Grid, List } from "lucide-react";
+import { Grid, List, GitBranch } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { hapticManager } from "@/lib/haptic-manager";
 
@@ -129,7 +130,7 @@ const projects = [
 });
 
 export default function ProjectsPage() {
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [viewMode, setViewMode] = useState<"grid" | "list" | "git">("grid");
 
   return (
     <motion.div
@@ -186,6 +187,21 @@ export default function ProjectsPage() {
             >
               <List className="h-4 w-4" />
             </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setViewMode("git");
+                hapticManager.light();
+              }}
+              className={`h-8 w-8 p-0 transition-all ${
+                viewMode === "git"
+                  ? "bg-white/20 text-white"
+                  : "text-white/60 hover:text-white hover:bg-white/10"
+              }`}
+            >
+              <GitBranch className="h-4 w-4" />
+            </Button>
           </motion.div>
         </div>
         <motion.p
@@ -198,41 +214,61 @@ export default function ProjectsPage() {
         </motion.p>
       </motion.div>
 
-      {/* All Projects */}
+      {/* Content based on view mode */}
       <motion.div variants={staggerItem}>
-        {viewMode === "grid" ? (
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <AnimatePresence mode="wait">
+        <AnimatePresence mode="wait">
+          {viewMode === "git" ? (
+            <motion.div
+              key="git-view"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <GitCommitGraph />
+            </motion.div>
+          ) : viewMode === "grid" ? (
+            <motion.div
+              key="grid-view"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.3 }}
+              className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
+            >
               {projects.map((project, index) => (
                 <motion.div
                   key={project.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ delay: index * 0.08 }}
                 >
                   <ProjectCard {...project} />
                 </motion.div>
               ))}
-            </AnimatePresence>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <AnimatePresence mode="wait">
+            </motion.div>
+          ) : (
+            <motion.div
+              key="list-view"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.3 }}
+              className="space-y-4"
+            >
               {projects.map((project, index) => (
                 <motion.div
                   key={project.id}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
                   transition={{ delay: index * 0.04 }}
                 >
                   <ProjectCard {...project} listView={true} />
                 </motion.div>
               ))}
-            </AnimatePresence>
-          </div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
 
     </motion.div>
