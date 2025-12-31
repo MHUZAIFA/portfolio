@@ -33,7 +33,42 @@ interface Project {
   category?: string;
 }
 
-// Project data for the 7 visible commits (excluding HEAD)
+// Helper function to parse date string and return a sortable date
+function parseProjectDate(dateString: string): Date {
+  if (!dateString) return new Date(0);
+  
+  // Handle date ranges (take the start date)
+  const date = dateString.split(" - ")[0];
+  
+  // Parse different date formats
+  const monthNames: Record<string, number> = {
+    january: 0, february: 1, march: 2, april: 3, may: 4, june: 5,
+    july: 6, august: 7, september: 8, october: 9, november: 10, december: 11,
+    jan: 0, feb: 1, mar: 2, apr: 3, jun: 5, jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11
+  };
+
+  // Try to parse "Month Day, Year" format (e.g., "May 29, 2025")
+  const dateMatch = date.match(/(\w+)\s+(\d+),\s+(\d+)/i);
+  if (dateMatch) {
+    const month = monthNames[dateMatch[1].toLowerCase()];
+    const day = parseInt(dateMatch[2]);
+    const year = parseInt(dateMatch[3]);
+    return new Date(year, month, day);
+  }
+
+  // Try to parse "Month Year" format (e.g., "December 2024")
+  const monthYearMatch = date.match(/(\w+)\s+(\d+)/i);
+  if (monthYearMatch) {
+    const month = monthNames[monthYearMatch[1].toLowerCase()];
+    const year = parseInt(monthYearMatch[2]);
+    return new Date(year, month, 1);
+  }
+
+  // Fallback to current date if parsing fails
+  return new Date();
+}
+
+// Project data - will be sorted from latest to oldest
 const projects: Project[] = [
   {
     id: "ai-bots",
@@ -98,7 +133,12 @@ const projects: Project[] = [
     date: "Feb 2022",
     category: "Support",
   },
-];
+].sort((a, b) => {
+  // Sort by date, most recent first
+  const dateA = parseProjectDate(a.date || "");
+  const dateB = parseProjectDate(b.date || "");
+  return dateB.getTime() - dateA.getTime();
+});
 
 // Generate mock git commit data
 function generateGitGraph(): Branch[] {
@@ -253,17 +293,31 @@ export function GitCommitGraph() {
     const offsetY = 20; // Top padding
 
     // Connect main branch commits (straight vertical line)
+    // Skip connections through hidden commits - connect directly from last visible to HEAD
     const mainBranch = branches[0];
-    for (let i = 0; i < mainBranch.commits.length - 1; i++) {
-      const from = mainBranch.commits[i];
-      const to = mainBranch.commits[i + 1];
-      const path = getStraightPath(
-        from.x + offsetX,
-        from.y + offsetY,
-        to.x + offsetX,
-        to.y + offsetY
-      );
-      connections.push({ path, color: mainBranch.color, from, to });
+    let lastVisibleCommit: Commit | null = null;
+    
+    for (let i = 0; i < mainBranch.commits.length; i++) {
+      const commit = mainBranch.commits[i];
+      
+      // Skip hidden commits
+      if (commit.isHidden) {
+        continue;
+      }
+      
+      // If we have a previous visible commit, connect to current
+      if (lastVisibleCommit) {
+        const path = getStraightPath(
+          lastVisibleCommit.x + offsetX,
+          lastVisibleCommit.y + offsetY,
+          commit.x + offsetX,
+          commit.y + offsetY
+        );
+        connections.push({ path, color: mainBranch.color, from: lastVisibleCommit, to: commit });
+      }
+      
+      // Update last visible commit
+      lastVisibleCommit = commit;
     }
 
     // Connect yellow (hotfix) branch - parallel to blue, then merges into blue
@@ -537,12 +591,22 @@ export function GitCommitGraph() {
             )}
           </svg>
 
-          {/* Project cards to the right of blue commits */}
-          {branches[0].commits
-            .filter((commit) => !commit.isHidden && !commit.isHead && commit.branch === 0)
-            .slice(0, 7) // Get first 7 visible commits
-            .map((commit, idx) => {
-              const project = projects[idx];
+          {/* Project cards to the right of blue commits - starting with HEAD */}
+          {(() => {
+            // Get HEAD commit first
+            const headCommit = branches[0].commits.find(c => c.isHead && c.branch === 0);
+            // Get other visible commits (excluding HEAD and hidden)
+            const otherCommits = branches[0].commits
+              .filter((commit) => !commit.isHidden && !commit.isHead && commit.branch === 0)
+              .slice(0, 6); // Get 6 more commits (7 total including HEAD)
+            
+            // Combine: HEAD first, then others
+            const allCommits = headCommit ? [headCommit, ...otherCommits] : otherCommits;
+            
+            return allCommits.map((commit, idx) => {
+              // Move remaining projects up by one: HEAD gets project 0, others get project idx+1
+              const projectIndex = idx === 0 ? 0 : idx + 1;
+              const project = projects[projectIndex];
               if (!project) return null;
               
               const x = commit.x + offsetX;
@@ -627,7 +691,8 @@ export function GitCommitGraph() {
                   </Link>
                 </motion.div>
               );
-            })}
+            });
+          })()}
         </div>
       )}
     </motion.div>
