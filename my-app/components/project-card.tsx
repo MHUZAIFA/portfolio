@@ -5,6 +5,8 @@ import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { hapticManager } from "@/lib/haptic-manager";
 import { scaleIn } from "@/components/providers/motion-provider";
+import { ArrowRight, ExternalLink } from "lucide-react";
+import Image from "next/image";
 
 interface ProjectCardProps {
   id: string;
@@ -12,6 +14,9 @@ interface ProjectCardProps {
   description: string;
   thumbnail?: string;
   technologies?: string[];
+  date?: string;
+  category?: string;
+  featured?: boolean;
 }
 
 export function ProjectCard({
@@ -20,43 +25,113 @@ export function ProjectCard({
   description,
   thumbnail,
   technologies,
+  date,
+  category,
+  featured = false,
 }: ProjectCardProps) {
   return (
     <motion.div
       variants={scaleIn}
-      whileHover={{ scale: 1.02 }}
+      whileHover={{ y: -8 }}
       whileTap={{ scale: 0.98 }}
+      className={featured ? "md:col-span-2" : ""}
     >
       <Link href={`/projects/${id}`} onClick={() => hapticManager.light()}>
-        <Card className="group h-full cursor-pointer border-white/10 bg-white/5 p-6 transition-all hover:bg-white/10">
+        <Card className="group relative h-full cursor-pointer overflow-hidden border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] p-0 backdrop-blur-sm transition-all duration-300 hover:border-white/20 hover:shadow-2xl hover:shadow-white/5">
+          {/* Background gradient on hover */}
+          <div className="absolute inset-0 bg-gradient-to-br from-white/0 via-white/0 to-white/0 opacity-0 transition-opacity duration-300 group-hover:from-white/5 group-hover:via-white/2 group-hover:to-white/0 group-hover:opacity-100" />
+          
           {thumbnail && (
-            <div className="mb-4 aspect-video w-full overflow-hidden rounded-lg bg-white/5">
-              <img
+            <div className="relative h-48 w-full overflow-hidden bg-gradient-to-br from-white/10 to-white/5 md:h-56 lg:h-64">
+              <Image
                 src={thumbnail}
                 alt={name}
-                className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                fill
+                className="object-cover transition-all duration-500 group-hover:scale-110"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               />
-            </div>
-          )}
-          <h3 className="mb-2 text-xl font-semibold text-white">{name}</h3>
-          <p className="mb-4 text-sm text-white/70">{description}</p>
-          {technologies && technologies.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {technologies.slice(0, 3).map((tech) => (
-                <span
-                  key={tech}
-                  className="rounded-full bg-white/10 px-3 py-1 text-xs text-white/80"
+              {/* Gradient overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+              
+              {/* Category badge */}
+              {category && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  whileHover={{ opacity: 1, y: 0 }}
+                  className="absolute top-4 right-4"
                 >
-                  {tech}
-                </span>
-              ))}
-              {technologies.length > 3 && (
-                <span className="rounded-full bg-white/10 px-3 py-1 text-xs text-white/80">
-                  +{technologies.length - 3}
-                </span>
+                  <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
+                    {category}
+                  </span>
+                </motion.div>
+              )}
+              
+              {/* Date badge */}
+              {date && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  whileHover={{ opacity: 1, y: 0 }}
+                  className="absolute bottom-4 left-4"
+                >
+                  <span className="rounded-full bg-black/40 px-3 py-1 text-xs text-white/90 backdrop-blur-sm">
+                    {date.split(" - ")[0]}
+                  </span>
+                </motion.div>
+              )}
+
+              {/* Featured badge */}
+              {featured && (
+                <div className="absolute top-4 left-4">
+                  <span className="rounded-full bg-gradient-to-r from-yellow-500/90 to-orange-500/90 px-3 py-1 text-xs font-semibold text-black backdrop-blur-sm">
+                    ⭐ Featured
+                  </span>
+                </div>
               )}
             </div>
           )}
+
+          <div className="relative p-6">
+            <div className="mb-3 flex items-start justify-between">
+              <h3 className="text-xl font-bold text-white transition-colors group-hover:text-white md:text-2xl">
+                {name}
+              </h3>
+              <motion.div
+                initial={{ x: 0 }}
+                whileHover={{ x: 4 }}
+                className="ml-4 text-white/60 transition-colors group-hover:text-white"
+              >
+                <ArrowRight className="h-5 w-5" />
+              </motion.div>
+            </div>
+            
+            <p className="mb-4 line-clamp-2 text-sm leading-relaxed text-white/70 transition-colors group-hover:text-white/80">
+              {description}
+            </p>
+
+            {technologies && technologies.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {technologies.slice(0, 4).map((tech, index) => (
+                  <motion.span
+                    key={tech}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: index * 0.05 }}
+                    className="rounded-lg bg-white/10 px-2.5 py-1 text-xs font-medium text-white/90 backdrop-blur-sm transition-all hover:bg-white/20"
+                  >
+                    {tech}
+                  </motion.span>
+                ))}
+                {technologies.length > 4 && (
+                  <span className="rounded-lg bg-white/10 px-2.5 py-1 text-xs font-medium text-white/90 backdrop-blur-sm">
+                    +{technologies.length - 4}
+                  </span>
+                )}
+              </div>
+            )}
+
+            {/* Hover effect line */}
+            <div className="absolute bottom-0 left-0 h-0.5 w-0 bg-gradient-to-r from-white/50 to-transparent transition-all duration-300 group-hover:w-full" />
+          </div>
         </Card>
       </Link>
     </motion.div>
