@@ -1,11 +1,10 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { ProjectCard } from "@/components/project-card";
 import { staggerContainer, staggerItem } from "@/components/providers/motion-provider";
-import { Input } from "@/components/ui/input";
-import { Search, X, Filter } from "lucide-react";
+import { Grid, List } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { hapticManager } from "@/lib/haptic-manager";
 
@@ -130,60 +129,7 @@ const projects = [
 });
 
 export default function ProjectsPage() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedTech, setSelectedTech] = useState<string | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-
-  // Get all unique technologies and categories
-  const allTechnologies = useMemo(() => {
-    const techs = new Set<string>();
-    projects.forEach((project) => {
-      project.technologies?.forEach((tech) => techs.add(tech));
-    });
-    return Array.from(techs).sort();
-  }, []);
-
-  const allCategories = useMemo(() => {
-    const cats = new Set<string>();
-    projects.forEach((project) => {
-      if (project.category) cats.add(project.category);
-    });
-    return Array.from(cats).sort();
-  }, []);
-
-  // Filter projects
-  const filteredProjects = useMemo(() => {
-    return projects.filter((project) => {
-      const matchesSearch =
-        searchQuery === "" ||
-        project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        project.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        project.technologies?.some((tech) =>
-          tech.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-
-      const matchesTech =
-        selectedTech === null ||
-        project.technologies?.some((tech) => tech === selectedTech);
-
-      const matchesCategory =
-        selectedCategory === null || project.category === selectedCategory;
-
-      return matchesSearch && matchesTech && matchesCategory;
-    });
-  }, [searchQuery, selectedTech, selectedCategory]);
-
-  const featuredProjects = filteredProjects.filter((p) => p.featured);
-  const regularProjects = filteredProjects.filter((p) => !p.featured);
-
-  const clearFilters = () => {
-    setSearchQuery("");
-    setSelectedTech(null);
-    setSelectedCategory(null);
-    hapticManager.light();
-  };
-
-  const hasActiveFilters = searchQuery !== "" || selectedTech !== null || selectedCategory !== null;
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   return (
     <motion.div
@@ -194,13 +140,54 @@ export default function ProjectsPage() {
     >
       {/* Header Section */}
       <motion.div variants={staggerItem} className="mb-12">
-        <motion.h1
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-4 bg-gradient-to-r from-white to-white/70 bg-clip-text text-4xl font-bold text-transparent md:text-6xl"
-        >
-          My Projects
-        </motion.h1>
+        <div className="mb-4 flex items-center justify-between">
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-gradient-to-r from-white to-white/70 bg-clip-text text-4xl font-bold text-transparent md:text-6xl"
+          >
+            My Projects
+          </motion.h1>
+          
+          {/* View Toggle */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="flex gap-2 rounded-lg border border-white/20 bg-white/5 p-1 backdrop-blur-sm"
+          >
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setViewMode("grid");
+                hapticManager.light();
+              }}
+              className={`h-8 w-8 p-0 transition-all ${
+                viewMode === "grid"
+                  ? "bg-white/20 text-white"
+                  : "text-white/60 hover:text-white hover:bg-white/10"
+              }`}
+            >
+              <Grid className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setViewMode("list");
+                hapticManager.light();
+              }}
+              className={`h-8 w-8 p-0 transition-all ${
+                viewMode === "list"
+                  ? "bg-white/20 text-white"
+                  : "text-white/60 hover:text-white hover:bg-white/10"
+              }`}
+            >
+              <List className="h-4 w-4" />
+            </Button>
+          </motion.div>
+        </div>
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -211,146 +198,12 @@ export default function ProjectsPage() {
         </motion.p>
       </motion.div>
 
-      {/* Search and Filter Section */}
-      <motion.div
-        variants={staggerItem}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="mb-8 space-y-4"
-      >
-        {/* Search Bar */}
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-white/40" />
-          <Input
-            type="text"
-            placeholder="Search projects by name, description, or technology..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-12 border-white/20 bg-white/5 pl-12 pr-4 text-white placeholder:text-white/40 backdrop-blur-sm focus:border-white/40 focus:bg-white/10"
-          />
-          {searchQuery && (
-            <button
-              onClick={() => setSearchQuery("")}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 transition-colors hover:text-white/60"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          )}
-        </div>
-
-        {/* Filter Pills */}
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2 text-sm text-white/60">
-            <Filter className="h-4 w-4" />
-            <span>Filters:</span>
-          </div>
-
-          {/* Category Filter */}
-          {allCategories.map((category) => (
-            <button
-              key={category}
-              onClick={() => {
-                setSelectedCategory(selectedCategory === category ? null : category);
-                hapticManager.light();
-              }}
-              className={`rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
-                selectedCategory === category
-                  ? "bg-white text-black"
-                  : "bg-white/10 text-white/80 hover:bg-white/20"
-              }`}
-            >
-              {category}
-            </button>
-          ))}
-
-          {/* Technology Filter */}
-          {allTechnologies.slice(0, 8).map((tech) => (
-            <button
-              key={tech}
-              onClick={() => {
-                setSelectedTech(selectedTech === tech ? null : tech);
-                hapticManager.light();
-              }}
-              className={`rounded-full px-3 py-1 text-xs font-medium transition-all ${
-                selectedTech === tech
-                  ? "bg-white/20 text-white ring-2 ring-white/30"
-                  : "bg-white/5 text-white/70 hover:bg-white/10"
-              }`}
-            >
-              {tech}
-            </button>
-          ))}
-
-          {/* Clear Filters */}
-          {hasActiveFilters && (
-            <Button
-              onClick={clearFilters}
-              variant="ghost"
-              size="sm"
-              className="ml-auto text-white/60 hover:text-white"
-            >
-              <X className="mr-2 h-4 w-4" />
-              Clear
-            </Button>
-          )}
-        </div>
-
-        {/* Results Count */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-sm text-white/50"
-        >
-          {filteredProjects.length} {filteredProjects.length === 1 ? "project" : "projects"} found
-        </motion.p>
-      </motion.div>
-
-      {/* Featured Projects */}
-      {featuredProjects.length > 0 && (
-        <motion.div variants={staggerItem} className="mb-12">
-          <motion.h2
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            className="mb-6 text-2xl font-semibold text-white md:text-3xl"
-          >
-            Featured Projects
-          </motion.h2>
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <AnimatePresence mode="wait">
-              {featuredProjects.map((project, index) => (
-                <motion.div
-                  key={project.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ delay: index * 0.1 }}
-                >
-                  <ProjectCard {...project} featured={true} />
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </div>
-        </motion.div>
-      )}
-
-      {/* Regular Projects */}
-      {regularProjects.length > 0 && (
-        <motion.div variants={staggerItem}>
-          {featuredProjects.length > 0 && (
-            <motion.h2
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              className="mb-6 text-2xl font-semibold text-white md:text-3xl"
-            >
-              All Projects
-            </motion.h2>
-          )}
+      {/* All Projects */}
+      <motion.div variants={staggerItem}>
+        {viewMode === "grid" ? (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             <AnimatePresence mode="wait">
-              {regularProjects.map((project, index) => (
+              {projects.map((project, index) => (
                 <motion.div
                   key={project.id}
                   initial={{ opacity: 0, y: 20 }}
@@ -363,29 +216,25 @@ export default function ProjectsPage() {
               ))}
             </AnimatePresence>
           </div>
-        </motion.div>
-      )}
+        ) : (
+          <div className="space-y-4">
+            <AnimatePresence mode="wait">
+              {projects.map((project, index) => (
+                <motion.div
+                  key={project.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  transition={{ delay: index * 0.04 }}
+                >
+                  <ProjectCard {...project} listView={true} />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        )}
+      </motion.div>
 
-      {/* No Results */}
-      {filteredProjects.length === 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="py-20 text-center"
-        >
-          <p className="mb-4 text-xl text-white/60">No projects found</p>
-          <p className="mb-6 text-white/40">
-            Try adjusting your search or filters
-          </p>
-          <Button
-            onClick={clearFilters}
-            variant="outline"
-            className="border-white/20 text-white hover:bg-white/10"
-          >
-            Clear Filters
-          </Button>
-        </motion.div>
-      )}
     </motion.div>
   );
 }

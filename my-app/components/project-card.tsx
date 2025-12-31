@@ -17,6 +17,7 @@ interface ProjectCardProps {
   date?: string;
   category?: string;
   featured?: boolean;
+  listView?: boolean;
 }
 
 export function ProjectCard({
@@ -28,7 +29,88 @@ export function ProjectCard({
   date,
   category,
   featured = false,
+  listView = false,
 }: ProjectCardProps) {
+  if (listView) {
+    return (
+      <motion.div
+        variants={scaleIn}
+        whileHover={{ x: 2 }}
+        whileTap={{ scale: 0.99 }}
+      >
+        <Link href={`/projects/${id}`} onClick={() => hapticManager.light()}>
+          <Card className="group relative cursor-pointer overflow-hidden border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] p-5 backdrop-blur-sm transition-all duration-300 hover:border-white/20 hover:bg-white/5">
+            <div className="flex items-start gap-5">
+              {thumbnail && (
+                <div className="relative h-28 w-28 flex-shrink-0 overflow-hidden rounded-lg bg-white/5 border border-white/10">
+                  <Image
+                    src={thumbnail}
+                    alt={name}
+                    fill
+                    className="object-cover transition-transform duration-300 group-hover:scale-105"
+                    sizes="112px"
+                  />
+                </div>
+              )}
+
+              <div className="flex flex-1 items-start justify-between gap-5 min-w-0">
+                <div className="flex-1 min-w-0">
+                  <div className="mb-3">
+                    <div className="flex items-center gap-3 mb-2 flex-wrap">
+                      <h3 className="text-xl font-semibold text-white transition-colors group-hover:text-white tracking-tight">
+                        {name}
+                      </h3>
+                      {category && (
+                        <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white/80 border border-white/10">
+                          {category}
+                        </span>
+                      )}
+                    </div>
+                    {date && (
+                      <p className="text-xs text-white/50 font-medium tracking-wide uppercase">
+                        {date}
+                      </p>
+                    )}
+                  </div>
+                  
+                  <p className="text-sm text-white/70 leading-6 mb-4 line-clamp-2 group-hover:text-white/80 transition-colors">
+                    {description}
+                  </p>
+
+                  {technologies && technologies.length > 0 && (
+                    <div className="flex flex-wrap items-center gap-2">
+                      {technologies.slice(0, 5).map((tech, index) => (
+                        <span
+                          key={tech}
+                          className="rounded-md bg-white/5 px-2.5 py-1 text-xs font-medium text-white/70 border border-white/10 hover:bg-white/10 hover:text-white/90 transition-colors"
+                        >
+                          {tech}
+                        </span>
+                      ))}
+                      {technologies.length > 5 && (
+                        <span className="rounded-md bg-white/5 px-2.5 py-1 text-xs font-medium text-white/50 border border-white/10">
+                          +{technologies.length - 5} more
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+                
+                <motion.div
+                  initial={{ x: 0 }}
+                  whileHover={{ x: 4 }}
+                  className="flex-shrink-0 text-white/40 transition-colors group-hover:text-white/80 mt-1"
+                >
+                  <ArrowRight className="h-5 w-5" />
+                </motion.div>
+              </div>
+            </div>
+          </Card>
+        </Link>
+      </motion.div>
+    );
+  }
+
   return (
     <motion.div
       variants={scaleIn}
