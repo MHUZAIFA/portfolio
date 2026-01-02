@@ -72,8 +72,10 @@ export function HeroSection({ gameActive = false }: HeroSectionProps = {}) {
     link.click();
   };
 
-  const name = "MOHAMMED HUZAIFA";
-  const nameArray = name.split("");
+  const firstName = "MOHAMMED";
+  const lastName = "HUZAIFA";
+  const firstNameArray = firstName.split("");
+  const lastNameArray = lastName.split("");
 
   return (
     <motion.section
@@ -165,33 +167,60 @@ export function HeroSection({ gameActive = false }: HeroSectionProps = {}) {
           {/* Name with letter-by-letter animation */}
           <motion.h1
             variants={staggerItem}
-            className="mb-8 flex flex-wrap justify-center items-center gap-x-2 gap-y-1 text-4xl font-bold leading-[0.95] text-white lg:text-8xl"
+            className="mb-8 flex flex-col md:flex-row flex-wrap justify-center items-center gap-x-2 gap-y-1 text-4xl font-bold leading-[0.95] text-white lg:text-8xl"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
             animate={{ opacity: gameActive ? 0.15 : 1 }}
             transition={{ duration: 0.3 }}
           >
-            {nameArray.map((letter, index) => (
-              <motion.span
-                key={index}
-                variants={letterVariants}
-                custom={index}
-                whileHover={{
-                  scale: 1.2,
-                  y: -10,
-                  transition: { duration: 0.2 },
-                }}
-                className="inline-block"
-                style={{
-                  color:
-                    isHovered && index % 3 === 0
-                      ? "rgba(255, 255, 255, 0.8)"
-                      : "white",
-                }}
-              >
-                {letter === " " ? "\u00A0" : letter}
-              </motion.span>
-            ))}
+            {/* First name - MOHAMMED */}
+            <span className="flex flex-wrap justify-center items-center gap-x-2">
+              {firstNameArray.map((letter, index) => (
+                <motion.span
+                  key={`first-${index}`}
+                  variants={letterVariants}
+                  custom={index}
+                  whileHover={{
+                    scale: 1.2,
+                    y: -10,
+                    transition: { duration: 0.2 },
+                  }}
+                  className="inline-block"
+                  style={{
+                    color:
+                      isHovered && index % 3 === 0
+                        ? "rgba(255, 255, 255, 0.8)"
+                        : "white",
+                  }}
+                >
+                  {letter}
+                </motion.span>
+              ))}
+            </span>
+            {/* Last name - HUZAIFA */}
+            <span className="flex flex-wrap justify-center items-center gap-x-2">
+              {lastNameArray.map((letter, index) => (
+                <motion.span
+                  key={`last-${index}`}
+                  variants={letterVariants}
+                  custom={firstNameArray.length + index}
+                  whileHover={{
+                    scale: 1.2,
+                    y: -10,
+                    transition: { duration: 0.2 },
+                  }}
+                  className="inline-block"
+                  style={{
+                    color:
+                      isHovered && (firstNameArray.length + index) % 3 === 0
+                        ? "rgba(255, 255, 255, 0.8)"
+                        : "white",
+                  }}
+                >
+                  {letter}
+                </motion.span>
+              ))}
+            </span>
           </motion.h1>
 
           {/* Animated roles - centered */}
