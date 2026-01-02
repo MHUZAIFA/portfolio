@@ -148,7 +148,7 @@ function generateGitGraph(): Branch[] {
     { id: 2, color: "#f59e0b", commits: [] }, // hotfix branch - yellow/orange
   ];
 
-  const commitSpacing = 180; // Increased spacing to make each commit segment longer
+  const commitSpacing = 140; // Spacing between commits (reduced to bring project cards closer)
   const branchHorizontalSpacing = 30; // 30px spacing between parallel branches
   
   // Calculate how many commits we need based on available projects
@@ -541,35 +541,42 @@ export function GitCommitGraph() {
             })()}
 
             {/* Render commits */}
-            {branches.map((branch) =>
-              branch.commits.map((commit, commitIndex) => {
-                const x = commit.x + offsetX;
-                const y = commit.y + offsetY;
-                const isMergeCommit = commit.isMerge;
-                const isHeadCommit = commit.isHead;
+            {(() => {
+              // Calculate bottom Y value to identify bottom commits
+              const bottomYValue = Math.max(...branches.flatMap(b => b.commits.map(c => c.y)));
+              
+              return branches.map((branch) =>
+                branch.commits.map((commit, commitIndex) => {
+                  const x = commit.x + offsetX;
+                  const y = commit.y + offsetY;
+                  const isMergeCommit = commit.isMerge;
+                  const isHeadCommit = commit.isHead;
+                  const isBottomCommit = commit.y === bottomYValue;
 
-                return (
-                  <g key={commit.id}>
-                    {/* Commit circle */}
-                    <motion.circle
-                      initial={{ scale: 0, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      transition={{
-                        duration: 0.4,
-                        delay: commitIndex * 0.1 + branch.id * 0.2,
-                        ease: "easeOut",
-                      }}
-                      cx={x}
-                      cy={y}
-                      r={isMergeCommit ? 7 : isHeadCommit ? 8 : 6}
-                      fill={isMergeCommit ? branch.color : commit.branch === branch.id ? branch.color : branches[0].color}
-                      stroke={isHeadCommit ? "#fff" : "rgba(255, 255, 255, 0.3)"}
-                      strokeWidth={isHeadCommit ? 2 : 1.5}
-                      className="drop-shadow-lg"
-                      style={{
-                        filter: isHeadCommit ? "drop-shadow(0 0 8px rgba(255,255,255,0.5))" : undefined,
-                      }}
-                    />
+                  return (
+                    <g key={commit.id}>
+                      {/* Commit circle - skip rendering for bottom commits */}
+                      {!isBottomCommit && (
+                        <motion.circle
+                          initial={{ scale: 0, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          transition={{
+                            duration: 0.4,
+                            delay: commitIndex * 0.1 + branch.id * 0.2,
+                            ease: "easeOut",
+                          }}
+                          cx={x}
+                          cy={y}
+                          r={isMergeCommit ? 7 : isHeadCommit ? 8 : 6}
+                          fill={isMergeCommit ? branch.color : commit.branch === branch.id ? branch.color : branches[0].color}
+                          stroke={isHeadCommit ? "#fff" : "rgba(255, 255, 255, 0.3)"}
+                          strokeWidth={isHeadCommit ? 2 : 1.5}
+                          className="drop-shadow-lg"
+                          style={{
+                            filter: isHeadCommit ? "drop-shadow(0 0 8px rgba(255,255,255,0.5))" : undefined,
+                          }}
+                        />
+                      )}
                     {/* Inner circle for merge commits */}
                     {isMergeCommit && (
                       <motion.circle
@@ -604,8 +611,8 @@ export function GitCommitGraph() {
                     )}
                   </g>
                 );
-              })
-            )}
+              }))
+            })()}
           </svg>
 
           {/* Project cards to the right of blue commits - starting with HEAD */}
