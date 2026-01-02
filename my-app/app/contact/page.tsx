@@ -127,7 +127,7 @@ export default function ContactPage() {
             damping: 20,
             delay: 0.3
           }}
-          className="overflow-hidden rounded-sm border border-white/10 bg-white/5 shadow-xl"
+          className="overflow-hidden rounded-sm border border-white/10 bg-white/5 shadow-xl mb-24 lg:mb-0"
         >
           <div className="border-b border-white/10 bg-gradient-to-r from-sky-500/20 via-cyan-400/10 to-emerald-400/10 px-5 py-4">
             <h2 className="text-sm font-medium uppercase tracking-[0.22em] text-sky-100/90">
