@@ -431,7 +431,7 @@ export default function AboutPage() {
 
                 const content = (
                   <Card
-                    className={`cursor-pointer border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] px-4 py-2.5 text-sm font-medium text-white/90 shadow-sm transition-all duration-200 ${
+                    className={`cursor-pointer border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] px-4 py-2.5 text-xs lg:text-sm font-medium text-white/90 shadow-sm transition-all duration-200 ${
                       isHighlighted
                         ? "hover:border-white/20 hover:bg-white/10 hover:shadow-md hover:shadow-white/5"
                         : "opacity-30"
@@ -489,7 +489,7 @@ export default function AboutPage() {
                 />
                 </div>
                 {/* Category Legend */}
-              <div className="flex flex-wrap justify-end gap-x-2 gap-y-3 max-w-sm mt-4">
+              <div className="flex flex-wrap justify-center lg:justify-end gap-x-2 gap-y-3 max-w-sm mt-4">
                 {categories.map((category) => {
                   const isHovered = hoveredCategory === category.name;
                   return (
@@ -530,8 +530,8 @@ export default function AboutPage() {
               whileHover={{ scale: 1.05 }}
             >
               <Card className="border-white/10 bg-white/5 p-4 text-center text-white transition-colors hover:bg-white/10">
-                <div className="flex items-center justify-center gap-2">
-                  <Icon className="h-5 w-5" />
+                <div className="flex items-center lg:justify-center gap-2 text-xs lg:text-sm">
+                  <Icon className="h-4 w-4 lg:h-5 lg:w-5" />
                   <span>{name}</span>
                 </div>
               </Card>
