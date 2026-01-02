@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { hapticManager } from "@/lib/haptic-manager";
@@ -155,7 +156,13 @@ export function Navigation() {
             className="relative"
           >
             <div className="absolute inset-0 " />
-            <div className="relative rounded-sm  px-4 py-2 backdrop-blur-sm transition-all">
+            <div className="relative flex items-center gap-1 rounded-sm backdrop-blur-sm transition-all">
+              <Image
+                src="/imgs/logo.jpg"
+                alt="MH Logo"
+                width={32}
+                height={32}
+              />
               <span className="font-semibold text-xl">
                 MHuzaifa
               </span>
