@@ -100,21 +100,63 @@ export function Navigation() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, filteredItems, selectedIndex, handleNavigate]);
 
+  // Track if we've initialized mobile selection to avoid resetting during keyboard navigation
+  const mobileInitializedRef = useRef(false);
+
   // Focus input when opened (but not on mobile to avoid keyboard popup)
+  // On mobile, highlight the active item by default when menu opens
   useEffect(() => {
     if (isOpen && inputRef.current) {
       // Check if mobile device - use window width for SSR compatibility
       const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
       if (!isMobile) {
         setTimeout(() => inputRef.current?.focus(), 100);
+        mobileInitializedRef.current = false;
+      } else {
+        // On mobile, find and select the active item only when menu first opens
+        if (!mobileInitializedRef.current) {
+          const activeIndex = filteredItems.findIndex((item) => {
+            if (item.href === "/") {
+              return pathname === "/";
+            }
+            return pathname.startsWith(item.href);
+          });
+          if (activeIndex !== -1) {
+            setSelectedIndex(activeIndex);
+          }
+          mobileInitializedRef.current = true;
+        }
       }
+    } else {
+      mobileInitializedRef.current = false;
     }
+    // Only depend on isOpen - use filteredItems and pathname from closure
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
-  // Reset selected index when filtered items change
+  // Reset selected index when search query changes
+  // On mobile, try to keep the active item selected if it's still in the filtered list
   useEffect(() => {
-    setSelectedIndex(0);
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+    if (isMobile) {
+      // On mobile, find and select the active item if it's in filtered results
+      const activeIndex = filteredItems.findIndex((item) => {
+        if (item.href === "/") {
+          return pathname === "/";
+        }
+        return pathname.startsWith(item.href);
+      });
+      if (activeIndex !== -1) {
+        setSelectedIndex(activeIndex);
+      } else {
+        setSelectedIndex(0);
+      }
+    } else {
+      // On desktop, reset to first item to allow keyboard navigation
+      setSelectedIndex(0);
+    }
     itemRefs.current = [];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery]);
 
   // Scroll selected item into view
@@ -182,13 +224,13 @@ export function Navigation() {
           setIsOpen(true);
           hapticManager.light();
         }}
-        className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-full border-2 border-white/60 bg-black/80 px-4 py-3 backdrop-blur-md transition-all hover:border-white/80 hover:bg-white/10 md:bottom-8 md:right-8"
+        className="fixed bottom-6 right-6 z-50 flex items-center gap-1.5 sm:gap-2 rounded-full border-2 border-white/60 bg-black/80 px-3 py-2.5 sm:px-4 sm:py-3 backdrop-blur-md transition-all hover:border-white/80 hover:bg-white/10 md:bottom-8 md:right-8"
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         aria-label="Open navigation"
       >
         <Search className="h-4 w-4 text-white/70" />
-        <span className="text-sm text-white/70 md:inline">Quick Nav</span>
+        <span className="text-xs sm:text-sm text-white/70">Quick Nav</span>
         <kbd className="hidden items-center gap-1 rounded border border-white/20 bg-white/5 px-2 py-1 text-xs text-white/50 md:flex">
           <Command className="h-3 w-3" />
           <span>K</span>
