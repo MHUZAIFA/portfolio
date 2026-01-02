@@ -34,7 +34,7 @@ export function ProjectCard({
   if (listView) {
     return (
       <motion.div
-        variants={scaleIn}
+        initial={{ opacity: 1, scale: 1 }}
         whileHover={{ x: 2 }}
         whileTap={{ scale: 0.99 }}
       >
@@ -113,7 +113,7 @@ export function ProjectCard({
 
   return (
     <motion.div
-      variants={scaleIn}
+      initial={{ opacity: 1, scale: 1 }}
       whileHover={{ y: -8 }}
       whileTap={{ scale: 0.98 }}
       className={featured ? "md:col-span-2" : ""}
