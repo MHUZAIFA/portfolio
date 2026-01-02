@@ -163,7 +163,7 @@ export function Navigation() {
                 width={32}
                 height={32}
               />
-              <span className="font-semibold text-xl">
+              <span className="font-semibold text-xl pr-2">
                 MHuzaifa
               </span>
             </div>
