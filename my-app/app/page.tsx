@@ -12,7 +12,9 @@ export default function Home() {
   return (
     <div className="relative">
       <HeroSection gameActive={gameStatus === "running"} />
-      <SpaceShooterGame onStatusChange={setGameStatus} />
+      <div className="hidden md:block">
+        <SpaceShooterGame onStatusChange={setGameStatus} />
+      </div>
     </div>
   );
 }

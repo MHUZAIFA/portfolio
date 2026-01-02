@@ -42,7 +42,9 @@ export function AppWrapper({ children }: { children: React.ReactNode }) {
   return (
     <MotionProvider>
       {isLoading && <LoadingScreen onComplete={() => setIsLoading(false)} />}
-      <MouseEffects />
+      <div className="hidden md:block">
+        <MouseEffects />
+      </div>
       <div className="h-screen bg-black text-white">
         {!isLoading && <Navigation />}
         <main>{children}</main>

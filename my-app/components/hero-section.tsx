@@ -278,7 +278,7 @@ export function HeroSection({ gameActive = false }: HeroSectionProps = {}) {
 
       {/* Main content - properly centered */}
       <div className="relative z-10 w-full max-w-7xl pt-12 mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col items-center justify-center text-center">
+        <div className="flex flex-col items-center justify-center text-center mt-12 lg:mt-0">
           {/* Greeting */}
           <motion.div
             variants={staggerItem}
@@ -293,7 +293,7 @@ export function HeroSection({ gameActive = false }: HeroSectionProps = {}) {
           {/* Name with letter-by-letter animation */}
           <motion.h1
             variants={staggerItem}
-            className="mb-8 flex flex-wrap justify-center items-center gap-x-2 gap-y-1 text-6xl font-bold leading-[0.95] text-white md:text-8xl"
+            className="mb-8 flex flex-wrap justify-center items-center gap-x-2 gap-y-1 text-4xl font-bold leading-[0.95] text-white lg:text-8xl"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
             animate={{ opacity: gameActive ? 0.15 : 1 }}
@@ -335,7 +335,7 @@ export function HeroSection({ gameActive = false }: HeroSectionProps = {}) {
           {/* Description */}
           <motion.p
             variants={staggerItem}
-            className="mb-12 max-w-3xl mx-auto text-base leading-relaxed text-white/75 md:text-lg lg:text-xl px-4"
+            className="my-8 lg:mb-12 max-w-3xl mx-auto text-xs leading-relaxed text-white/75 md:text-lg lg:text-xl px-4"
             animate={{ opacity: gameActive ? 0.15 : 0.75 }}
             transition={{ duration: 0.3 }}
           >
@@ -401,11 +401,11 @@ function AnimatedRoles({
   roles: string[];
 }) {
   return (
-    <div className="flex items-center justify-center gap-4 flex-wrap">
+    <div className="flex flex-col items-center justify-center gap-4 flex-wrap mt-16 lg:mt-24">
       <span className="text-4xl font-light text-white/60 md:text-6xl lg:text-7xl xl:text-8xl whitespace-nowrap">
         I&apos;m a
       </span>
-      <div className="relative min-h-[3rem] md:min-h-[4.5rem] lg:min-h-[5.5rem] min-w-[280px] md:min-w-[450px] lg:min-w-[550px] xl:min-w-[650px] flex items-center justify-start">
+      <div className="relative w-full flex items-center justify-center text-center mb-16 lg:mb-36">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentIndex}
@@ -416,7 +416,7 @@ function AnimatedRoles({
               duration: 0.4,
               ease: "easeInOut",
             }}
-            className="absolute inset-0 flex items-center justify-start"
+            className="absolute inset-0 flex items-center justify-center mt-4 lg:mt-8"
           >
             <span className="text-4xl font-light text-white md:text-6xl lg:text-7xl xl:text-8xl whitespace-nowrap">
               {roles[currentIndex]}
