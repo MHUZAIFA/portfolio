@@ -1,17 +1,20 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { LoadingScreen } from "@/components/loading-screen";
 import { Navigation } from "@/components/navigation";
 import { MotionProvider } from "@/components/providers/motion-provider";
 import { AudioController } from "@/lib/audio-controller";
-import { MouseEffects } from "@/components/mouse-effects";
+
+// Lazy load MouseEffects to reduce initial bundle size
+const MouseEffects = lazy(() => import("@/components/mouse-effects").then(mod => ({ default: mod.MouseEffects })));
 
 let audioController: AudioController | null = null;
 
 export function AppWrapper({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [hasInteracted, setHasInteracted] = useState(false);
+  const [showMouseEffects, setShowMouseEffects] = useState(false);
 
   useEffect(() => {
     // Initialize audio controller (optional - add audio file path if needed)
@@ -28,8 +31,20 @@ export function AppWrapper({ children }: { children: React.ReactNode }) {
     // Mark interaction on first user interaction
     const events = ["click", "touchstart", "keydown"];
     events.forEach((event) => {
-      document.addEventListener(event, handleInteraction, { once: true });
+      document.addEventListener(event, handleInteraction, { once: true, passive: true });
     });
+
+    // Delay loading mouse effects until after initial load
+    if (!isLoading) {
+      const timer = setTimeout(() => setShowMouseEffects(true), 500);
+      return () => {
+        events.forEach((event) => {
+          document.removeEventListener(event, handleInteraction);
+        });
+        clearTimeout(timer);
+        audioController?.cleanup();
+      };
+    }
 
     return () => {
       events.forEach((event) => {
@@ -37,14 +52,18 @@ export function AppWrapper({ children }: { children: React.ReactNode }) {
       });
       audioController?.cleanup();
     };
-  }, [hasInteracted]);
+  }, [hasInteracted, isLoading]);
 
   return (
     <MotionProvider>
       {isLoading && <LoadingScreen onComplete={() => setIsLoading(false)} />}
-      <div className="hidden md:block">
-        <MouseEffects />
-      </div>
+      {showMouseEffects && typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches && (
+        <Suspense fallback={null}>
+          <div className="hidden md:block">
+            <MouseEffects />
+          </div>
+        </Suspense>
+      )}
       <div className="h-screen bg-black text-white">
         {!isLoading && <Navigation />}
         <main>{children}</main>

@@ -29,10 +29,16 @@ export function LoadingScreen({ onComplete }: LoadingScreenProps) {
   const [progress, setProgress] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
   const progressRef = useRef(0);
+  const animationFrameRef = useRef<number | null>(null);
+  const startTimeRef = useRef<number | null>(null);
 
   useEffect(() => {
     // Prevent body scrolling when loading screen is active
     document.body.style.overflow = "hidden";
+
+    const startTime = performance.now();
+    startTimeRef.current = startTime;
+    const duration = 2500; // Total duration in ms (reduced from ~5 seconds)
 
     const wordInterval = setInterval(() => {
       setCurrentWordIndex((prev) => {
@@ -43,30 +49,35 @@ export function LoadingScreen({ onComplete }: LoadingScreenProps) {
         }
         return next;
       });
-    }, 1200); // Slower word transitions - shows each word for 1.2 seconds
+    }, 180); // Faster word transitions for smoother feel
 
-    const progressInterval = setInterval(() => {
-      setProgress((prev) => {
-        const newProgress = Math.min(prev + 0.8, 100);
-        progressRef.current = newProgress;
-        
-        if (newProgress >= 100) {
-          clearInterval(progressInterval);
-          clearInterval(wordInterval);
-          setIsComplete(true);
-          setTimeout(() => {
-            onComplete();
-          }, 600);
-          return 100;
-        }
-        // Slower progress: increment by 0.8% every 40ms = ~5 seconds total
-        return newProgress;
-      });
-    }, 40);
+    // Use requestAnimationFrame for smoother progress updates
+    const updateProgress = (currentTime: number) => {
+      if (!startTimeRef.current) return;
+      
+      const elapsed = currentTime - startTimeRef.current;
+      const newProgress = Math.min((elapsed / duration) * 100, 100);
+      progressRef.current = newProgress;
+      setProgress(newProgress);
+      
+      if (newProgress >= 100) {
+        clearInterval(wordInterval);
+        setIsComplete(true);
+        setTimeout(() => {
+          onComplete();
+        }, 300);
+      } else {
+        animationFrameRef.current = requestAnimationFrame(updateProgress);
+      }
+    };
+
+    animationFrameRef.current = requestAnimationFrame(updateProgress);
 
     return () => {
       clearInterval(wordInterval);
-      clearInterval(progressInterval);
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
       // Restore body scrolling when loading screen unmounts
       document.body.style.overflow = "";
     };
@@ -99,8 +110,7 @@ export function LoadingScreen({ onComplete }: LoadingScreenProps) {
           <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/10">
             <motion.div
               className="h-full bg-white"
-              initial={{ width: "0%" }}
-              animate={{ width: `${progress}%` }}
+              style={{ width: `${progress}%` }}
               transition={{ duration: 0.1, ease: "linear" }}
             />
           </div>
