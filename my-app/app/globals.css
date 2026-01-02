@@ -158,3 +158,32 @@ html {
     opacity: 0.6;
   }
 }
+
+/* Project overlay mask - black on mobile, gradient on desktop */
+.project-overlay-mask {
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+@media (min-width: 768px) {
+  .project-overlay-mask {
+    -webkit-mask-image: linear-gradient(
+      to right,
+      black 0%,
+      black 25%,
+      rgba(0,0,0,0.9) 40%,
+      rgba(0,0,0,0.3) 50%,
+      rgba(0,0,0,0.15) 85%,
+      rgba(0,0,0,0) 100%
+    );
+    mask-image: linear-gradient(
+      to right,
+      black 0%,
+      black 45%,
+      rgba(0,0,0,0.9) 55%,
+      rgba(0,0,0,0.6) 70%,
+      rgba(0,0,0,0.3) 85%,
+      transparent 100%
+    );
+  }
+}

@@ -307,41 +307,19 @@ export default function ProjectDetailsPage({
       {/* Content Overlay */}
         <motion.div
           variants={staggerItem}
-        className="relative z-10 flex min-h-screen overflow-y-auto"
+        className="relative z-10 flex min-h-screen overflow-y-auto project-overlay-mask"
         style={{
           backgroundColor: "black",
           willChange: "opacity",
-          WebkitMaskImage: `
-            linear-gradient(
-              to right,
-              black 0%,
-              black 25%,
-              rgba(0,0,0,0.9) 40%,
-              rgba(0,0,0,0.3) 50%,
-              rgba(0,0,0,0.15) 85%,
-              rgba(0,0,0,0) 100%
-            )
-          `,
-          maskImage: `
-            linear-gradient(
-              to right,
-              black 0%,
-              black 45%,
-              rgba(0,0,0,0.9) 55%,
-              rgba(0,0,0,0.6) 70%,
-              rgba(0,0,0,0.3) 85%,
-              transparent 100%
-            )
-          `
         }}
       >
-        <div className="w-1/2 flex flex-col justify-center px-8 py-24 lg:px-16">
+        <div className="w-full md:w-1/2 flex flex-col justify-center px-4 sm:px-6 md:px-8 py-12 sm:py-16 md:py-24 lg:px-16">
           <motion.div
             initial={{ opacity: 0, x: -15 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-            className="mb-12 mt-16"
+            className="mt-24 mb-8 sm:mb-8 md:mb-12 sm:mt-8 md:mt-16"
           >
             <Button
               onClick={() => {
@@ -349,9 +327,9 @@ export default function ProjectDetailsPage({
                 router.push("/projects");
               }}
               variant="outline"
-              className="border-white/20 text-white hover:bg-white/10"
+              className="border-white/20 text-white hover:bg-white/10 text-sm sm:text-base"
             >
-              <ArrowLeft className="mr-2 h-4 w-4" />
+              <ArrowLeft className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
               Back to Projects
             </Button>
           </motion.div>
@@ -362,7 +340,7 @@ export default function ProjectDetailsPage({
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-              className="mb-4 flex flex-wrap gap-4 text-sm text-white/60"
+              className="mb-3 sm:mb-4 flex flex-wrap gap-3 sm:gap-4 text-xs sm:text-sm text-white/60"
             >
               {project.date && <span>{project.date}</span>}
             </motion.div>
@@ -374,7 +352,7 @@ export default function ProjectDetailsPage({
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-              className="mb-4 flex flex-wrap gap-4 text-sm text-white/60"
+              className="mb-3 sm:mb-4 flex flex-wrap gap-3 sm:gap-4"
             >
               {project.category && (
                 <motion.span
@@ -382,7 +360,7 @@ export default function ProjectDetailsPage({
                   whileInView={{ opacity: 1, scale: 1 }}
                   viewport={{ once: true, margin: "-50px" }}
                   transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                  className="rounded-full bg-white/10 px-3 py-1"
+                  className="rounded-full bg-white/10 px-2.5 py-1 sm:px-3 sm:py-1 text-xs sm:text-sm text-white/80"
                 >
                   {project.category}
                 </motion.span>
@@ -395,7 +373,7 @@ export default function ProjectDetailsPage({
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-50px" }}
             transition={{ duration: 0.9, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-            className="mb-6 text-4xl font-bold text-white md:text-5xl"
+            className="mb-4 sm:mb-6 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-tight"
           >
             {project.name}
           </motion.h1>
@@ -405,7 +383,7 @@ export default function ProjectDetailsPage({
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-50px" }}
             transition={{ duration: 0.9, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
-            className="mb-8 text-lg text-white/80 text-justify"
+            className="mb-6 sm:mb-8 text-sm sm:text-base md:text-lg text-white/80 text-justify leading-relaxed"
           >
             {project.fullDescription}
           </motion.p>
@@ -415,9 +393,9 @@ export default function ProjectDetailsPage({
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-50px" }}
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            className="mb-8"
+            className="mb-6 sm:mb-8"
           >
-            <h3 className="mb-4 text-xl font-semibold text-white">
+            <h3 className="mb-3 sm:mb-4 text-lg sm:text-xl font-semibold text-white">
               Technologies
             </h3>
             <div className="flex flex-wrap gap-2">
@@ -428,7 +406,7 @@ export default function ProjectDetailsPage({
                   whileInView={{ opacity: 1, scale: 1 }}
                   viewport={{ once: true, margin: "-50px" }}
                   transition={{ duration: 0.6, delay: index * 0.08, ease: [0.16, 1, 0.3, 1] }}
-                  className="rounded-full bg-white/10 px-4 py-2 text-sm text-white"
+                  className="rounded-full bg-white/10 px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm text-white"
                 >
                   {tech}
                 </motion.span>
@@ -441,7 +419,7 @@ export default function ProjectDetailsPage({
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-50px" }}
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            className="flex flex-wrap gap-4 mb-8"
+            className="flex flex-wrap gap-3 sm:gap-4 mb-6 sm:mb-8"
           >
             {project.liveUrl && (
               <motion.div
@@ -452,11 +430,11 @@ export default function ProjectDetailsPage({
               >
               <Button
                 onClick={() => hapticManager.medium()}
-                className="bg-white text-black hover:bg-white/90"
+                className="bg-white text-black hover:bg-white/90 text-sm sm:text-base"
                 asChild
               >
                 <a href={project.liveUrl} target="_blank" rel="noopener noreferrer">
-                  <ExternalLink className="mr-2 h-4 w-4" />
+                  <ExternalLink className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   Live Demo
                 </a>
               </Button>
@@ -472,11 +450,11 @@ export default function ProjectDetailsPage({
               <Button
                 onClick={() => hapticManager.medium()}
                 variant="outline"
-                className="border-white/20 text-white hover:bg-white/10"
+                className="border-white/20 text-white hover:bg-white/10 text-sm sm:text-base"
                 asChild
               >
                 <a href={project.githubUrl} target="_blank" rel="noopener noreferrer">
-                  <Github className="mr-2 h-4 w-4" />
+                  <Github className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   GitHub
                 </a>
               </Button>
@@ -493,7 +471,7 @@ export default function ProjectDetailsPage({
                 <Button
                 onClick={() => hapticManager.medium()}
                 variant="outline"
-                className="border-white/20 text-white hover:bg-white/10"
+                className="border-white/20 text-white hover:bg-white/10 text-sm sm:text-base"
                 asChild
               >
                 <a href={link.url} target="_blank" rel="noopener noreferrer">
@@ -510,9 +488,9 @@ export default function ProjectDetailsPage({
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-              className="mt-8 pt-8 border-t border-white/10"
+              className="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-white/10"
             >
-              <h3 className="mb-6 text-2xl font-semibold text-white">
+              <h3 className="mb-4 sm:mb-6 text-xl sm:text-2xl font-semibold text-white">
                 Features
               </h3>
               <ul className="space-y-3 list-none">
@@ -589,10 +567,10 @@ export default function ProjectDetailsPage({
                       whileInView={{ opacity: 1, x: 0 }}
                       viewport={{ once: true, margin: "-50px" }}
                       transition={{ duration: 0.7, delay: index * 0.08, ease: [0.16, 1, 0.3, 1] }}
-                      className="text-white/90 leading-relaxed text-justify pl-0 flex items-start"
+                      className="text-white/90 leading-relaxed text-justify pl-0 flex items-start text-sm sm:text-base"
                     >
-                      <span className="mr-4 h-2 w-2 rotate-45 bg-white/50 shrink-0 mt-2.5"></span>
-                      <span className="flex-1">
+                      <span className="mr-3 sm:mr-4 h-2 w-2 rotate-45 bg-white/50 shrink-0 mt-2.5"></span>
+                      <span className="flex-1 min-w-0">
                         {title && (
                           <>
                             <span className="font-semibold text-white">{title}:</span>{" "}
@@ -613,12 +591,12 @@ export default function ProjectDetailsPage({
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-              className="mt-8 pt-8 border-t border-white/10"
+              className="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-white/10"
             >
-              <h3 className="mb-6 text-2xl font-semibold text-white">
+              <h3 className="mb-4 sm:mb-6 text-xl sm:text-2xl font-semibold text-white">
                 Gallery
               </h3>
-              <div className="flex gap-4">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                 {imagesToShow.map((imageUrl, index) => (
                   <motion.div
                     key={index}
@@ -630,7 +608,7 @@ export default function ProjectDetailsPage({
                       delay: index * 0.12,
                       ease: [0.16, 1, 0.3, 1]
                     }}
-                    className="relative h-[170px] overflow-hidden rounded-sm bg-white/5 cursor-pointer flex items-center justify-center"
+                    className="relative w-full sm:w-auto sm:h-[170px] sm:flex-1 overflow-hidden rounded-sm bg-white/5 cursor-pointer flex items-center justify-center min-h-[200px] sm:min-h-0"
                     onClick={() => openLightbox(index)}
                   >
                     <Image
