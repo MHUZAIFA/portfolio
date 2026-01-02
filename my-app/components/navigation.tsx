@@ -143,7 +143,7 @@ export function Navigation() {
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.5 }}
-        className="fixed top-6 left-6 z-50 md:left-8"
+        className="fixed top-4 lg:top-6 left-4 lg:left-6 z-50 md:left-8"
       >
         <Link
           href="/"

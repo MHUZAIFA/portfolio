@@ -191,7 +191,7 @@ export default function CertificatesPage() {
       variants={staggerContainer}
       className="mx-auto max-w-7xl px-4 py-24 mt-12"
     >
-      <div className="mb-12 flex items-center justify-between">
+      <div className="mb-12 flex flex-col lg:flex-row gap-4 lg:gap-0 items-start lg:items-center lg:justify-between">
         <motion.h1
           variants={staggerItem}
           className="text-4xl font-bold text-white md:text-5xl"

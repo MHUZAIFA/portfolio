@@ -109,7 +109,7 @@ export default function ContactPage() {
                 className="flex items-center justify-center text-white/70 transition-colors hover:text-white"
                 aria-label={social.name}
               >
-                <Icon className="h-5 w-5" />
+                <Icon className="h-4 w-4 lg:h-5 lg:w-5" />
               </motion.a>
             );
           })}
