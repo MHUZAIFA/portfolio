@@ -38,7 +38,7 @@ export function LoadingScreen({ onComplete }: LoadingScreenProps) {
 
     const startTime = performance.now();
     startTimeRef.current = startTime;
-    const duration = 2500; // Total duration in ms (reduced from ~5 seconds)
+    const duration = 4000; // Total duration in ms - allows time to read words
 
     const wordInterval = setInterval(() => {
       setCurrentWordIndex((prev) => {
@@ -49,7 +49,7 @@ export function LoadingScreen({ onComplete }: LoadingScreenProps) {
         }
         return next;
       });
-    }, 180); // Faster word transitions for smoother feel
+    }, 600); // Slower word transitions so text is readable (~600ms per word)
 
     // Use requestAnimationFrame for smoother progress updates
     const updateProgress = (currentTime: number) => {
@@ -99,7 +99,7 @@ export function LoadingScreen({ onComplete }: LoadingScreenProps) {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.6, ease: "easeInOut" }}
+                transition={{ duration: 0.4, ease: "easeInOut" }}
                 className="text-center text-4xl font-light tracking-wider text-white md:text-8xl"
               >
                 {loadingWords[currentWordIndex]}
