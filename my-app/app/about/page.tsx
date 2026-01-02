@@ -368,7 +368,7 @@ export default function AboutPage() {
 
       <motion.section
         variants={staggerItem}
-        className="mb-28"
+        className="mb-16 lg:mb-28"
       >
         <div className="flex flex-col md:flex-row gap-8 md:gap-12 items-center md:items-start">
           {/* Image on the left */}
@@ -392,20 +392,20 @@ export default function AboutPage() {
           {/* Text content on the right */}
           <div className="flex-1 space-y-4 text-lg text-white/80">
             <h2 className="text-2xl font-bold text-white mb-4">About Me</h2>
-            <p className="text-justify">
+            <p className="text-justify text-sm lg:text-base">
               I am a passionate graduate student and full-stack developer with a
               deep interest in creating innovative web applications and designing
               compelling user experiences. My journey in technology has been driven
               by a continuous desire to learn, improve, and excel in my craft.
             </p>
-            <p className="text-justify">
+            <p className="text-justify text-sm lg:text-base">
               With expertise spanning from frontend frameworks like React and
               Angular to backend technologies like .NET Core and Node.js, I bring a
               comprehensive approach to software development. I specialize in
               Microsoft Dynamics 365 customization, helping businesses optimize
               their operations through tailored solutions.
             </p>
-            <p className="text-justify">
+            <p className="text-justify text-sm lg:text-base">
               Beyond technical skills, I believe in the power of collaboration,
               clear communication, and thoughtful problem-solving to deliver
               exceptional results.
@@ -431,7 +431,7 @@ export default function AboutPage() {
 
                 const content = (
                   <Card
-                    className={`cursor-pointer border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] px-4 py-2.5 text-xs lg:text-sm font-medium text-white/90 shadow-sm transition-all duration-200 ${
+                    className={`cursor-pointer border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] px-2 py-2 lg:px-4 lg:py-2.5 text-xs lg:text-sm font-medium text-white/90 shadow-sm transition-all duration-200 ${
                       isHighlighted
                         ? "hover:border-white/20 hover:bg-white/10 hover:shadow-md hover:shadow-white/5"
                         : "opacity-30"
@@ -446,8 +446,8 @@ export default function AboutPage() {
                           : undefined,
                     }}
                   >
-                    <div className="flex items-center gap-2">
-                      <Icon className="h-4 w-4 shrink-0" />
+                    <div className="flex items-center gap-1 lg:gap-2">
+                      <Icon className="h-3 w-3 lg:h-4 lg:w-4 shrink-0" />
                       <span>{name}</span>
                     </div>
                   </Card>
