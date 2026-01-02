@@ -645,19 +645,19 @@ export default function ExperiencePage() {
       initial="initial"
       animate="animate"
       variants={staggerContainer}
-        className="relative mx-auto max-w-7xl px-4 py-24 mt-12"
+        className="relative mx-auto max-w-7xl px-4 md:px-6 py-12 md:py-24 mt-8 md:mt-12"
     >
         {/* Header */}
       <motion.h1
         variants={staggerItem}
-        className="mb-12 text-4xl font-bold text-white md:text-5xl"
+        className="mb-8 md:mb-12 text-3xl md:text-4xl lg:text-5xl font-bold text-white"
       >
         Experience
       </motion.h1>
 
         <motion.section
           variants={staggerItem}
-          className="mb-16 space-y-4 text-lg text-white/80"
+          className="mb-12 md:mb-16 space-y-3 md:space-y-4 text-sm md:text-base lg:text-lg text-white/80"
         >
           <p className="text-justify">
             My journey has been marked by continuous growth, innovation, and a
@@ -678,7 +678,7 @@ export default function ExperiencePage() {
         {/* Filter Buttons */}
         <motion.div
           variants={staggerItem}
-          className="mb-8 flex flex-wrap gap-3"
+          className="mb-6 md:mb-8 flex flex-wrap gap-2 md:gap-3"
         >
           <motion.button
             onClick={() => {
@@ -687,7 +687,7 @@ export default function ExperiencePage() {
             }}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className={`rounded-full px-6 py-2.5 text-sm font-medium transition-all ${
+            className={`rounded-full px-4 py-2 md:px-6 md:py-2.5 text-xs md:text-sm font-medium transition-all ${
               filter === "all"
                 ? "bg-white text-black shadow-lg shadow-white/20"
                 : "bg-white/10 text-white/80 hover:bg-white/20"
@@ -702,13 +702,13 @@ export default function ExperiencePage() {
             }}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className={`rounded-full px-6 py-2.5 text-sm font-medium transition-all ${
+            className={`rounded-full px-4 py-2 md:px-6 md:py-2.5 text-xs md:text-sm font-medium transition-all ${
               filter === "work"
                 ? "bg-blue-500/90 text-white shadow-lg shadow-blue-500/30"
                 : "bg-white/10 text-white/80 hover:bg-white/20"
             }`}
           >
-            Work Experience ({workCount})
+            Work ({workCount})
           </motion.button>
           <motion.button
             onClick={() => {
@@ -717,7 +717,7 @@ export default function ExperiencePage() {
             }}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className={`rounded-full px-6 py-2.5 text-sm font-medium transition-all ${
+            className={`rounded-full px-4 py-2 md:px-6 md:py-2.5 text-xs md:text-sm font-medium transition-all ${
               filter === "education"
                 ? "bg-green-500/90 text-white shadow-lg shadow-green-500/30"
                 : "bg-white/10 text-white/80 hover:bg-white/20"
@@ -732,24 +732,24 @@ export default function ExperiencePage() {
             }}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className={`rounded-full px-6 py-2.5 text-sm font-medium transition-all ${
+            className={`rounded-full px-4 py-2 md:px-6 md:py-2.5 text-xs md:text-sm font-medium transition-all ${
               filter === "volunteering"
                 ? "bg-orange-500/90 text-white shadow-lg shadow-orange-500/30"
                 : "bg-white/10 text-white/80 hover:bg-white/20"
             }`}
           >
-            Volunteering ({volunteeringCount})
+            Volunteer ({volunteeringCount})
           </motion.button>
         </motion.div>
 
         {/* Timeline */}
         <div ref={timelineRef} className="relative">
           {/* Vertical Timeline Line Background */}
-          <div className="absolute left-[calc(2rem-2px)] top-0 h-full w-1 bg-white/10 md:left-[calc(3rem-2px)]" />
+          <div className="absolute left-3 md:left-12 top-0 h-full w-0.5 md:w-1 bg-white/10" />
           
           {/* Vertical Timeline Line Progress */}
           <motion.div
-            className="absolute left-[calc(2rem-2px)] top-0 w-1 bg-gradient-to-b from-blue-500 via-purple-500 to-pink-500 md:left-[calc(3rem-2px)]"
+            className="absolute left-3 md:left-12 top-0 w-0.5 md:w-1 bg-gradient-to-b from-blue-500 via-purple-500 to-pink-500"
             style={{
               height: `${scrollProgress * 100}%`,
               boxShadow: scrollProgress > 0 ? "0 0 10px rgba(168, 85, 247, 0.5), 0 0 20px rgba(99, 102, 241, 0.3)" : "none",
@@ -768,12 +768,12 @@ export default function ExperiencePage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ delay: index * 0.15, duration: 0.6 }}
-              className="relative mb-12 flex flex-col md:flex-row md:items-start"
+              className="relative mb-8 md:mb-12 flex flex-col md:flex-row md:items-start"
             >
               {/* Timeline Node */}
-              <div className="absolute left-8 top-0 z-10 md:left-12 md:-translate-x-1/2">
+              <div className="absolute left-1.5 md:left-12 top-0 z-10 md:-translate-x-1/2">
                 <motion.div
-                  className="relative h-6 w-6 rounded-full border-4 border-white/20 bg-gradient-to-br from-blue-500 to-purple-500 shadow-lg shadow-purple-500/50"
+                  className="relative h-4 w-4 md:h-6 md:w-6 rounded-full border-2 md:border-4 border-white/20 bg-gradient-to-br from-blue-500 to-purple-500 shadow-lg shadow-purple-500/50"
                   whileHover={{ scale: 1.5 }}
                   transition={{ type: "spring", stiffness: 400, damping: 17 }}
                 >
@@ -793,7 +793,7 @@ export default function ExperiencePage() {
               </div>
 
               {/* Experience Card */}
-              <div className="ml-20 flex-1 md:ml-24 md:pl-8">
+              <div className="ml-8 md:ml-24 flex-1 md:pl-8">
                 <motion.div
                   onMouseEnter={() => {
                     setHoveredId(exp.id);
@@ -803,7 +803,7 @@ export default function ExperiencePage() {
                   whileHover={{ y: -5 }}
                   className="h-full"
                 >
-                  <Card className="group relative overflow-hidden border-white/10 bg-white/5 p-6 backdrop-blur-sm transition-all hover:border-white/20 hover:bg-white/10 md:p-8">
+                  <Card className="group relative overflow-hidden border-white/10 bg-white/5 p-4 md:p-6 lg:p-8 backdrop-blur-sm transition-all hover:border-white/20 hover:bg-white/10">
                     {/* Gradient Border Effect */}
                     <motion.div
                       className="absolute inset-0 rounded-lg bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 opacity-0 transition-opacity group-hover:opacity-100"
@@ -813,11 +813,11 @@ export default function ExperiencePage() {
                     {/* Content */}
                     <div className="relative z-10">
                       {/* Header */}
-                      <div className="mb-4 flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="mb-2 flex items-center gap-3">
+                      <div className="mb-3 md:mb-4 flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <div className="mb-2 flex items-start gap-2 md:gap-3">
                             <motion.div
-                              className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-sm bg-white/5"
+                              className="flex h-10 w-10 md:h-12 md:w-12 items-center justify-center overflow-hidden rounded-sm bg-white/5 flex-shrink-0"
                             >
                               {exp.logo ? (
                                 <Image
@@ -829,20 +829,20 @@ export default function ExperiencePage() {
                                 />
                               ) : (
                                 exp.type === "education" ? (
-                                  <GraduationCap className="h-6 w-6 text-white/80" />
+                                  <GraduationCap className="h-5 w-5 md:h-6 md:w-6 text-white/80" />
                                 ) : exp.type === "volunteering" ? (
-                                  <Heart className="h-6 w-6 text-white/80" />
+                                  <Heart className="h-5 w-5 md:h-6 md:w-6 text-white/80" />
                               ) : (
-                                <Building2 className="h-6 w-6 text-white/80" />
+                                <Building2 className="h-5 w-5 md:h-6 md:w-6 text-white/80" />
                                 )
                               )}
                             </motion.div>
-                            <div className="flex flex-col gap-1">
-                               <h3 className="text-lg font-bold text-white md:text-2xl">
+                            <div className="flex flex-col gap-1 flex-1 min-w-0">
+                               <h3 className="text-base md:text-lg lg:text-2xl font-bold text-white break-words">
                                 {exp.role}
                               </h3>
-                               <div className="flex items-center gap-2">
-                                 <p className="text-sm font-medium text-white/70">
+                               <div className="flex items-center gap-1.5 md:gap-2 flex-wrap">
+                                 <p className="text-xs md:text-sm font-medium text-white/70 break-words">
                                    {exp.company}
                                  </p>
                                  {exp.links && exp.links.length > 0 && (
@@ -850,13 +850,14 @@ export default function ExperiencePage() {
                                      href={exp.links[0].href}
                                      target="_blank"
                                      rel="noopener noreferrer"
+                                     className="flex-shrink-0"
                                    >
-                                     <ExternalLink className="h-3 w-3" />
+                                     <ExternalLink className="h-3 w-3 md:h-4 md:w-4" />
                                    </a>
                                  )}
                                </div>
                                {exp.field && (
-                                 <p className="text-sm text-white/60">
+                                 <p className="text-xs md:text-sm text-white/60 break-words">
                                    {exp.field}
                                  </p>
                                )}
@@ -864,17 +865,17 @@ export default function ExperiencePage() {
                           </div>
 
                           {/* Meta Info */}
-                          <div className="mb-4 flex flex-wrap items-center gap-4 text-sm text-white/60">
-                            <div className="flex items-center gap-2">
-                              <Calendar className="h-4 w-4" />
-                              <span>{formatDuration(exp.duration)}</span>
+                          <div className="mb-3 md:mb-4 flex flex-wrap items-center gap-2 md:gap-4 text-xs md:text-sm text-white/60">
+                            <div className="flex items-center gap-1.5 md:gap-2">
+                              <Calendar className="h-3.5 w-3.5 md:h-4 md:w-4 flex-shrink-0" />
+                              <span className="break-words">{formatDuration(exp.duration)}</span>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <MapPin className="h-4 w-4" />
-                              <span>{exp.location}</span>
+                            <div className="flex items-center gap-1.5 md:gap-2">
+                              <MapPin className="h-3.5 w-3.5 md:h-4 md:w-4 flex-shrink-0" />
+                              <span className="break-words">{exp.location}</span>
                             </div>
                             <motion.span
-                              className={`rounded-full px-3 py-1 text-xs font-medium ${
+                              className={`rounded-full px-2.5 py-0.5 md:px-3 md:py-1 text-[10px] md:text-xs font-medium ${
                                 exp.type === "education"
                                   ? "bg-green-500/20 text-green-300"
                                   : exp.type === "volunteering"
@@ -902,40 +903,40 @@ export default function ExperiencePage() {
                     onClick={() => toggleExpand(exp.id)}
                             whileHover={{ scale: 1.1, rotate: 180 }}
                             whileTap={{ scale: 0.9 }}
-                            className="ml-4 rounded-full bg-white/10 p-2 text-white transition-colors hover:bg-white/20"
+                            className="flex-shrink-0 rounded-full bg-white/10 p-1.5 md:p-2 text-white transition-colors hover:bg-white/20"
                   >
                     {expandedId === exp.id ? (
-                      <ChevronUp className="h-5 w-5" />
+                      <ChevronUp className="h-4 w-4 md:h-5 md:w-5" />
                     ) : (
-                      <ChevronDown className="h-5 w-5" />
+                      <ChevronDown className="h-4 w-4 md:h-5 md:w-5" />
                     )}
                           </motion.button>
                         )}
                       </div>
 
                       {/* Description */}
-                      <p className="mb-4 text-white/80">{exp.description}</p>
+                      <p className="mb-3 md:mb-4 text-sm md:text-base text-white/80 leading-relaxed">{exp.description}</p>
 
                       {/* Technologies */}
                       {exp.technologies && (
-                        <div className="mb-4 flex flex-wrap gap-2">
+                        <div className="mb-3 md:mb-4 flex flex-wrap gap-1.5 md:gap-2">
                           {exp.technologies.slice(0, 6).map((tech) => {
                             const Icon = techIcons[tech];
                             return (
                               <motion.div
                                 key={tech}
                                 whileHover={{ scale: 1.1, y: -2 }}
-                                className="flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs text-white/80 backdrop-blur-sm transition-colors hover:bg-white/20"
+                                className="flex items-center gap-1.5 md:gap-2 rounded-full bg-white/10 px-2.5 py-1 md:px-3 md:py-1.5 text-[10px] md:text-xs text-white/80 backdrop-blur-sm transition-colors hover:bg-white/20"
                               >
-                                {Icon && <Icon className="h-4 w-4" />}
-                                <span>{tech}</span>
+                                {Icon && <Icon className="h-3 w-3 md:h-4 md:w-4 flex-shrink-0" />}
+                                <span className="whitespace-nowrap">{tech}</span>
                               </motion.div>
                             );
                           })}
                           {exp.technologies.length > 6 && (
                             <motion.span
                               whileHover={{ scale: 1.1 }}
-                              className="flex items-center rounded-full bg-white/10 px-3 py-1.5 text-xs text-white/80"
+                              className="flex items-center rounded-full bg-white/10 px-2.5 py-1 md:px-3 md:py-1.5 text-[10px] md:text-xs text-white/80"
                             >
                               +{exp.technologies.length - 6} more
                             </motion.span>
@@ -947,7 +948,7 @@ export default function ExperiencePage() {
 
                       {/* Achievements */}
                       {exp.achievements && (
-                        <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+                        <div className="mb-3 md:mb-4 grid grid-cols-2 gap-2 md:gap-3 md:grid-cols-4">
                           {exp.achievements.map((achievement, idx) => (
                             <motion.div
                               key={idx}
@@ -956,14 +957,14 @@ export default function ExperiencePage() {
                               viewport={{ once: true }}
                               transition={{ delay: idx * 0.1 }}
                               whileHover={{ scale: 1.05, y: -2 }}
-                              className={`relative overflow-hidden rounded-lg bg-gradient-to-br ${achievement.color} p-3 backdrop-blur-sm`}
+                              className={`relative overflow-hidden rounded-lg bg-gradient-to-br ${achievement.color} p-2.5 md:p-3 backdrop-blur-sm`}
                             >
                               <div className="relative z-10">
-                                <achievement.icon className="mb-1 h-5 w-5 text-white" />
-                                <p className="text-xs font-medium text-white/90">
+                                <achievement.icon className="mb-1 h-4 w-4 md:h-5 md:w-5 text-white" />
+                                <p className="text-[10px] md:text-xs font-medium text-white/90 leading-tight">
                                   {achievement.label}
                                 </p>
-                                <p className="text-sm font-bold text-white">
+                                <p className="text-xs md:text-sm font-bold text-white leading-tight">
                                   {achievement.value}
                                 </p>
                               </div>
@@ -987,10 +988,10 @@ export default function ExperiencePage() {
                             animate={{ opacity: 1, height: "auto" }}
                             exit={{ opacity: 0, height: 0 }}
                             transition={{ duration: 0.3 }}
-                            className="mt-4 overflow-hidden"
+                            className="mt-3 md:mt-4 overflow-hidden"
                           >
-                            <div className="rounded-lg border border-white/10 bg-white/5 p-4">
-                              <p className="whitespace-pre-line text-white/80">
+                            <div className="rounded-lg border border-white/10 bg-white/5 p-3 md:p-4">
+                              <p className="whitespace-pre-line text-sm md:text-base text-white/80 leading-relaxed">
                                 {exp.fullDescription}
                               </p>
                             </div>
