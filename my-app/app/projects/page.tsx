@@ -130,7 +130,7 @@ const projects = [
 });
 
 export default function ProjectsPage() {
-  const [viewMode, setViewMode] = useState<"grid" | "list" | "git">("grid");
+  const [viewMode, setViewMode] = useState<"grid" | "list" | "git">("git");
 
   return (
     <motion.div
