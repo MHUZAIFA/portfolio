@@ -19,6 +19,7 @@ import {
   Command,
   ArrowRight,
   Trophy,
+  X,
 } from "lucide-react";
 
 const navItems = [
@@ -99,10 +100,14 @@ export function Navigation() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, filteredItems, selectedIndex, handleNavigate]);
 
-  // Focus input when opened
+  // Focus input when opened (but not on mobile to avoid keyboard popup)
   useEffect(() => {
     if (isOpen && inputRef.current) {
-      setTimeout(() => inputRef.current?.focus(), 100);
+      // Check if mobile device - use window width for SSR compatibility
+      const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+      if (!isMobile) {
+        setTimeout(() => inputRef.current?.focus(), 100);
+      }
     }
   }, [isOpen]);
 
@@ -232,6 +237,18 @@ export function Navigation() {
                 <kbd className="hidden items-center gap-1 rounded border border-white/20 bg-white/5 px-2 py-1 text-xs text-white/50 md:flex">
                   <span>ESC</span>
                 </kbd>
+                {/* Mobile close button */}
+                <button
+                  onClick={() => {
+                    setIsOpen(false);
+                    setSearchQuery("");
+                    setSelectedIndex(0);
+                  }}
+                  className="md:hidden flex items-center justify-center h-8 w-8 rounded-lg hover:bg-white/10 transition-colors"
+                  aria-label="Close"
+                >
+                  <X className="h-5 w-5 text-white/70" />
+                </button>
               </div>
 
               {/* Results List */}
@@ -259,26 +276,31 @@ export function Navigation() {
                               setSelectedIndex(index);
                               hapticManager.light();
                             }}
+                            onTouchStart={() => {
+                              setSelectedIndex(index);
+                              hapticManager.light();
+                            }}
                             className={cn(
                               "flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left transition-all",
-                              isSelected
+                              active
+                                ? "bg-blue-500/20 border border-blue-500"
+                                : isSelected
                                 ? "bg-white/10"
-                                : "hover:bg-white/5",
-                              active && "bg-white/5"
+                                : "hover:bg-white/5 active:bg-white/10"
                             )}
                           >
                             <div
                               className={cn(
                                 "flex h-10 w-10 items-center justify-center rounded-lg transition-all",
                                 active
-                                  ? "bg-white"
+                                  ? "bg-blue-500 border border-blue-400"
                                   : "bg-white/5"
                               )}
                             >
                               <Icon
                                 className={cn(
                                   "h-5 w-5",
-                                  active ? "text-black" : "text-white/70"
+                                  active ? "text-white" : "text-white/70"
                                 )}
                               />
                             </div>
@@ -292,13 +314,6 @@ export function Navigation() {
                                 >
                                   {item.label}
                                 </span>
-                                {active && (
-                                  <motion.span
-                                    initial={{ scale: 0 }}
-                                    animate={{ scale: 1 }}
-                                    className="h-2 w-2 rounded-full bg-blue-500"
-                                  />
-                                )}
                               </div>
                             </div>
                             {isSelected && (
@@ -319,8 +334,8 @@ export function Navigation() {
                 )}
               </div>
 
-              {/* Footer Hint */}
-              <div className="mt-2 flex items-center justify-between border-t border-white/10 px-4 py-2 text-xs text-white/40">
+              {/* Footer Hint - Hidden on mobile */}
+              <div className="hidden md:flex mt-2 items-center justify-between border-t border-white/10 px-4 py-2 text-xs text-white/40">
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-1">
                     <kbd className="rounded border border-white/20 bg-white/5 px-1.5 py-0.5">
