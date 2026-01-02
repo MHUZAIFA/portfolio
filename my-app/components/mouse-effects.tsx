@@ -26,7 +26,7 @@ export function MouseEffects() {
     { id: 3, angle: Math.PI, radius: 25, speed: 0.05, size: 5 },
   ]);
   
-  const animationFrameRef = useRef<number>();
+  const animationFrameRef = useRef<number | undefined>(undefined);
   const cursorRef = useRef<HTMLDivElement>(null);
   const cursorInnerRef = useRef<HTMLDivElement>(null);
   const orbiterContainerRef = useRef<HTMLDivElement>(null);
@@ -48,9 +48,9 @@ export function MouseEffects() {
       const isInteractive =
         target.tagName === "A" ||
         target.tagName === "BUTTON" ||
-        target.closest("a") ||
-        target.closest("button") ||
-        target.closest('[role="button"]') ||
+        !!target.closest("a") ||
+        !!target.closest("button") ||
+        !!target.closest('[role="button"]') ||
         window.getComputedStyle(target).cursor === "pointer";
 
       setIsHoveringInteractive(isInteractive);
