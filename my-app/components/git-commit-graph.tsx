@@ -219,6 +219,30 @@ function generateGitGraph(): Branch[] {
     isMerge: true
   });
 
+  // Move second-to-last commits down (increase Y value to move them lower)
+  const moveDownAmount = 40; // Amount to move down in pixels
+  
+  // Blue branch: second-to-last commit (index 1, second from bottom)
+  if (branches[0].commits.length > 1) {
+    branches[0].commits[1].y += moveDownAmount;
+  }
+  
+  // Yellow branch: second-to-last parallel commit (index 1, second from bottom)
+  const yellowParallelCommits = branches[2].commits.filter(c => !c.isMerge);
+  if (yellowParallelCommits.length > 1) {
+    // Sort by y descending (bottom to top), then get index 1 (second from bottom)
+    const sortedYellow = yellowParallelCommits.sort((a, b) => b.y - a.y);
+    sortedYellow[1].y += moveDownAmount;
+  }
+  
+  // Green branch: second-to-last parallel commit (index 0, since there are only 2 parallel commits)
+  const greenParallelCommits = branches[1].commits.filter(c => !c.isMerge);
+  if (greenParallelCommits.length > 1) {
+    // Sort by y descending (bottom to top), then get index 1 (second from bottom)
+    const sortedGreen = greenParallelCommits.sort((a, b) => b.y - a.y);
+    sortedGreen[1].y += moveDownAmount;
+  }
+
   return branches;
 }
 
@@ -647,6 +671,10 @@ export function GitCommitGraph() {
               const leftPercent = (x / dimensions.width) * 100;
               const topPercent = (y / dimensions.height) * 100;
               
+              // Set top to 72% for the second project card
+              const isSecondCard = idx === 1;
+              const topValue = isSecondCard ? '71%' : `${topPercent}%`;
+              
               return (
                 <motion.div
                   key={`project-${commit.id}`}
@@ -657,7 +685,7 @@ export function GitCommitGraph() {
                   style={{
                     left: `calc(${leftPercent}% + 20px)`,
                     right: '0',
-                    top: `${topPercent}%`,
+                    top: topValue,
                     transform: 'translateY(-50%)',
                     width: 'auto',
                     zIndex: 10,
