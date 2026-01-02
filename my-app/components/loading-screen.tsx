@@ -5,20 +5,13 @@ import { useEffect, useState, useRef } from "react";
 
 const loadingWords = [
   "Think.",
-  "Solve.",
   "Design.",
   "Engineer.",
-  "Create.",
   "Build.",
-  "Innovate.",
-  "Develop.",
-  "Code.",
-  "Craft.",
-  "Transform.",
+  "Create.",
   "Optimize.",
-  "Refine.",
-  "Execute.",
 ];
+
 
 interface LoadingScreenProps {
   onComplete: () => void;
@@ -28,6 +21,7 @@ export function LoadingScreen({ onComplete }: LoadingScreenProps) {
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [progress, setProgress] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
+  const [showBlackScreen, setShowBlackScreen] = useState(false);
   const progressRef = useRef(0);
   const animationFrameRef = useRef<number | null>(null);
   const startTimeRef = useRef<number | null>(null);
@@ -38,18 +32,25 @@ export function LoadingScreen({ onComplete }: LoadingScreenProps) {
 
     const startTime = performance.now();
     startTimeRef.current = startTime;
-    const duration = 4000; // Total duration in ms - allows time to read words
+    const wordDisplayDuration = 1000; // Time each word displays (ms)
+    const blackScreenDelay = 500; // Delay after last word (ms)
+    const duration = loadingWords.length * wordDisplayDuration + blackScreenDelay; // Total duration including black screen delay
 
     const wordInterval = setInterval(() => {
       setCurrentWordIndex((prev) => {
-        const next = (prev + 1) % loadingWords.length;
-        // If we've cycled through all words and progress is still low, restart cycle
-        if (next === 0 && progressRef.current < 90) {
-          return 0; // Restart from beginning
+        const next = prev + 1;
+        // Don't loop - just advance to next word, stop at last word
+        if (next >= loadingWords.length) {
+          clearInterval(wordInterval); // Stop interval when reaching last word
+          // After showing last word, wait for wordDisplayDuration, then show black screen
+          setTimeout(() => {
+            setShowBlackScreen(true);
+          }, wordDisplayDuration);
+          return loadingWords.length - 1; // Stay on last word
         }
         return next;
       });
-    }, 600); // Slower word transitions so text is readable (~600ms per word)
+    }, wordDisplayDuration); // Each word displays for 1000ms
 
     // Use requestAnimationFrame for smoother progress updates
     const updateProgress = (currentTime: number) => {
@@ -94,16 +95,18 @@ export function LoadingScreen({ onComplete }: LoadingScreenProps) {
         >
           <div className="absolute inset-0 flex items-center justify-center">
             <AnimatePresence mode="wait">
-              <motion.h1
-                key={currentWordIndex}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.4, ease: "easeInOut" }}
-                className="text-center text-4xl font-light tracking-wider text-white md:text-8xl"
-              >
-                {loadingWords[currentWordIndex]}
-              </motion.h1>
+              {!showBlackScreen && (
+                <motion.h1
+                  key={currentWordIndex}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.4, ease: "easeInOut" }}
+                  className="text-center text-4xl font-light tracking-wider text-white md:text-8xl"
+                >
+                  {loadingWords[currentWordIndex]}
+                </motion.h1>
+              )}
             </AnimatePresence>
           </div>
 

@@ -66,10 +66,7 @@ export function HeroSection({ gameActive = false }: HeroSectionProps = {}) {
 
   const handleDownload = () => {
     hapticManager.medium();
-    const link = document.createElement("a");
-    link.href = "/mohammed_huzaifa_resume.pdf";
-    link.download = "Mohammed_Huzaifa_Resume.pdf";
-    link.click();
+    window.open("/mohammed_huzaifa_resume.pdf", "_blank");
   };
 
   const firstName = "MOHAMMED";
