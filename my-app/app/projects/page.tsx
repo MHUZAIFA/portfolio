@@ -130,7 +130,7 @@ const projects = [
 });
 
 export default function ProjectsPage() {
-  const [viewMode, setViewMode] = useState<"grid" | "list" | "git">("git");
+  const [viewMode, setViewMode] = useState<"grid" | "list" | "git">("grid");
 
   return (
     <motion.div
@@ -216,7 +216,7 @@ export default function ProjectsPage() {
 
       {/* Content based on view mode */}
       <motion.div variants={staggerItem}>
-        <AnimatePresence mode="wait" initial={false}>
+        <AnimatePresence mode="wait">
           {viewMode === "git" ? (
             <motion.div
               key="git-view"
@@ -229,19 +229,19 @@ export default function ProjectsPage() {
             </motion.div>
           ) : viewMode === "grid" ? (
             <motion.div
-              key={`grid-view-${viewMode}`}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
+              key="grid-view"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.3 }}
               className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
             >
               {projects.map((project, index) => (
                 <motion.div
-                  key={`grid-${viewMode}-${project.id}`}
-                  initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  transition={{ delay: index * 0.05, duration: 0.3 }}
+                  key={project.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.08 }}
                 >
                   <ProjectCard {...project} />
                 </motion.div>
@@ -249,19 +249,19 @@ export default function ProjectsPage() {
             </motion.div>
           ) : (
             <motion.div
-              key={`list-view-${viewMode}`}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
+              key="list-view"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.3 }}
               className="space-y-4"
             >
               {projects.map((project, index) => (
                 <motion.div
-                  key={`list-${viewMode}-${project.id}`}
-                  initial={{ opacity: 0, scale: 0.95, x: -20 }}
-                  animate={{ opacity: 1, scale: 1, x: 0 }}
-                  transition={{ delay: index * 0.03, duration: 0.3 }}
+                  key={project.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.04 }}
                 >
                   <ProjectCard {...project} listView={true} />
                 </motion.div>

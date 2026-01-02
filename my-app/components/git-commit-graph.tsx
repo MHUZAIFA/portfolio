@@ -31,6 +31,7 @@ interface Project {
   technologies?: string[];
   date?: string;
   category?: string;
+  orderNumber?: number;
 }
 
 // Helper function to parse date string and return a sortable date
@@ -70,7 +71,17 @@ function parseProjectDate(dateString: string): Date {
 
 // Project data - will be sorted from latest to oldest
 const projects: Project[] = [
-  {
+    {
+        id: "ai-report-workflow",
+        name: "AI-Driven Report Generation",
+        description: "An automated reporting system built using n8n that generates reports using natural language prompts.",
+        thumbnail: "/imgs/projects/n8nlogo.png",
+        technologies: ["n8n", "Automation", "AI", "REST APIs", "Workflow"],
+        date: "December 2024",
+        category: "Automation / Reporting",
+        orderNumber: 1,
+    },
+    {
     id: "ai-bots",
     name: "AI_Bots",
     description: "Applied AI project featuring comparative analysis of ML models and CNN-based image classification.",
@@ -78,6 +89,7 @@ const projects: Project[] = [
     technologies: ["Machine Learning", "Deep Learning", "Python", "CNN", "SVM"],
     date: "May 29, 2025 - Jun 22, 2025",
     category: "Machine Learning & AI",
+    orderNumber: 2,
   },
   {
     id: "recyclevision",
@@ -87,15 +99,7 @@ const projects: Project[] = [
     technologies: ["Mobile", "ML/AI", "Hugging Face API", "Image Recognition", "HCI"],
     date: "Feb 18, 2024 - May 1, 2024",
     category: "Mobile Application",
-  },
-  {
-    id: "ai-report-workflow",
-    name: "AI-Driven Report Generation",
-    description: "An automated reporting system built using n8n that generates reports using natural language prompts.",
-    thumbnail: "/imgs/projects/n8nlogo.png",
-    technologies: ["n8n", "Automation", "AI", "REST APIs", "Workflow"],
-    date: "December 2024",
-    category: "Automation / Reporting",
+    orderNumber: 3,
   },
   {
     id: "metricstics",
@@ -105,6 +109,7 @@ const projects: Project[] = [
     technologies: ["Python", "Statistics", "Data Analysis"],
     date: "November 2023",
     category: "Productivity & Utilities",
+    orderNumber: 4,
   },
   {
     id: "mytasks",
@@ -114,6 +119,7 @@ const projects: Project[] = [
     technologies: ["Angular", "PWA", "Cross Platform", "Cloud-Based", "Firebase"],
     date: "December 2022",
     category: "Productivity & Tracking",
+    orderNumber: 5,
   },
   {
     id: "snkrs",
@@ -123,6 +129,7 @@ const projects: Project[] = [
     technologies: ["E-Commerce", "PWA", "Cross Platform"],
     date: "May 2022",
     category: "E-Commerce",
+    orderNumber: 6,
   },
   {
     id: "helpdesk",
@@ -132,13 +139,9 @@ const projects: Project[] = [
     technologies: ["PWA", "Support", "Cloud-Based"],
     date: "Feb 2022",
     category: "Support",
+    orderNumber: 7,
   },
-].sort((a, b) => {
-  // Sort by date, most recent first
-  const dateA = parseProjectDate(a.date || "");
-  const dateB = parseProjectDate(b.date || "");
-  return dateB.getTime() - dateA.getTime();
-});
+];
 
 // Generate mock git commit data
 function generateGitGraph(): Branch[] {
@@ -658,10 +661,22 @@ export function GitCommitGraph() {
             // Combine: HEAD first, then others
             const allCommits = headCommit ? [headCommit, ...otherCommits] : otherCommits;
             
+            // Sort projects by orderNumber to ensure correct order
+            const sortedProjects = [...projects].sort((a, b) => (a.orderNumber || 0) - (b.orderNumber || 0));
+            
             return allCommits.map((commit, idx) => {
-              // Move remaining projects up by one: HEAD gets project 0, others get project idx+1
-              const projectIndex = idx === 0 ? 0 : idx + 1;
-              const project = projects[projectIndex];
+              // Select project based on orderNumber: HEAD gets 1, then reverse 2-6, then 7
+              // So the order will be: 1, 6, 5, 4, 3, 2, 7
+              let targetOrderNumber;
+              if (idx === 0) {
+                targetOrderNumber = 1; // HEAD gets orderNumber 1
+              } else if (idx >= 1 && idx <= 5) {
+                // Reverse orderNumbers 2-6: idx 1→6, 2→5, 3→4, 4→3, 5→2
+                targetOrderNumber = 7 - idx;
+              } else {
+                targetOrderNumber = 7; // Last commit gets orderNumber 7
+              }
+              const project = sortedProjects.find(p => p.orderNumber === targetOrderNumber);
               if (!project) return null;
               
               const x = commit.x + offsetX;
@@ -708,6 +723,9 @@ export function GitCommitGraph() {
                         <div className="flex-1 min-w-0">
                           <div className="mb-2">
                             <div className="flex items-center gap-2 mb-1 flex-wrap">
+                              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10 text-[10px] font-semibold text-white/80 border border-white/10 flex-shrink-0">
+                                {project.orderNumber || idx + 1}
+                              </span>
                               <h4 className="text-sm font-semibold text-white group-hover:text-white transition-colors">
                                 {project.name}
                               </h4>
