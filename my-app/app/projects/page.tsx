@@ -130,22 +130,22 @@ const projects = [
 });
 
 export default function ProjectsPage() {
-  const [viewMode, setViewMode] = useState<"grid" | "list" | "git">("git");
+  const [viewMode, setViewMode] = useState<"grid" | "list" | "git">("list");
 
   return (
     <motion.div
       initial="initial"
       animate="animate"
       variants={staggerContainer}
-      className="mx-auto max-w-7xl px-4 py-12 md:py-24"
+      className="mx-auto max-w-7xl px-4 md:px-6 md:py-12 py-24 mt-12"
     >
       {/* Header Section */}
-      <motion.div variants={staggerItem} className="mb-12">
-        <div className="mb-4 flex items-center justify-between">
+      <motion.div variants={staggerItem} className="mb-8 md:mb-12">
+        <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-gradient-to-r from-white to-white/70 bg-clip-text text-4xl font-bold text-transparent md:text-6xl"
+            className="bg-gradient-to-r from-white to-white/70 bg-clip-text text-3xl font-bold text-transparent sm:text-4xl md:text-5xl lg:text-6xl"
           >
             My Projects
           </motion.h1>
@@ -155,7 +155,7 @@ export default function ProjectsPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="flex gap-2 rounded-lg border border-white/20 bg-white/5 p-1 backdrop-blur-sm"
+            className="flex gap-1.5 rounded-lg border border-white/20 bg-white/5 p-1 backdrop-blur-sm self-start sm:self-auto"
           >
             <Button
               variant="ghost"
@@ -164,13 +164,13 @@ export default function ProjectsPage() {
                 setViewMode("grid");
                 hapticManager.light();
               }}
-              className={`h-8 w-8 p-0 transition-all ${
+              className={`h-9 w-9 md:h-8 md:w-8 p-0 transition-all ${
                 viewMode === "grid"
                   ? "bg-white/20 text-white"
                   : "text-white/60 hover:text-white hover:bg-white/10"
               }`}
             >
-              <Grid className="h-4 w-4" />
+              <Grid className="h-4 w-4 md:h-4 md:w-4" />
             </Button>
             <Button
               variant="ghost"
@@ -179,13 +179,13 @@ export default function ProjectsPage() {
                 setViewMode("list");
                 hapticManager.light();
               }}
-              className={`h-8 w-8 p-0 transition-all ${
+              className={`h-9 w-9 md:h-8 md:w-8 p-0 transition-all ${
                 viewMode === "list"
                   ? "bg-white/20 text-white"
                   : "text-white/60 hover:text-white hover:bg-white/10"
               }`}
             >
-              <List className="h-4 w-4" />
+              <List className="h-4 w-4 md:h-4 md:w-4" />
             </Button>
             <Button
               variant="ghost"
@@ -194,13 +194,13 @@ export default function ProjectsPage() {
                 setViewMode("git");
                 hapticManager.light();
               }}
-              className={`h-8 w-8 p-0 transition-all ${
+              className={`hidden md:inline-flex h-9 w-9 md:h-8 md:w-8 p-0 transition-all ${
                 viewMode === "git"
                   ? "bg-white/20 text-white"
                   : "text-white/60 hover:text-white hover:bg-white/10"
               }`}
             >
-              <GitBranch className="h-4 w-4" />
+              <GitBranch className="h-4 w-4 md:h-4 md:w-4" />
             </Button>
           </motion.div>
         </div>
@@ -208,7 +208,7 @@ export default function ProjectsPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="text-lg text-white/60 md:text-xl"
+          className="text-base text-white/60 sm:text-lg md:text-xl"
         >
           A collection of my work and creative endeavors
         </motion.p>
@@ -234,7 +234,7 @@ export default function ProjectsPage() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.3 }}
-              className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
+              className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3"
             >
               {projects.map((project, index) => (
                 <motion.div
@@ -254,7 +254,7 @@ export default function ProjectsPage() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
               transition={{ duration: 0.3 }}
-              className="space-y-4"
+              className="space-y-3 sm:space-y-4"
             >
               {projects.map((project, index) => (
                 <motion.div
