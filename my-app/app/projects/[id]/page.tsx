@@ -596,28 +596,35 @@ export default function ProjectDetailsPage({
               <h3 className="mb-4 sm:mb-6 text-xl sm:text-2xl font-semibold text-white">
                 Gallery
               </h3>
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 {imagesToShow.map((imageUrl, index) => (
                   <motion.div
                     key={index}
-                    initial={{ opacity: 0, x: -20, y: 10, scale: 0.95 }}
-                    whileInView={{ opacity: 1, x: 0, y: 0, scale: 1 }}
+                    initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                    whileInView={{ opacity: 1, y: 0, scale: 1 }}
                     viewport={{ once: true, margin: "-50px" }}
                     transition={{ 
-                      duration: 0.8, 
-                      delay: index * 0.12,
+                      duration: 0.5, 
+                      delay: index * 0.08,
                       ease: [0.16, 1, 0.3, 1]
                     }}
-                    className="relative w-full sm:w-auto sm:h-[170px] sm:flex-1 overflow-hidden rounded-sm bg-white/5 cursor-pointer flex items-center justify-center min-h-[200px] sm:min-h-0"
+                    whileHover={{ scale: 1.02, y: -4 }}
+                    className="group relative aspect-[4/3] overflow-hidden rounded-lg bg-white/5 cursor-pointer border border-white/10 hover:border-white/20 transition-all duration-300"
                     onClick={() => openLightbox(index)}
                   >
                     <Image
                       src={imageUrl}
                       alt={`${project.name} - Image ${index + 1}`}
-                      width={1200}
-                      height={800}
-                      className="max-h-full max-w-full w-auto h-auto object-contain hover:scale-105 transition-transform duration-300"
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      className="object-cover transition-transform duration-500 group-hover:scale-110"
                     />
+                    {/* Overlay on hover */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    {/* Image number indicator */}
+                    <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-sm text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      {index + 1}/{imagesToShow.length}
+                    </div>
                   </motion.div>
                 ))}
               </div>
@@ -630,16 +637,16 @@ export default function ProjectDetailsPage({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 flex items-center justify-center bg-black/95"
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-sm"
               onClick={closeLightbox}
             >
               {/* Close Button */}
               <button
                 onClick={closeLightbox}
-                className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+                className="absolute top-4 right-4 sm:top-6 sm:right-6 p-2.5 sm:p-3 rounded-full bg-white/10 hover:bg-white/20 active:bg-white/30 transition-all duration-200 z-10"
                 aria-label="Close lightbox"
               >
-                <X className="h-6 w-6 text-white" />
+                <X className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
               </button>
 
               {/* Previous Button */}
@@ -649,10 +656,10 @@ export default function ProjectDetailsPage({
                     e.stopPropagation();
                     goToPrevious();
                   }}
-                  className="absolute left-4 p-3 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+                  className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 p-3 sm:p-4 rounded-full bg-white/10 hover:bg-white/20 active:bg-white/30 transition-all duration-200 z-10 touch-manipulation"
                   aria-label="Previous image"
                 >
-                  <ChevronLeft className="h-8 w-8 text-white" />
+                  <ChevronLeft className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
                 </button>
               )}
 
@@ -663,32 +670,32 @@ export default function ProjectDetailsPage({
                     e.stopPropagation();
                     goToNext();
                   }}
-                  className="absolute right-4 p-3 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+                  className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 p-3 sm:p-4 rounded-full bg-white/10 hover:bg-white/20 active:bg-white/30 transition-all duration-200 z-10 touch-manipulation"
                   aria-label="Next image"
                 >
-                  <ChevronRight className="h-8 w-8 text-white" />
+                  <ChevronRight className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
                 </button>
               )}
 
               {/* Image Counter */}
               {imagesToShow.length > 1 && (
-                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-full bg-white/10 text-white text-sm">
+                <div className="absolute bottom-4 sm:bottom-6 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm text-white text-sm font-medium">
                   {currentImageIndex + 1} / {imagesToShow.length}
                 </div>
               )}
 
               {/* Main Image */}
               <div
-                className="relative max-w-7xl max-h-[90vh] w-full h-full flex items-center justify-center p-4"
+                className="relative max-w-7xl max-h-[90vh] w-full h-full flex items-center justify-center p-4 sm:p-8"
                 onClick={(e) => e.stopPropagation()}
               >
                 <motion.div
                   key={currentImageIndex}
-            initial={{ opacity: 0, scale: 0.9 }}
+            initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.3 }}
-                  className="relative w-full h-full"
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                  className="relative w-full h-full max-w-full max-h-full"
                 >
                   <Image
                     src={imagesToShow[currentImageIndex]}
@@ -696,6 +703,7 @@ export default function ProjectDetailsPage({
                     fill
                     className="object-contain"
                     priority
+                    sizes="100vw"
           />
         </motion.div>
       </div>
