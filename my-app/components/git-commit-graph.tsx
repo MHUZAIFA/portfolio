@@ -155,11 +155,9 @@ function generateGitGraph(): Branch[] {
   const branchHorizontalSpacing = 30; // 30px spacing between parallel branches
   
   // Calculate how many commits we need based on available projects
-  // HEAD gets project 0, others get project idx+1 (skipping project 1)
-  // With 7 projects (indices 0-6): HEAD gets 0, others get 2,3,4,5,6
-  // So we need: 1 (HEAD) + 5 (others) = 6 commits with projects
-  // Plus 1 extra commit at bottom without project = 7 commits total
-  const commitsWithProjects = 1 + (projects.length - 2); // HEAD + others (skipping project 1)
+  // We need 7 commits with projects (1 HEAD + 6 others) to display all 7 projects
+  // Plus 1 extra commit at bottom without project = 8 commits total
+  const commitsWithProjects = 7; // HEAD + 6 others for all 7 projects
   const totalCommits = commitsWithProjects + 1; // Add one more commit at bottom without project
   const startY = 40;
   const blueX = 0; // Blue (main) branch
@@ -656,7 +654,7 @@ export function GitCommitGraph() {
                 commit.branch === 0 &&
                 commit.y !== bottomCommitY // Exclude bottom commit (no project)
               )
-              .slice(0, 5); // Get 5 more commits (6 total including HEAD, excluding bottom)
+              .slice(0, 6); // Get 6 more commits (7 total including HEAD, excluding bottom)
             
             // Combine: HEAD first, then others
             const allCommits = headCommit ? [headCommit, ...otherCommits] : otherCommits;
@@ -665,16 +663,14 @@ export function GitCommitGraph() {
             const sortedProjects = [...projects].sort((a, b) => (a.orderNumber || 0) - (b.orderNumber || 0));
             
             return allCommits.map((commit, idx) => {
-              // Select project based on orderNumber: HEAD gets 1, then reverse 2-6, then 7
-              // So the order will be: 1, 6, 5, 4, 3, 2, 7
+              // Select project based on orderNumber: HEAD gets 1, then reverse 2-7
+              // So the order will be: 1, 7, 6, 5, 4, 3, 2
               let targetOrderNumber;
               if (idx === 0) {
                 targetOrderNumber = 1; // HEAD gets orderNumber 1
-              } else if (idx >= 1 && idx <= 5) {
-                // Reverse orderNumbers 2-6: idx 1→6, 2→5, 3→4, 4→3, 5→2
-                targetOrderNumber = 7 - idx;
               } else {
-                targetOrderNumber = 7; // Last commit gets orderNumber 7
+                // Reverse orderNumbers 2-7: idx 1→7, 2→6, 3→5, 4→4, 5→3, 6→2
+                targetOrderNumber = 8 - idx;
               }
               const project = sortedProjects.find(p => p.orderNumber === targetOrderNumber);
               if (!project) return null;
@@ -688,7 +684,7 @@ export function GitCommitGraph() {
               
               // Set top to 72% for the second project card
               const isSecondCard = idx === 1;
-              const topValue = isSecondCard ? '71%' : `${topPercent}%`;
+              const topValue = isSecondCard ? '74.5%' : `${topPercent}%`;
               
               return (
                 <motion.div
