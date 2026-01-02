@@ -72,6 +72,7 @@ import {
 } from "react-icons/fa";
 import type { IconType } from "react-icons";
 import Link from "next/link";
+import Image from "next/image";
 
 // Category definitions
 type CategoryName = "Frontend" | "Middleware" | "Database" | "Tools" | "Coding Languages" | "DevOps" | "Cloud" | "ML/AI";
@@ -367,26 +368,50 @@ export default function AboutPage() {
 
       <motion.section
         variants={staggerItem}
-        className="mb-28 space-y-4 text-lg text-white/80"
+        className="mb-28"
       >
-        <p className="text-justify">
-          I am a passionate graduate student and full-stack developer with a
-          deep interest in creating innovative web applications and designing
-          compelling user experiences. My journey in technology has been driven
-          by a continuous desire to learn, improve, and excel in my craft.
-        </p>
-        <p className="text-justify">
-          With expertise spanning from frontend frameworks like React and
-          Angular to backend technologies like .NET Core and Node.js, I bring a
-          comprehensive approach to software development. I specialize in
-          Microsoft Dynamics 365 customization, helping businesses optimize
-          their operations through tailored solutions.
-        </p>
-        <p className="text-justify">
-          Beyond technical skills, I believe in the power of collaboration,
-          clear communication, and thoughtful problem-solving to deliver
-          exceptional results.
-        </p>
+        <div className="flex flex-col md:flex-row gap-8 md:gap-12 items-center md:items-start">
+          {/* Image on the left */}
+          <div className="flex-shrink-0">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
+              className="relative w-full"
+            >
+              <Image
+                src="/imgs/picture.png"
+                alt="About Me"
+                width={220}
+                height={900}
+                className="object-cover"
+              />
+            </motion.div>
+          </div>
+
+          {/* Text content on the right */}
+          <div className="flex-1 space-y-4 text-lg text-white/80">
+            <h2 className="text-2xl font-bold text-white mb-4">About Me</h2>
+            <p className="text-justify">
+              I am a passionate graduate student and full-stack developer with a
+              deep interest in creating innovative web applications and designing
+              compelling user experiences. My journey in technology has been driven
+              by a continuous desire to learn, improve, and excel in my craft.
+            </p>
+            <p className="text-justify">
+              With expertise spanning from frontend frameworks like React and
+              Angular to backend technologies like .NET Core and Node.js, I bring a
+              comprehensive approach to software development. I specialize in
+              Microsoft Dynamics 365 customization, helping businesses optimize
+              their operations through tailored solutions.
+            </p>
+            <p className="text-justify">
+              Beyond technical skills, I believe in the power of collaboration,
+              clear communication, and thoughtful problem-solving to deliver
+              exceptional results.
+            </p>
+          </div>
+        </div>
       </motion.section>
 
       <motion.section variants={staggerItem} className="mb-16">
