@@ -148,9 +148,16 @@ function generateGitGraph(): Branch[] {
     { id: 2, color: "#f59e0b", commits: [] }, // hotfix branch - yellow/orange
   ];
 
-  const commitSpacing = 140; // Increased spacing to fit project cards between commits
+  const commitSpacing = 180; // Increased spacing to make each commit segment longer
   const branchHorizontalSpacing = 30; // 30px spacing between parallel branches
-  const totalCommits = 10;
+  
+  // Calculate how many commits we need based on available projects
+  // HEAD gets project 0, others get project idx+1 (skipping project 1)
+  // With 7 projects (indices 0-6): HEAD gets 0, others get 2,3,4,5,6
+  // So we need: 1 (HEAD) + 5 (others) = 6 commits with projects
+  // Plus 1 extra commit at bottom without project = 7 commits total
+  const commitsWithProjects = 1 + (projects.length - 2); // HEAD + others (skipping project 1)
+  const totalCommits = commitsWithProjects + 1; // Add one more commit at bottom without project
   const startY = 40;
   const blueX = 0; // Blue (main) branch
   const yellowX = blueX + branchHorizontalSpacing; // Yellow 30px to the right of blue
@@ -161,21 +168,20 @@ function generateGitGraph(): Branch[] {
 
   // All branches start at the bottom in parallel with horizontal spacing
   // Blue (main) branch - goes straight up
-  // Hide dots at top - 1 (index 8) and top - 2 (index 7) but keep line spacing consistent
+  // Create all commits including one extra at bottom without project
   for (let i = 0; i < totalCommits; i++) {
     branches[0].commits.push({
       id: `main-${i}`,
       x: blueX,
       y: bottomY - i * commitSpacing, // Start from bottom, go up
       branch: 0,
-      isHead: i === totalCommits - 1, // HEAD is at the top (last commit, index 9)
-      isHidden: i === totalCommits - 2 || i === totalCommits - 3, // Hide dots at indices 7 and 8
+      isHead: i === totalCommits - 1, // HEAD is at the top (last commit)
     });
   }
 
   // Yellow (hotfix) branch - starts parallel to blue (30px to the right), then merges into blue
   // Yellow starts at bottom, goes up parallel to blue, then merges into blue
-  const yellowMergeCommit = 5; // Merge at commit 5 (from bottom) - 2 more positions than before
+  const yellowMergeCommit = 4; // Merge at commit 4 (from bottom) - moved down by one position
   for (let i = 0; i < yellowMergeCommit; i++) {
     branches[2].commits.push({
       id: `yellow-${i}`,
@@ -270,7 +276,7 @@ export function GitCommitGraph() {
 
     const paddingX = 80; // Keep padding for overall SVG dimensions
     const paddingY = 40;
-    const extensionHeight = 100; // Height for infinite extension lines at bottom
+    const extensionHeight = 150; // Height for infinite extension lines at bottom
     return {
       branches: graphData,
       dimensions: {
@@ -293,31 +299,18 @@ export function GitCommitGraph() {
     const offsetY = 20; // Top padding
 
     // Connect main branch commits (straight vertical line)
-    // Skip connections through hidden commits - connect directly from last visible to HEAD
+    // All commits now have projects, so connect them all sequentially
     const mainBranch = branches[0];
-    let lastVisibleCommit: Commit | null = null;
-    
-    for (let i = 0; i < mainBranch.commits.length; i++) {
-      const commit = mainBranch.commits[i];
-      
-      // Skip hidden commits
-      if (commit.isHidden) {
-        continue;
-      }
-      
-      // If we have a previous visible commit, connect to current
-      if (lastVisibleCommit) {
-        const path = getStraightPath(
-          lastVisibleCommit.x + offsetX,
-          lastVisibleCommit.y + offsetY,
-          commit.x + offsetX,
-          commit.y + offsetY
-        );
-        connections.push({ path, color: mainBranch.color, from: lastVisibleCommit, to: commit });
-      }
-      
-      // Update last visible commit
-      lastVisibleCommit = commit;
+    for (let i = 0; i < mainBranch.commits.length - 1; i++) {
+      const from = mainBranch.commits[i];
+      const to = mainBranch.commits[i + 1];
+      const path = getStraightPath(
+        from.x + offsetX,
+        from.y + offsetY,
+        to.x + offsetX,
+        to.y + offsetY
+      );
+      connections.push({ path, color: mainBranch.color, from, to });
     }
 
     // Connect yellow (hotfix) branch - parallel to blue, then merges into blue
@@ -410,7 +403,7 @@ export function GitCommitGraph() {
       className="relative w-full"
     >
       {dimensions.width > 0 && dimensions.height > 0 && (
-        <div className="relative w-full overflow-visible">
+        <div className="relative w-full overflow-visible pt-22">
           <svg
             ref={svgRef}
             width={dimensions.width}
@@ -437,9 +430,39 @@ export function GitCommitGraph() {
               />
             ))}
 
+            {/* Extension line at the top (after HEAD) */}
+            {(() => {
+              const extensionHeight = 80;
+              const headCommit = branches[0].commits.find(c => c.isHead);
+              if (headCommit) {
+                const headXPos = headCommit.x + offsetX;
+                const headYPos = headCommit.y + offsetY;
+                return (
+                  <>
+                    <defs>
+                      <linearGradient id="blueTopGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.6" />
+                        <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
+                      </linearGradient>
+                    </defs>
+                    <line
+                      x1={headXPos}
+                      y1={headYPos}
+                      x2={headXPos}
+                      y2={headYPos - extensionHeight}
+                      stroke="url(#blueTopGradient)"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                    />
+                  </>
+                );
+              }
+              return null;
+            })()}
+
             {/* Infinite extension lines at the bottom */}
             {(() => {
-              const extensionHeight = 100;
+              const extensionHeight = 150;
               const bottomYValue = Math.max(...branches.flatMap(b => b.commits.map(c => c.y)));
               
               // Blue branch extension (from bottom commit)
@@ -524,12 +547,6 @@ export function GitCommitGraph() {
                 const y = commit.y + offsetY;
                 const isMergeCommit = commit.isMerge;
                 const isHeadCommit = commit.isHead;
-                const isHidden = commit.isHidden;
-
-                // Skip rendering dot for hidden commits (line will still connect)
-                if (isHidden) {
-                  return null;
-                }
 
                 return (
                   <g key={commit.id}>
@@ -595,10 +612,17 @@ export function GitCommitGraph() {
           {(() => {
             // Get HEAD commit first
             const headCommit = branches[0].commits.find(c => c.isHead && c.branch === 0);
-            // Get other visible commits (excluding HEAD and hidden)
+            // Get other visible commits (excluding HEAD, hidden, and bottom commit without project)
+            // Bottom commit is at index 0 (lowest y value), so exclude it
+            const bottomCommitY = Math.max(...branches[0].commits.map(c => c.y));
             const otherCommits = branches[0].commits
-              .filter((commit) => !commit.isHidden && !commit.isHead && commit.branch === 0)
-              .slice(0, 6); // Get 6 more commits (7 total including HEAD)
+              .filter((commit) => 
+                !commit.isHidden && 
+                !commit.isHead && 
+                commit.branch === 0 &&
+                commit.y !== bottomCommitY // Exclude bottom commit (no project)
+              )
+              .slice(0, 5); // Get 5 more commits (6 total including HEAD, excluding bottom)
             
             // Combine: HEAD first, then others
             const allCommits = headCommit ? [headCommit, ...otherCommits] : otherCommits;
