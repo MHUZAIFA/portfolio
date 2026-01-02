@@ -16,6 +16,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Mohammed Huzaifa - Portfolio",
   description: "Portfolio website of Mohammed Huzaifa - Graduate Student, D365 Customizer, Full Stack Developer, UI/UX Designer",
+  icons: {
+    icon: "/icon.jpg", // or use "/favicon.ico" or any other path
+    shortcut: "/favicon.ico",
+    apple: "/icon.jpg", // For Apple devices
+  },
 };
 
 export default function RootLayout({
