@@ -66,7 +66,7 @@ export function AppWrapper({ children }: { children: React.ReactNode }) {
       )}
       <div className="h-screen bg-black text-white">
         {!isLoading && <Navigation />}
-        <main>{children}</main>
+        <main id="main-content">{children}</main>
       </div>
     </MotionProvider>
   );

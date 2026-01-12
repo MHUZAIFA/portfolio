@@ -185,6 +185,14 @@ export function Navigation() {
 
   return (
     <>
+      {/* Skip to main content link */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 rounded-lg bg-white px-4 py-2 text-black font-medium transition-all focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-black"
+      >
+        Skip to main content
+      </a>
+
       {/* Logo - Fixed top left */}
       <motion.div
         initial={{ opacity: 0, x: -20 }}
