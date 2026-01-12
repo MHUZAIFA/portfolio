@@ -539,7 +539,6 @@ export default function ExperiencePage() {
 
   useEffect(() => {
     let ticking = false;
-    let lastScrollY = window.scrollY;
 
     const handleScroll = () => {
       if (!timelineRef.current || !lastCardRef.current) return;
