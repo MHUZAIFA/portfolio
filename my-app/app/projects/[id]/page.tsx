@@ -309,11 +309,7 @@ export default function ProjectDetailsPage({
         <motion.div
           variants={staggerItem}
         className="relative z-10 flex min-h-screen overflow-y-auto project-overlay-mask"
-        style={{ isolation: 'isolate' }}
-        style={{
-          backgroundColor: "black",
-          willChange: "opacity",
-        }}
+        style={{ isolation: 'isolate', backgroundColor: "black", willChange: "opacity", }}
       >
         <div className="w-full md:w-1/2 flex flex-col justify-center px-4 sm:px-6 md:px-8 py-12 sm:py-16 md:py-24 lg:px-16">
           <motion.div
