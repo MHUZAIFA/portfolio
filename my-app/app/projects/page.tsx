@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ProjectCard } from "@/components/project-card";
 import { GitCommitGraph } from "@/components/git-commit-graph";
 import { staggerContainer, staggerItem } from "@/components/providers/motion-provider";
@@ -131,6 +131,27 @@ const projects = [
 
 export default function ProjectsPage() {
   const [viewMode, setViewMode] = useState<"grid" | "list" | "git">("list");
+
+  // Set default view mode based on screen size
+  useEffect(() => {
+    const handleResize = () => {
+      // Git view is available on md screens and above (768px+)
+      // Default to git on desktop, list on mobile
+      const isDesktop = window.innerWidth >= 768;
+      if (isDesktop && viewMode === "list") {
+        setViewMode("git");
+      } else if (!isDesktop && viewMode === "git") {
+        setViewMode("list");
+      }
+    };
+
+    // Set initial view mode
+    handleResize();
+
+    // Add resize listener
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [viewMode]);
 
   return (
     <motion.div
