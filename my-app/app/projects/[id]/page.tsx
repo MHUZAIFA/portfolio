@@ -309,6 +309,7 @@ export default function ProjectDetailsPage({
         <motion.div
           variants={staggerItem}
         className="relative z-10 flex min-h-screen overflow-y-auto project-overlay-mask"
+        style={{ isolation: 'isolate' }}
         style={{
           backgroundColor: "black",
           willChange: "opacity",
@@ -631,87 +632,87 @@ export default function ProjectDetailsPage({
               </div>
         </motion.div>
           )}
-
-          {/* Lightbox Modal */}
-          {lightboxOpen && (
-        <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-sm"
-              onClick={closeLightbox}
-            >
-              {/* Close Button */}
-              <button
-                onClick={closeLightbox}
-                className="absolute top-4 right-4 sm:top-6 sm:right-6 p-2.5 sm:p-3 rounded-full bg-white/10 hover:bg-white/20 active:bg-white/30 transition-all duration-200 z-10"
-                aria-label="Close lightbox"
-              >
-                <X className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
-              </button>
-
-              {/* Previous Button */}
-              {imagesToShow.length > 1 && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    goToPrevious();
-                  }}
-                  className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 p-3 sm:p-4 rounded-full bg-white/10 hover:bg-white/20 active:bg-white/30 transition-all duration-200 z-10 touch-manipulation"
-                  aria-label="Previous image"
-                >
-                  <ChevronLeft className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
-                </button>
-              )}
-
-              {/* Next Button */}
-              {imagesToShow.length > 1 && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    goToNext();
-                  }}
-                  className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 p-3 sm:p-4 rounded-full bg-white/10 hover:bg-white/20 active:bg-white/30 transition-all duration-200 z-10 touch-manipulation"
-                  aria-label="Next image"
-                >
-                  <ChevronRight className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
-                </button>
-              )}
-
-              {/* Image Counter */}
-              {imagesToShow.length > 1 && (
-                <div className="absolute bottom-4 sm:bottom-6 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm text-white text-sm font-medium">
-                  {currentImageIndex + 1} / {imagesToShow.length}
-                </div>
-              )}
-
-              {/* Main Image */}
-              <div
-                className="relative max-w-7xl max-h-[90vh] w-full h-full flex items-center justify-center p-4 sm:p-8"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <motion.div
-                  key={currentImageIndex}
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                  className="relative w-full h-full max-w-full max-h-full"
-                >
-                  <Image
-                    src={imagesToShow[currentImageIndex]}
-                    alt={`${project.name} - Image ${currentImageIndex + 1}`}
-                    fill
-                    className="object-contain"
-                    priority
-                    sizes="100vw"
-          />
-        </motion.div>
-      </div>
-            </motion.div>
-          )}
         </div>
       </motion.div>
+
+      {/* Lightbox Modal */}
+      {lightboxOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-100 flex items-center justify-center bg-black/95 backdrop-blur-sm"
+          onClick={closeLightbox}
+        >
+          {/* Close Button */}
+          <button
+            onClick={closeLightbox}
+            className="absolute top-4 right-4 sm:top-6 sm:right-6 p-2.5 sm:p-3 rounded-full bg-white/10 hover:bg-white/20 active:bg-white/30 transition-all duration-200 z-10"
+            aria-label="Close lightbox"
+          >
+            <X className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+          </button>
+
+          {/* Previous Button */}
+          {imagesToShow.length > 1 && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                goToPrevious();
+              }}
+              className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 p-3 sm:p-4 rounded-full bg-white/10 hover:bg-white/20 active:bg-white/30 transition-all duration-200 z-10 touch-manipulation"
+              aria-label="Previous image"
+            >
+              <ChevronLeft className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
+            </button>
+          )}
+
+          {/* Next Button */}
+          {imagesToShow.length > 1 && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                goToNext();
+              }}
+              className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 p-3 sm:p-4 rounded-full bg-white/10 hover:bg-white/20 active:bg-white/30 transition-all duration-200 z-10 touch-manipulation"
+              aria-label="Next image"
+            >
+              <ChevronRight className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
+            </button>
+          )}
+
+          {/* Image Counter */}
+          {imagesToShow.length > 1 && (
+            <div className="absolute bottom-4 sm:bottom-6 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm text-white text-sm font-medium">
+              {currentImageIndex + 1} / {imagesToShow.length}
+            </div>
+          )}
+
+          {/* Main Image */}
+          <div
+            className="relative max-w-7xl max-h-[90vh] w-full h-full flex items-center justify-center p-4 sm:p-8"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <motion.div
+              key={currentImageIndex}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              className="relative w-full h-full max-w-full max-h-full"
+            >
+              <Image
+                src={imagesToShow[currentImageIndex]}
+                alt={`${project.name} - Image ${currentImageIndex + 1}`}
+                fill
+                className="object-contain"
+                priority
+                sizes="100vw"
+              />
+            </motion.div>
+          </div>
+        </motion.div>
+      )}
     </motion.div>
   );
 }
