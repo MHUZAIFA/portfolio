@@ -772,9 +772,7 @@ export default function ExperiencePage() {
               {/* Timeline Node */}
               <div className="absolute left-1.5 md:left-[50px] top-0 z-10 md:-translate-x-1/2">
                 <motion.div
-                  className="relative h-4 w-4 md:h-6 md:w-6 rounded-full border-2 md:border-4 border-white/20 bg-white"
-                  whileHover={{ scale: 1.5 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                  className="relative h-4 w-4 md:h-6 md:w-6 rounded-full border-2 md:border-4 border-white bg-black"
                 >
                   <motion.div
                     className="absolute inset-0 rounded-full bg-black"
