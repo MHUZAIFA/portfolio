@@ -475,12 +475,13 @@ const techIcons: Record<string, IconType | LucideIcon> = {
   "Cassandra": SiApachecassandra,
 };
 
-// Generate particle positions once
-const generateParticles = () => {
-  return Array.from({ length: 20 }, () => ({
+// Generate particle positions once - optimized for performance
+const generateParticles = (isMobile: boolean) => {
+  const particleCount = isMobile ? 8 : 20; // Reduce particles on mobile
+  return Array.from({ length: particleCount }, () => ({
     left: Math.random() * 100,
     top: Math.random() * 100,
-    duration: 3 + Math.random() * 2,
+    duration: isMobile ? 4 + Math.random() * 2 : 3 + Math.random() * 2, // Slightly longer on mobile
     delay: Math.random() * 2,
   }));
 };
@@ -498,6 +499,10 @@ export default function ExperiencePage() {
   const timelineRef = useRef<HTMLDivElement>(null);
   const lastCardRef = useRef<HTMLDivElement>(null);
 
+  // Performance optimizations - only computed after hydration to avoid SSR mismatches
+  const [isMobile, setIsMobile] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
   // Filter experiences based on selected filter
   const filteredExperiences = sortedExperiences.filter((exp) => {
     if (filter === "all") return true;
@@ -512,13 +517,20 @@ export default function ExperiencePage() {
   const educationCount = sortedExperiences.filter((exp) => exp.type === "education").length;
   const volunteeringCount = sortedExperiences.filter((exp) => exp.type === "volunteering").length;
 
-  // Only generate and render particles after hydration to avoid mismatch
-  // This is a standard Next.js pattern to prevent hydration errors with random values
+  // Performance optimizations - only run on client side to avoid SSR hydration mismatches
   useEffect(() => {
+    setIsMobile(window.innerWidth < 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+    setPrefersReducedMotion(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
     setMounted(true);
-    setParticles(generateParticles());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (mounted) {
+      setParticles(generateParticles(isMobile));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isMobile, mounted]);
 
   const toggleExpand = (id: string) => {
     hapticManager.light();
@@ -526,58 +538,66 @@ export default function ExperiencePage() {
   };
 
   useEffect(() => {
+    let ticking = false;
+    let lastScrollY = window.scrollY;
+
     const handleScroll = () => {
       if (!timelineRef.current || !lastCardRef.current) return;
 
-      const timelineRect = timelineRef.current.getBoundingClientRect();
-      const timelineTop = timelineRect.top + window.scrollY;
-      const timelineHeight = timelineRect.height;
-      const scrollPosition = window.scrollY + window.innerHeight;
-      const timelineStart = timelineTop;
+      // Throttle scroll events for better performance
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          const timelineRect = timelineRef.current!.getBoundingClientRect();
+          const timelineTop = timelineRect.top + window.scrollY;
+          const timelineHeight = timelineRect.height;
+          const scrollPosition = window.scrollY + window.innerHeight;
 
-      // Get last card position relative to viewport
-      const lastCardRect = lastCardRef.current.getBoundingClientRect();
-      const lastCardTop = lastCardRect.top + window.scrollY;
+          // Simplified calculation for mobile to reduce computational load
+          let progress = 0;
+          if (scrollPosition >= timelineTop) {
+            // On mobile, use a simpler progress calculation
+            if (isMobile) {
+              const scrolled = scrollPosition - timelineTop;
+              progress = Math.min(1, scrolled / (timelineHeight + window.innerHeight * 0.3));
+            } else {
+              // Full calculation for desktop
+              const lastCardRect = lastCardRef.current!.getBoundingClientRect();
+              const lastCardTop = lastCardRect.top + window.scrollY;
 
-      // Check if last card is completely visible in viewport
-      // Card is fully visible when its top is at or below viewport top (>= 0)
-      // and its bottom is at or above viewport bottom (<= window.innerHeight)
-      const isLastCardFullyVisible = 
-        lastCardRect.top >= 0 && 
-        lastCardRect.bottom <= window.innerHeight;
+              const isLastCardFullyVisible =
+                lastCardRect.top >= 0 && lastCardRect.bottom <= window.innerHeight;
 
-      // Calculate progress: 0 when timeline starts entering viewport, 1 when last card is fully visible
-      let progress = 0;
-      if (scrollPosition >= timelineStart) {
-        // If last card is completely shown, complete the trail
-        if (isLastCardFullyVisible) {
-          progress = 1;
-        } else {
-          // Calculate scroll position needed to make last card fully visible
-          // Scroll until card top reaches viewport top (scrollY = lastCardTop)
-          const targetScrollPosition = lastCardTop;
-          
-          // Check if we've scrolled enough to show the card fully (or as much as possible)
-          if (window.scrollY >= targetScrollPosition) {
-            // Card top has reached viewport top - complete the trail
-            progress = 1;
-          } else if (scrollPosition >= lastCardTop - window.innerHeight) {
-            // Approaching last card - calculate progress smoothly from current position to full visibility
-            const scrolledToLastCard = scrollPosition - timelineStart;
-            const distanceToFullVisibility = targetScrollPosition + window.innerHeight - timelineStart;
-            progress = Math.min(0.98, scrolledToLastCard / distanceToFullVisibility);
-          } else {
-            // Normal progress calculation before reaching last card
-            const scrolled = scrollPosition - timelineStart;
-            progress = Math.min(0.85, scrolled / (timelineHeight + window.innerHeight * 0.5));
+              if (isLastCardFullyVisible) {
+                progress = 1;
+              } else {
+                const targetScrollPosition = lastCardTop;
+                if (window.scrollY >= targetScrollPosition) {
+                  progress = 1;
+                } else if (scrollPosition >= lastCardTop - window.innerHeight) {
+                  const scrolledToLastCard = scrollPosition - timelineTop;
+                  const distanceToFullVisibility = targetScrollPosition + window.innerHeight - timelineTop;
+                  progress = Math.min(0.98, scrolledToLastCard / distanceToFullVisibility);
+                } else {
+                  const scrolled = scrollPosition - timelineTop;
+                  progress = Math.min(0.85, scrolled / (timelineHeight + window.innerHeight * 0.5));
+                }
+              }
+            }
           }
-        }
-      }
 
-      setScrollProgress(progress);
+          setScrollProgress(progress);
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
 
-    window.addEventListener("scroll", handleScroll, { passive: true });
+    // Reduce scroll event frequency on mobile
+    const scrollOptions = isMobile
+      ? { passive: true, capture: false }
+      : { passive: true };
+
+    window.addEventListener("scroll", handleScroll, scrollOptions);
     window.addEventListener("resize", handleScroll, { passive: true });
     handleScroll(); // Initial calculation
 
@@ -585,48 +605,112 @@ export default function ExperiencePage() {
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", handleScroll);
     };
-  }, []);
+  }, [isMobile]);
 
   return (
     <div ref={containerRef} className="relative min-h-screen overflow-hidden">
       {/* Animated Background */}
       <div className="absolute inset-0 -z-10 overflow-hidden">
-        {/* Gradient Blobs */}
-        <motion.div
-          className="absolute left-[10%] top-[10%] h-[600px] w-[600px] rounded-full opacity-20"
-          style={{
-            background: "radial-gradient(circle, rgba(99, 102, 241, 0.4) 0%, transparent 70%)",
-            filter: "blur(100px)",
-          }}
-          animate={{
-            x: [0, 100, -50, 0],
-            y: [0, -80, 50, 0],
-            scale: [1, 1.2, 0.9, 1],
-          }}
-          transition={{
-            duration: 25,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-        <motion.div
-          className="absolute right-[15%] top-[50%] h-[500px] w-[500px] rounded-full opacity-15"
-          style={{
-            background: "radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, transparent 70%)",
-            filter: "blur(90px)",
-          }}
-          animate={{
-            x: [0, -120, 80, 0],
-            y: [0, 100, -60, 0],
-            scale: [1, 1.3, 1.1, 1],
-          }}
-          transition={{
-            duration: 30,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: 2,
-          }}
-        />
+        {/* Default static background during SSR */}
+        {!mounted && (
+          <>
+            <div
+              className="absolute left-[10%] top-[10%] h-[600px] w-[600px] rounded-full opacity-10"
+              style={{
+                background: "radial-gradient(circle, rgba(99, 102, 241, 0.3) 0%, transparent 70%)",
+                filter: "blur(100px)",
+              }}
+            />
+            <div
+              className="absolute right-[15%] top-[50%] h-[500px] w-[500px] rounded-full opacity-8"
+              style={{
+                background: "radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%)",
+                filter: "blur(90px)",
+              }}
+            />
+          </>
+        )}
+
+        {/* Dynamic background after hydration */}
+        {mounted && (
+          <>
+            {/* Gradient Blobs - Simplified on mobile */}
+            {!prefersReducedMotion && (
+              <>
+                <motion.div
+                  className="absolute left-[10%] top-[10%] h-[600px] w-[600px] rounded-full opacity-20"
+                  style={{
+                    background: "radial-gradient(circle, rgba(99, 102, 241, 0.4) 0%, transparent 70%)",
+                    filter: isMobile ? "blur(80px)" : "blur(100px)",
+                  }}
+                  animate={isMobile ? {
+                    scale: [1, 1.1, 1],
+                    opacity: [0.15, 0.25, 0.15],
+                  } : {
+                    x: [0, 100, -50, 0],
+                    y: [0, -80, 50, 0],
+                    scale: [1, 1.2, 0.9, 1],
+                  }}
+                  transition={isMobile ? {
+                    duration: 8,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  } : {
+                    duration: 25,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                />
+                <motion.div
+                  className="absolute right-[15%] top-[50%] h-[500px] w-[500px] rounded-full opacity-15"
+                  style={{
+                    background: "radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, transparent 70%)",
+                    filter: isMobile ? "blur(70px)" : "blur(90px)",
+                  }}
+                  animate={isMobile ? {
+                    scale: [1, 1.15, 1],
+                    opacity: [0.1, 0.2, 0.1],
+                  } : {
+                    x: [0, -120, 80, 0],
+                    y: [0, 100, -60, 0],
+                    scale: [1, 1.3, 1.1, 1],
+                  }}
+                  transition={isMobile ? {
+                    duration: 10,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                    delay: 1,
+                  } : {
+                    duration: 30,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                    delay: 2,
+                  }}
+                />
+              </>
+            )}
+
+            {/* Static background for reduced motion */}
+            {prefersReducedMotion && (
+              <>
+                <div
+                  className="absolute left-[10%] top-[10%] h-[600px] w-[600px] rounded-full opacity-10"
+                  style={{
+                    background: "radial-gradient(circle, rgba(99, 102, 241, 0.3) 0%, transparent 70%)",
+                    filter: "blur(100px)",
+                  }}
+                />
+                <div
+                  className="absolute right-[15%] top-[50%] h-[500px] w-[500px] rounded-full opacity-8"
+                  style={{
+                    background: "radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%)",
+                    filter: "blur(90px)",
+                  }}
+                />
+              </>
+            )}
+          </>
+        )}
         
         {/* Grid Pattern */}
         <div className="absolute inset-0 opacity-[0.03]">
@@ -685,7 +769,7 @@ export default function ExperiencePage() {
               setFilter("all");
               hapticManager.light();
             }}
-            whileHover={{ scale: 1.05 }}
+            whileHover={isMobile ? {} : { scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className={`rounded-full px-4 py-2 md:px-6 md:py-2.5 text-xs md:text-sm font-medium transition-all ${
               filter === "all"
@@ -700,7 +784,7 @@ export default function ExperiencePage() {
               setFilter("work");
               hapticManager.light();
             }}
-            whileHover={{ scale: 1.05 }}
+            whileHover={isMobile ? {} : { scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className={`rounded-full px-4 py-2 md:px-6 md:py-2.5 text-xs md:text-sm font-medium transition-all ${
               filter === "work"
@@ -715,7 +799,7 @@ export default function ExperiencePage() {
               setFilter("education");
               hapticManager.light();
             }}
-            whileHover={{ scale: 1.05 }}
+            whileHover={isMobile ? {} : { scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className={`rounded-full px-4 py-2 md:px-6 md:py-2.5 text-xs md:text-sm font-medium transition-all ${
               filter === "education"
@@ -730,7 +814,7 @@ export default function ExperiencePage() {
               setFilter("volunteering");
               hapticManager.light();
             }}
-            whileHover={{ scale: 1.05 }}
+            whileHover={isMobile ? {} : { scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className={`rounded-full px-4 py-2 md:px-6 md:py-2.5 text-xs md:text-sm font-medium transition-all ${
               filter === "volunteering"
@@ -763,10 +847,14 @@ export default function ExperiencePage() {
           <motion.div
             key={exp.id}
             ref={isLastCard ? lastCardRef : null}
-              initial={{ opacity: 0, y: 50 }}
+              initial={{ opacity: 0, y: isMobile ? 20 : 50 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ delay: index * 0.15, duration: 0.6 }}
+              viewport={{ once: true, margin: isMobile ? "-50px" : "-100px" }}
+              transition={{
+                delay: index * (isMobile ? 0.08 : 0.15),
+                duration: isMobile ? 0.4 : 0.6,
+                ease: "easeOut"
+              }}
               className="relative mb-8 md:mb-12 flex flex-col md:flex-row md:items-start"
             >
               {/* Timeline Node */}
@@ -788,7 +876,7 @@ export default function ExperiencePage() {
                     hapticManager.light();
                   }}
                   onMouseLeave={() => setHoveredId(null)}
-                  whileHover={{ y: -5 }}
+                  whileHover={isMobile ? {} : { y: -5 }}
                   className="h-full"
                 >
                   <Card className="group relative overflow-hidden border-white/10 bg-white/5 p-4 md:p-6 lg:p-8 backdrop-blur-sm transition-all hover:border-white/20 hover:bg-white/10">
@@ -889,7 +977,7 @@ export default function ExperiencePage() {
                 {exp.fullDescription && (
                           <motion.button
                     onClick={() => toggleExpand(exp.id)}
-                            whileHover={{ scale: 1.1, rotate: 180 }}
+                            whileHover={isMobile ? {} : { scale: 1.1, rotate: 180 }}
                             whileTap={{ scale: 0.9 }}
                             className="flex-shrink-0 rounded-full bg-white/10 p-1.5 md:p-2 text-white transition-colors hover:bg-white/20"
                   >
@@ -913,7 +1001,7 @@ export default function ExperiencePage() {
                             return (
                               <motion.div
                                 key={tech}
-                                whileHover={{ scale: 1.1, y: -2 }}
+                                whileHover={isMobile ? {} : { scale: 1.1, y: -2 }}
                                 className="flex items-center gap-1.5 md:gap-2 rounded-full bg-white/10 px-2.5 py-1 md:px-3 md:py-1.5 text-[10px] md:text-xs text-white/80 backdrop-blur-sm transition-colors hover:bg-white/20"
                               >
                                 {Icon && <Icon className="h-3 w-3 md:h-4 md:w-4 flex-shrink-0" />}
@@ -923,7 +1011,7 @@ export default function ExperiencePage() {
                           })}
                           {exp.technologies.length > 6 && (
                             <motion.span
-                              whileHover={{ scale: 1.1 }}
+                              whileHover={isMobile ? {} : { scale: 1.1 }}
                               className="flex items-center rounded-full bg-white/10 px-2.5 py-1 md:px-3 md:py-1.5 text-[10px] md:text-xs text-white/80"
                             >
                               +{exp.technologies.length - 6} more
@@ -943,8 +1031,11 @@ export default function ExperiencePage() {
                               initial={{ opacity: 0, scale: 0.8 }}
                               whileInView={{ opacity: 1, scale: 1 }}
                               viewport={{ once: true }}
-                              transition={{ delay: idx * 0.1 }}
-                              whileHover={{ scale: 1.05, y: -2 }}
+                              transition={{
+                                delay: idx * (isMobile ? 0.05 : 0.1),
+                                duration: isMobile ? 0.3 : 0.4
+                              }}
+                              whileHover={isMobile ? {} : { scale: 1.05, y: -2 }}
                               className={`relative overflow-hidden rounded-lg bg-gradient-to-br ${achievement.color} p-2.5 md:p-3 backdrop-blur-sm`}
                             >
                               <div className="relative z-10">
@@ -956,13 +1047,16 @@ export default function ExperiencePage() {
                                   {achievement.value}
                                 </p>
                               </div>
-                              <motion.div
-                                className={`absolute inset-0 bg-gradient-to-br ${achievement.color} opacity-0 transition-opacity group-hover:opacity-20`}
-                                animate={{
-                                  scale: hoveredId === exp.id ? [1, 1.2, 1] : 1,
-                                }}
-                                transition={{ duration: 2, repeat: Infinity }}
-                              />
+                              {/* Achievement hover effect - Disabled on mobile */}
+                              {!isMobile && (
+                                <motion.div
+                                  className={`absolute inset-0 bg-gradient-to-br ${achievement.color} opacity-0 transition-opacity group-hover:opacity-20`}
+                                  animate={{
+                                    scale: hoveredId === exp.id ? [1, 1.2, 1] : 1,
+                                  }}
+                                  transition={{ duration: 2, repeat: Infinity }}
+                                />
+                              )}
                             </motion.div>
                           ))}
                         </div>
@@ -988,15 +1082,17 @@ export default function ExperiencePage() {
                       </AnimatePresence>
                     </div>
 
-                    {/* Shine Effect */}
-                    <motion.div
-                      className="absolute inset-0 -z-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
-                      initial={{ x: "-100%" }}
-                      animate={{
-                        x: hoveredId === exp.id ? "100%" : "-100%",
-                      }}
-                      transition={{ duration: 0.6 }}
-                    />
+                    {/* Shine Effect - Disabled on mobile for performance */}
+                    {!isMobile && (
+                      <motion.div
+                        className="absolute inset-0 -z-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
+                        initial={{ x: "-100%" }}
+                        animate={{
+                          x: hoveredId === exp.id ? "100%" : "-100%",
+                        }}
+                        transition={{ duration: 0.6 }}
+                      />
+                    )}
                   </Card>
                 </motion.div>
               </div>
@@ -1005,16 +1101,19 @@ export default function ExperiencePage() {
           })}
       </div>
 
-        {/* Floating Particles - Only render after hydration */}
-        {mounted && particles.map((particle, i) => (
+        {/* Floating Particles - Only render after hydration and skip on reduced motion */}
+        {mounted && !prefersReducedMotion && particles.map((particle, i) => (
           <motion.div
             key={i}
-            className="absolute h-1 w-1 rounded-full bg-white/20"
+            className={`absolute rounded-full ${isMobile ? 'h-0.5 w-0.5 bg-white/15' : 'h-1 w-1 bg-white/20'}`}
             style={{
               left: `${particle.left}%`,
               top: `${particle.top}%`,
             }}
-            animate={{
+            animate={isMobile ? {
+              y: [0, -20, 0], // Smaller movement on mobile
+              opacity: [0.15, 0.3, 0.15],
+            } : {
               y: [0, -30, 0],
               opacity: [0.2, 0.5, 0.2],
               scale: [1, 1.5, 1],
@@ -1023,6 +1122,7 @@ export default function ExperiencePage() {
               duration: particle.duration,
               repeat: Infinity,
               delay: particle.delay,
+              ease: isMobile ? "linear" : "easeInOut", // Simpler easing on mobile
             }}
           />
         ))}
