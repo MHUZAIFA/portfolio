@@ -211,8 +211,8 @@ export default function ProjectDetailsPage({
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  const imagesToShow = project?.additionalImages && project.additionalImages.length > 0 
-    ? project.additionalImages 
+  const imagesToShow = project?.additionalImages && project.additionalImages.length > 0
+    ? project.additionalImages
     : project?.image ? [project.image] : [];
 
   useEffect(() => {
@@ -290,7 +290,7 @@ export default function ProjectDetailsPage({
       {/* Background Image */}
       <motion.div
         variants={staggerItem}
-        className="fixed inset-0 z-0"
+        className="fixed inset-0 z-0 overflow-hidden"
       >
         <motion.img
           initial={{ opacity: 0, scale: 0.9 }}
@@ -298,10 +298,11 @@ export default function ProjectDetailsPage({
           transition={{ duration: 0.6 }}
           src={project.image}
           alt={project.name}
-          className="h-full w-full object-cover"
+          className="absolute inset-0 h-full w-full object-cover object-center"
+          style={{ minHeight: '100vh', minWidth: '100vw' }}
         />
-        {/* Dark overlay for better text readability */}
-        <div className="absolute inset-0 bg-black/80" />
+        {/* Smooth gradient overlay for better text readability */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/75 to-black/90" />
       </motion.div>
 
       {/* Content Overlay */}
