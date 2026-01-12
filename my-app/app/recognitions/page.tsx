@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect } from "react";
 import { 
   Calendar,
   Award,
@@ -142,15 +142,15 @@ export default function RecognitionPage() {
   const [selectedHonor, setSelectedHonor] = useState<Honor | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Performance optimizations
-  const isMobile = useMemo(() => {
-    if (typeof window === "undefined") return false;
-    return window.innerWidth < 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-  }, []);
+  // Performance optimizations - only computed after hydration to avoid SSR mismatches
+  const [isMobile, setIsMobile] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
-  const prefersReducedMotion = useMemo(() => {
-    if (typeof window === "undefined") return false;
-    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  useEffect(() => {
+    // Only run on client side to avoid SSR hydration mismatches
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setIsMobile(window.innerWidth < 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+    setPrefersReducedMotion(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   }, []);
 
   // Sort honors chronologically (most recent first)
@@ -170,12 +170,16 @@ export default function RecognitionPage() {
   });
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     setMounted(true);
   }, []);
 
   useEffect(() => {
-    setParticles(generateParticles(isMobile));
-  }, [isMobile]);
+    if (mounted) {
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      setParticles(generateParticles(isMobile));
+    }
+  }, [isMobile, mounted]);
 
   useEffect(() => {
     if (selectedHonor) {
@@ -208,64 +212,8 @@ export default function RecognitionPage() {
     <div ref={containerRef} className="relative min-h-screen overflow-hidden">
       {/* Animated Background */}
       <div className="absolute inset-0 -z-10 overflow-hidden">
-        {/* Gradient Blobs - Simplified on mobile */}
-        {!prefersReducedMotion && (
-          <>
-            <motion.div
-              className="absolute left-[10%] top-[10%] h-[600px] w-[600px] rounded-full opacity-20"
-              style={{
-                background: "radial-gradient(circle, rgba(99, 102, 241, 0.4) 0%, transparent 70%)",
-                filter: isMobile ? "blur(80px)" : "blur(100px)",
-              }}
-              animate={isMobile ? {
-                scale: [1, 1.1, 1],
-                opacity: [0.15, 0.25, 0.15],
-              } : {
-                x: [0, 100, -50, 0],
-                y: [0, -80, 50, 0],
-                scale: [1, 1.2, 0.9, 1],
-              }}
-              transition={isMobile ? {
-                duration: 8,
-                repeat: Infinity,
-                ease: "easeInOut",
-              } : {
-                duration: 25,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            />
-            <motion.div
-              className="absolute right-[15%] top-[50%] h-[500px] w-[500px] rounded-full opacity-15"
-              style={{
-                background: "radial-gradient(circle, rgba(168, 85, 247, 0.4) 0%, transparent 70%)",
-                filter: isMobile ? "blur(70px)" : "blur(90px)",
-              }}
-              animate={isMobile ? {
-                scale: [1, 1.15, 1],
-                opacity: [0.1, 0.2, 0.1],
-              } : {
-                x: [0, -120, 80, 0],
-                y: [0, 100, -60, 0],
-                scale: [1, 1.3, 1.1, 1],
-              }}
-              transition={isMobile ? {
-                duration: 10,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: 1,
-              } : {
-                duration: 30,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: 2,
-              }}
-            />
-          </>
-        )}
-
-        {/* Static background for reduced motion or mobile */}
-        {prefersReducedMotion && (
+        {/* Default static background during SSR */}
+        {!mounted && (
           <>
             <div
               className="absolute left-[10%] top-[10%] h-[600px] w-[600px] rounded-full opacity-10"
@@ -283,7 +231,88 @@ export default function RecognitionPage() {
             />
           </>
         )}
-        
+
+        {/* Dynamic background after hydration */}
+        {mounted && (
+          <>
+            {/* Gradient Blobs - Simplified on mobile */}
+            {!prefersReducedMotion && (
+              <>
+                <motion.div
+                  className="absolute left-[10%] top-[10%] h-[600px] w-[600px] rounded-full opacity-20"
+                  style={{
+                    background: "radial-gradient(circle, rgba(99, 102, 241, 0.4) 0%, transparent 70%)",
+                    filter: isMobile ? "blur(80px)" : "blur(100px)",
+                  }}
+                  animate={isMobile ? {
+                    scale: [1, 1.1, 1],
+                    opacity: [0.15, 0.25, 0.15],
+                  } : {
+                    x: [0, 100, -50, 0],
+                    y: [0, -80, 50, 0],
+                    scale: [1, 1.2, 0.9, 1],
+                  }}
+                  transition={isMobile ? {
+                    duration: 8,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  } : {
+                    duration: 25,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                />
+                <motion.div
+                  className="absolute right-[15%] top-[50%] h-[500px] w-[500px] rounded-full opacity-15"
+                  style={{
+                    background: "radial-gradient(circle, rgba(168, 85, 247, 0.4) 0%, transparent 70%)",
+                    filter: isMobile ? "blur(70px)" : "blur(90px)",
+                  }}
+                  animate={isMobile ? {
+                    scale: [1, 1.15, 1],
+                    opacity: [0.1, 0.2, 0.1],
+                  } : {
+                    x: [0, -120, 80, 0],
+                    y: [0, 100, -60, 0],
+                    scale: [1, 1.3, 1.1, 1],
+                  }}
+                  transition={isMobile ? {
+                    duration: 10,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                    delay: 1,
+                  } : {
+                    duration: 30,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                    delay: 2,
+                  }}
+                />
+              </>
+            )}
+
+            {/* Static background for reduced motion */}
+            {prefersReducedMotion && (
+              <>
+                <div
+                  className="absolute left-[10%] top-[10%] h-[600px] w-[600px] rounded-full opacity-10"
+                  style={{
+                    background: "radial-gradient(circle, rgba(99, 102, 241, 0.3) 0%, transparent 70%)",
+                    filter: "blur(100px)",
+                  }}
+                />
+                <div
+                  className="absolute right-[15%] top-[50%] h-[500px] w-[500px] rounded-full opacity-8"
+                  style={{
+                    background: "radial-gradient(circle, rgba(168, 85, 247, 0.3) 0%, transparent 70%)",
+                    filter: "blur(90px)",
+                  }}
+                />
+              </>
+            )}
+          </>
+        )}
+
         {/* Grid Pattern */}
         <div className="absolute inset-0 opacity-[0.03]">
           <svg className="h-full w-full" xmlns="http://www.w3.org/2000/svg">
@@ -428,8 +457,8 @@ export default function RecognitionPage() {
                                 <Image
                                   src={honor.image}
                                   alt={`${honor.title} certificate`}
-                                  width={isMobile ? 300 : 400}
-                                  height={isMobile ? 225 : 300}
+                                  width={400}
+                                  height={300}
                                   loading={index < 2 ? "eager" : "lazy"} // Load first 2 eagerly, rest lazy
                                   className="h-auto w-full object-cover transition-transform group-hover/image:scale-105"
                                 />
@@ -445,8 +474,8 @@ export default function RecognitionPage() {
                                 <Image
                                   src={honor.logo}
                                   alt={`${honor.issuer} logo`}
-                                  width={isMobile ? 32 : 48}
-                                  height={isMobile ? 32 : 48}
+                                  width={48}
+                                  height={48}
                                   loading="lazy"
                                   className="h-12 w-12 rounded-sm"
                                 />
@@ -559,8 +588,8 @@ export default function RecognitionPage() {
                         <Image
                           src={companyLogo}
                           alt={`${testimonial.company} logo`}
-                          width={isMobile ? 32 : 40}
-                          height={isMobile ? 32 : 40}
+                          width={40}
+                          height={40}
                           loading="lazy"
                           className="h-10 w-10 rounded-sm object-cover"
                         />
@@ -619,8 +648,8 @@ export default function RecognitionPage() {
                       <Image
                         src={selectedHonor.image}
                         alt={`${selectedHonor.title} certificate`}
-                        width={isMobile ? 800 : 1600}
-                        height={isMobile ? 1200 : 2400}
+                        width={1600}
+                        height={2400}
                         loading="eager" // Modal image should load eagerly when opened
                         className="h-auto max-h-[90vh] w-full object-contain"
                       />
@@ -636,8 +665,8 @@ export default function RecognitionPage() {
                           <Image
                             src={selectedHonor.logo}
                             alt={`${selectedHonor.issuer} logo`}
-                            width={isMobile ? 40 : 56}
-                            height={isMobile ? 40 : 56}
+                            width={56}
+                            height={56}
                             loading="eager" // Modal logo should load eagerly
                             className="h-14 w-14 rounded-lg object-contain p-1"
                           />
