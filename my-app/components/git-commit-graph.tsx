@@ -675,7 +675,7 @@ export function GitCommitGraph() {
               const project = sortedProjects.find(p => p.orderNumber === targetOrderNumber);
               if (!project) return null;
               
-              const x = commit.x + offsetX;
+              const x = commit.x + offsetX - 20;
               const y = commit.y + offsetY;
               
               // Calculate percentage for responsive positioning
