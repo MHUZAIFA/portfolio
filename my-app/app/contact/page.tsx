@@ -11,6 +11,7 @@ import {
   FaInstagram,
   FaFacebook,
   FaYoutube,
+  FaSpotify,
 } from "react-icons/fa6";
 import { hapticManager } from "@/lib/haptic-manager";
 
@@ -18,37 +19,37 @@ const socialLinks = [
   {
     name: "GitHub",
     icon: FaGithub,
-    url: "https://github.com",
+    url: "https://github.com/mhuzaifa",
   },
   {
     name: "LinkedIn",
     icon: FaLinkedin,
-    url: "https://linkedin.com",
+    url: "https://ca.linkedin.com/in/huzaifa-anjum",
   },
   {
     name: "Email",
     icon: FaEnvelope,
-    url: "mailto:your.email@example.com",
+    url: "mailto:mhuzaifa.career@outlook.com",
   },
   {
     name: "X (Twitter)",
     icon: FaXTwitter,
-    url: "https://twitter.com",
+    url: "https://x.com/_huzaifaanjum_",
   },
   {
     name: "Instagram",
     icon: FaInstagram,
-    url: "https://instagram.com",
+    url: "https://www.instagram.com/_huzaifaanjum_",
   },
   {
     name: "Facebook",
     icon: FaFacebook,
-    url: "https://facebook.com",
+    url: "https://www.facebook.com/huzaifa.rock.75",
   },
   {
-    name: "YouTube",
-    icon: FaYoutube,
-    url: "https://youtube.com",
+    name: "Spotify",
+    icon: FaSpotify,
+    url: "https://open.spotify.com/user/hfyhrwd4gyaut1lpozi6gwys4?si=AwsN2S3uTEeHWGsMDArZug&nd=1&dlsi=6287d75db3584a7d",
   },
 ];
 
