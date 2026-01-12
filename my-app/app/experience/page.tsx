@@ -770,7 +770,7 @@ export default function ExperiencePage() {
               className="relative mb-8 md:mb-12 flex flex-col md:flex-row md:items-start"
             >
               {/* Timeline Node */}
-              <div className="absolute left-1.5 md:left-[50px] top-0 z-10 md:-translate-x-1/2">
+              <div className="absolute left-[5px] md:left-[50px] top-0 z-10 md:-translate-x-1/2">
                 <motion.div
                   className="relative h-4 w-4 md:h-6 md:w-6 rounded-full border-2 md:border-4 border-white bg-black"
                 >
