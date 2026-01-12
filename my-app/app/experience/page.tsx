@@ -612,7 +612,7 @@ export default function ExperiencePage() {
         <motion.div
           className="absolute right-[15%] top-[50%] h-[500px] w-[500px] rounded-full opacity-15"
           style={{
-            background: "radial-gradient(circle, rgba(168, 85, 247, 0.4) 0%, transparent 70%)",
+            background: "radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, transparent 70%)",
             filter: "blur(90px)",
           }}
           animate={{
@@ -749,10 +749,9 @@ export default function ExperiencePage() {
           
           {/* Vertical Timeline Line Progress */}
           <motion.div
-            className="absolute left-3 md:left-12 top-0 w-0.5 md:w-1 bg-gradient-to-b from-blue-500 via-purple-500 to-pink-500"
+            className="absolute left-3 md:left-12 top-0 w-0.5 md:w-1 bg-white/100"
             style={{
               height: `${scrollProgress * 100}%`,
-              boxShadow: scrollProgress > 0 ? "0 0 10px rgba(168, 85, 247, 0.5), 0 0 20px rgba(99, 102, 241, 0.3)" : "none",
             }}
             transition={{ duration: 0.1, ease: "linear" }}
           />
@@ -771,23 +770,14 @@ export default function ExperiencePage() {
               className="relative mb-8 md:mb-12 flex flex-col md:flex-row md:items-start"
             >
               {/* Timeline Node */}
-              <div className="absolute left-1.5 md:left-12 top-0 z-10 md:-translate-x-1/2">
+              <div className="absolute left-1.5 md:left-[50px] top-0 z-10 md:-translate-x-1/2">
                 <motion.div
-                  className="relative h-4 w-4 md:h-6 md:w-6 rounded-full border-2 md:border-4 border-white/20 bg-gradient-to-br from-blue-500 to-purple-500 shadow-lg shadow-purple-500/50"
+                  className="relative h-4 w-4 md:h-6 md:w-6 rounded-full border-2 md:border-4 border-white/20 bg-white"
                   whileHover={{ scale: 1.5 }}
                   transition={{ type: "spring", stiffness: 400, damping: 17 }}
                 >
                   <motion.div
-                    className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-400 to-purple-400"
-                    animate={{
-                      scale: [1, 1.2, 1],
-                      opacity: [0.5, 0.8, 0.5],
-                    }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                      ease: "easeInOut",
-                    }}
+                    className="absolute inset-0 rounded-full bg-black"
                   />
                 </motion.div>
               </div>
