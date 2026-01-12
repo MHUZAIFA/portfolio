@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://mohammedhuzaifa.vercel.app/sitemap.xml
