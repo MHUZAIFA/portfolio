@@ -3,10 +3,7 @@
 import {
   motion,
   AnimatePresence,
-  useMotionValue,
   useSpring,
-  useTransform,
-  useMotionTemplate,
   useScroll,
   useReducedMotion,
 } from "framer-motion";
@@ -15,7 +12,6 @@ import {
   useEffect,
   useMemo,
   useRef,
-  type MouseEvent as ReactMouseEvent,
   type ReactNode,
 } from "react";
 import Link from "next/link";
@@ -24,7 +20,6 @@ import {
   Search,
   X,
   GitBranch,
-  GitCommit,
   Terminal,
   Folder,
   Sparkles,
@@ -35,10 +30,30 @@ import {
   Cpu,
   ChevronRight,
   Hash,
+  Keyboard,
+  Play,
+  FlaskConical,
+  Rocket,
+  CircleDot,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { LivePreviews } from "@/components/projects/live-previews";
 import { hapticManager } from "@/lib/haptic-manager";
+import {
+  InteractiveTerminal,
+  type TerminalProject,
+} from "@/components/projects/interactive-terminal";
+import { MatrixRain } from "@/components/projects/matrix-rain";
+import {
+  LanguageBar,
+  type LangSlice,
+  ShortcutsOverlay,
+  type Shortcut,
+  PersonaPicker,
+  PERSONAS,
+  type PersonaId,
+  SectionHeader,
+} from "@/components/projects/fun-elements";
 
 /* ─────────────────────────────────────────────────────────
    Data
@@ -307,11 +322,14 @@ function GridBackdrop() {
   );
 }
 
-function AmbientGlow() {
+function AmbientGlow({ accent }: { accent?: string }) {
+  // accent is an rgb triplet string like "34,211,238"
+  const accentRgb = accent ?? "34,211,238";
   return (
     <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
       <motion.div
-        className="absolute -top-40 -left-20 h-[40rem] w-[40rem] rounded-full bg-blue-500/[0.06] blur-[120px]"
+        className="absolute -top-40 -left-20 h-[40rem] w-[40rem] rounded-full blur-[120px]"
+        style={{ backgroundColor: `rgba(${accentRgb}, 0.07)` }}
         animate={{ x: [0, 60, 0], y: [0, 30, 0] }}
         transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
       />
@@ -393,7 +411,13 @@ const Tok = {
    IDE chrome
    ───────────────────────────────────────────────────────── */
 
-function IDEWindow({ children }: { children: ReactNode }) {
+function IDEWindow({
+  children,
+  accent,
+}: {
+  children: ReactNode;
+  accent?: string;
+}) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 30, scale: 0.985 }}
@@ -423,8 +447,9 @@ function IDEWindow({ children }: { children: ReactNode }) {
 
       {/* Tab bar */}
       <div className="flex items-end gap-px border-b border-white/10 bg-white/[0.02] px-2 pt-2">
-        <Tab active>projects.tsx</Tab>
-        <Tab>README.md</Tab>
+        <Tab active accent={accent}>projects.tsx</Tab>
+        <Tab accent={accent}>README.md</Tab>
+        <Tab accent={accent}>terminal.sh</Tab>
         <span className="ml-1 px-2 pb-2 text-xs text-white/30">+</span>
       </div>
 
@@ -433,7 +458,15 @@ function IDEWindow({ children }: { children: ReactNode }) {
   );
 }
 
-function Tab({ children, active }: { children: ReactNode; active?: boolean }) {
+function Tab({
+  children,
+  active,
+  accent,
+}: {
+  children: ReactNode;
+  active?: boolean;
+  accent?: string;
+}) {
   return (
     <div
       className={`relative flex items-center gap-2 rounded-t-md border border-b-0 px-3 py-1.5 font-mono text-xs transition-colors ${
@@ -442,80 +475,23 @@ function Tab({ children, active }: { children: ReactNode; active?: boolean }) {
           : "border-transparent text-white/40 hover:text-white/70"
       }`}
     >
-      <span className="h-1.5 w-1.5 rounded-full bg-cyan-400/80" />
+      <span
+        className="h-1.5 w-1.5 rounded-full"
+        style={{ backgroundColor: accent ?? "rgba(34,211,238,0.8)" }}
+      />
       {children}
       {active && (
         <motion.div
           layoutId="active-tab"
-          className="absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-cyan-400/70 to-transparent"
+          className="absolute inset-x-0 -bottom-px h-px"
+          style={{
+            backgroundImage: `linear-gradient(90deg, transparent, ${
+              accent ?? "rgba(34,211,238,0.7)"
+            }, transparent)`,
+          }}
         />
       )}
     </div>
-  );
-}
-
-/* ─────────────────────────────────────────────────────────
-   Tilt card wrapper
-   ───────────────────────────────────────────────────────── */
-
-function TiltCard({
-  children,
-  className = "",
-  intensity = 6,
-}: {
-  children: ReactNode;
-  className?: string;
-  intensity?: number;
-}) {
-  const ref = useRef<HTMLDivElement>(null);
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-  const reducedMotion = useReducedMotion();
-  const rotateX = useTransform(y, [-1, 1], [intensity, -intensity]);
-  const rotateY = useTransform(x, [-1, 1], [-intensity, intensity]);
-  const sx = useSpring(rotateX, { stiffness: 220, damping: 22, mass: 0.4 });
-  const sy = useSpring(rotateY, { stiffness: 220, damping: 22, mass: 0.4 });
-  const glareX = useTransform(x, [-1, 1], ["0%", "100%"]);
-  const glareY = useTransform(y, [-1, 1], ["0%", "100%"]);
-  const glareBg = useMotionTemplate`radial-gradient(220px circle at ${glareX} ${glareY}, rgba(255,255,255,0.12), transparent 60%)`;
-
-  const handleMove = (e: ReactMouseEvent) => {
-    if (reducedMotion) return;
-    const rect = ref.current?.getBoundingClientRect();
-    if (!rect) return;
-    const px = (e.clientX - rect.left) / rect.width;
-    const py = (e.clientY - rect.top) / rect.height;
-    x.set(px * 2 - 1);
-    y.set(py * 2 - 1);
-  };
-
-  const handleLeave = () => {
-    x.set(0);
-    y.set(0);
-  };
-
-  return (
-    <motion.div
-      ref={ref}
-      onMouseMove={handleMove}
-      onMouseLeave={handleLeave}
-      style={{
-        rotateX: reducedMotion ? 0 : sx,
-        rotateY: reducedMotion ? 0 : sy,
-        transformStyle: "preserve-3d",
-        transformPerspective: 1100,
-      }}
-      className={`relative ${className}`}
-    >
-      {children}
-      {!reducedMotion && (
-        <motion.div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 rounded-xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-          style={{ background: glareBg }}
-        />
-      )}
-    </motion.div>
   );
 }
 
@@ -655,17 +631,39 @@ function ProjectCommitRow({
    Page
    ───────────────────────────────────────────────────────── */
 
+const SHORTCUTS: Shortcut[] = [
+  { group: "Search", keys: ["/"], desc: "Focus grep search" },
+  { group: "Search", keys: ["Esc"], desc: "Clear / blur search" },
+  { group: "Navigation", keys: ["?"], desc: "Toggle this panel" },
+  { group: "Navigation", keys: ["t"], desc: "Focus interactive terminal" },
+  { group: "Navigation", keys: ["g", "h"], desc: "Go home" },
+  { group: "Terminal", keys: ["↑"], desc: "Previous command" },
+  { group: "Terminal", keys: ["↓"], desc: "Next command" },
+  { group: "Terminal", keys: ["Tab"], desc: "Autocomplete" },
+  { group: "Terminal", keys: ["Ctrl", "L"], desc: "Clear terminal" },
+  { group: "Terminal", keys: ["Ctrl", "C"], desc: "Cancel input" },
+  { group: "Fun", keys: ["M"], desc: "Enter the matrix" },
+];
+
 export default function ProjectsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>("newest");
   const [sortOpen, setSortOpen] = useState(false);
   const [now, setNow] = useState(() => new Date());
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [matrixOn, setMatrixOn] = useState(false);
+  const [persona, setPersona] = useState<PersonaId>("coder");
   const sortMenuRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const { scrollYProgress } = useScroll();
   const scrollX = useSpring(scrollYProgress, { stiffness: 120, damping: 24 });
+
+  const activePersona = useMemo(
+    () => PERSONAS.find((p) => p.id === persona) ?? PERSONAS[0],
+    [persona],
+  );
 
   // Live clock for the status bar
   useEffect(() => {
@@ -673,17 +671,30 @@ export default function ProjectsPage() {
     return () => clearInterval(t);
   }, []);
 
-  // Keyboard shortcut "/" to focus search
+  // Global keyboard shortcuts
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement;
-      const typing = t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable;
+      const typing =
+        t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable;
+
       if (e.key === "/" && !typing) {
         e.preventDefault();
         searchInputRef.current?.focus();
-      } else if (e.key === "Escape" && document.activeElement === searchInputRef.current) {
+      } else if (
+        e.key === "Escape" &&
+        document.activeElement === searchInputRef.current
+      ) {
         setSearchQuery("");
         searchInputRef.current?.blur();
+      } else if (e.key === "?" && !typing) {
+        e.preventDefault();
+        setShortcutsOpen((v) => !v);
+      } else if (e.key.toLowerCase() === "m" && !typing && !e.metaKey && !e.ctrlKey) {
+        setMatrixOn(true);
+      } else if (e.key === "Escape") {
+        setShortcutsOpen(false);
+        setMatrixOn(false);
       }
     };
     window.addEventListener("keydown", handler);
@@ -717,6 +728,44 @@ export default function ProjectsPage() {
     const ys = projects.map((p) => parseDate(p.sortDate).getFullYear());
     return { min: Math.min(...ys), max: Math.max(...ys) };
   }, []);
+
+  // Language distribution for the bar
+  const languageDistribution = useMemo<LangSlice[]>(() => {
+    const bucket = new Map<string, { count: number; color: string }>();
+    projects.forEach((p) => {
+      const meta = getCategoryMeta(p.category);
+      const cur = bucket.get(meta.lang);
+      if (cur) cur.count += 1;
+      else bucket.set(meta.lang, { count: 1, color: meta.color });
+    });
+    return [...bucket.entries()].map(([lang, { count, color }]) => ({
+      lang,
+      count,
+      color,
+    }));
+  }, []);
+
+  // Map language click → category filter
+  const onFilterByLang = (lang: string) => {
+    const cat = Object.entries(categoryMeta).find(
+      ([, m]) => m.lang === lang,
+    )?.[0];
+    if (cat) setActiveCategory((prev) => (prev === cat ? null : cat));
+  };
+
+  const terminalProjects: TerminalProject[] = useMemo(
+    () =>
+      projects.map((p) => ({
+        id: p.id,
+        name: p.name,
+        description: p.description,
+        category: p.category,
+        technologies: p.technologies,
+        date: p.date,
+        featured: p.featured,
+      })),
+    [],
+  );
 
   const filtered = useMemo(() => {
     let r = [...projects];
@@ -776,18 +825,33 @@ export default function ProjectsPage() {
   return (
     <div className="relative">
       <GridBackdrop />
-      <AmbientGlow />
+      <AmbientGlow accent={activePersona.accentRgb} />
       <FloatingGlyphs />
 
-      {/* Scroll progress bar */}
+      {/* Matrix rain overlay */}
+      <AnimatePresence>
+        {matrixOn && <MatrixRain onClose={() => setMatrixOn(false)} />}
+      </AnimatePresence>
+
+      {/* Shortcuts overlay */}
+      <ShortcutsOverlay
+        open={shortcutsOpen}
+        onClose={() => setShortcutsOpen(false)}
+        shortcuts={SHORTCUTS}
+      />
+
+      {/* Scroll progress bar — themed by persona */}
       <motion.div
         aria-hidden
-        className="fixed inset-x-0 top-0 z-50 h-px origin-left bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400"
-        style={{ scaleX: scrollX }}
+        className="fixed inset-x-0 top-0 z-50 h-px origin-left"
+        style={{
+          scaleX: scrollX,
+          backgroundImage: `linear-gradient(90deg, ${activePersona.accent}, #a78bfa, #f472b6)`,
+        }}
       />
 
       <div className="mx-auto max-w-6xl px-3 pt-24 pb-32 sm:px-4 md:px-6 md:pt-12 md:pb-24 mt-12">
-        <IDEWindow>
+        <IDEWindow accent={activePersona.accent}>
           <div className="font-mono">
             {/* JSDoc style intro */}
             <CodeLine number={1}>
@@ -814,7 +878,17 @@ export default function ProjectsPage() {
 
             {/* Title - large, glitchy on hover */}
             <div className="my-5 sm:my-7">
-              <GlitchTitle>My Projects</GlitchTitle>
+              <GlitchTitle accent={activePersona.accent}>My Projects</GlitchTitle>
+              <p className="mt-3 max-w-xl font-mono text-[11px] text-white/45 sm:text-xs">
+                <span className="text-white/25">{"// "}</span>
+                for coders, architects, AI builders & designers — poke around,
+                run commands, break things.
+              </p>
+            </div>
+
+            {/* Persona picker */}
+            <div className="my-4 rounded-lg border border-white/5 bg-white/[0.015] p-3 sm:p-4">
+              <PersonaPicker value={persona} onChange={setPersona} />
             </div>
 
             {/* Stats as console output */}
@@ -856,6 +930,15 @@ export default function ProjectsPage() {
               <span className="text-white/40">{"}"}</span>{" "}
               <Tok.cm>{"// hot-reloaded ✓"}</Tok.cm>
             </CodeLine>
+
+            {/* Language distribution bar */}
+            <div className="my-4 rounded-lg border border-white/5 bg-white/[0.015] p-3 sm:p-4">
+              <LanguageBar
+                data={languageDistribution}
+                total={projects.length}
+                onFilter={onFilterByLang}
+              />
+            </div>
 
             <Divider />
 
@@ -1103,18 +1186,70 @@ export default function ProjectsPage() {
 
             <Divider />
 
+            {/* Interactive terminal — REPL for visitors */}
+            <div className="my-4">
+              <SectionHeader
+                num="15"
+                label="Interactive Shell"
+                note="type · explore · break · have fun"
+                icon={<Terminal className="h-4 w-4" />}
+              />
+              <p className="mt-2 max-w-2xl font-mono text-[11px] leading-relaxed text-white/50 sm:text-xs">
+                <span className="text-white/25">{"// "}</span>
+                A real-ish terminal. Try{" "}
+                <span className="rounded bg-white/[0.05] px-1 py-0.5 text-cyan-300">
+                  help
+                </span>
+                ,{" "}
+                <span className="rounded bg-white/[0.05] px-1 py-0.5 text-cyan-300">
+                  whoami
+                </span>
+                ,{" "}
+                <span className="rounded bg-white/[0.05] px-1 py-0.5 text-cyan-300">
+                  ls
+                </span>
+                ,{" "}
+                <span className="rounded bg-white/[0.05] px-1 py-0.5 text-cyan-300">
+                  cat recyclevision
+                </span>
+                , or{" "}
+                <span className="rounded bg-white/[0.05] px-1 py-0.5 text-cyan-300">
+                  sudo hireme
+                </span>
+                .
+              </p>
+            </div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-80px" }}
+              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              className="mt-3 sm:mt-4"
+            >
+              <InteractiveTerminal
+                projects={terminalProjects}
+                onTriggerMatrix={() => setMatrixOn(true)}
+                onThemeChange={(t) => setPersona(t)}
+              />
+            </motion.div>
+
+            <Divider />
+
             {/* Live previews — animated mini-scenes of what each project type looks like */}
-            <CodeLine number={15}>
-              <Tok.cm>{"// labs · live previews"}</Tok.cm>
-            </CodeLine>
-            <CodeLine number={16}>
-              <Tok.kw>const</Tok.kw> <Tok.fn>previews</Tok.fn> <Tok.pn>=</Tok.pn>{" "}
-              <Tok.fn>render</Tok.fn>
-              <span className="text-white/40">(</span>
-              <span className="text-emerald-300">&quot;running&quot;</span>
-              <span className="text-white/40">)</span>
-              <Tok.pn>;</Tok.pn>
-            </CodeLine>
+            <div className="my-4">
+              <SectionHeader
+                num="16"
+                label="Live Labs · Previews"
+                note="animated mini-scenes"
+                icon={<FlaskConical className="h-4 w-4" />}
+              />
+              <p className="mt-2 max-w-2xl font-mono text-[11px] leading-relaxed text-white/50 sm:text-xs">
+                <span className="text-white/25">{"// "}</span>
+                Hover, poke, play. Each preview is a tiny running animation of
+                a project category.
+              </p>
+            </div>
 
             <motion.div
               initial={{ opacity: 0, y: 16 }}
@@ -1125,6 +1260,34 @@ export default function ProjectsPage() {
             >
               <LivePreviews />
             </motion.div>
+
+            <Divider />
+
+            {/* Collaboration CTA */}
+            <div className="my-6 grid gap-3 sm:grid-cols-2">
+              <CTACard
+                accent={activePersona.accent}
+                accentRgb={activePersona.accentRgb}
+                icon={<Rocket className="h-4 w-4" />}
+                title="ship something together"
+                desc="If you're hiring or collaborating, the `sudo hireme` command will get you there."
+                cta="run sudo hireme"
+                onCta={() => {
+                  window.dispatchEvent(
+                    new CustomEvent("terminal:run", { detail: "sudo hireme" }),
+                  );
+                }}
+              />
+              <CTACard
+                accent={activePersona.accent}
+                accentRgb={activePersona.accentRgb}
+                icon={<Play className="h-4 w-4" />}
+                title="just curious?"
+                desc="Press `?` anywhere for shortcuts, `m` for the matrix, `/` to search."
+                cta="open shortcuts"
+                onCta={() => setShortcutsOpen(true)}
+              />
+            </div>
 
             {/* Trailing prompt */}
             <div className="mt-8 flex items-center gap-2 font-mono text-xs text-white/40">
@@ -1140,20 +1303,36 @@ export default function ProjectsPage() {
           {/* Status bar */}
           <div className="-mx-4 mt-6 flex flex-wrap items-center justify-between gap-2 border-t border-white/10 bg-white/[0.02] px-4 py-2 font-mono text-[10px] text-white/45 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8 md:text-[11px]">
             <div className="flex items-center gap-3 sm:gap-4">
-              <span className="inline-flex items-center gap-1.5">
-                <GitBranch className="h-3 w-3 text-cyan-300/70" />
-                <span className="text-white/70">{branchLabel}</span>
+              <span
+                className="inline-flex items-center gap-1.5"
+                style={{ color: activePersona.accent }}
+              >
+                <GitBranch className="h-3 w-3" />
+                <span>{branchLabel}</span>
               </span>
               <span className="hidden items-center gap-1.5 sm:inline-flex">
                 <Hash className="h-3 w-3" />
                 {filtered.length} matches
               </span>
               <span className="hidden items-center gap-1.5 md:inline-flex">
-                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
-                live
+                <span
+                  className="h-1.5 w-1.5 animate-pulse rounded-full"
+                  style={{ backgroundColor: activePersona.accent }}
+                />
+                live · {activePersona.label.toLowerCase()}
               </span>
             </div>
             <div className="flex items-center gap-3 sm:gap-4">
+              <button
+                type="button"
+                onClick={() => setShortcutsOpen(true)}
+                className="hidden items-center gap-1 text-white/55 transition hover:text-white sm:inline-flex"
+              >
+                <Keyboard className="h-3 w-3" />
+                <kbd className="rounded border border-white/15 bg-white/5 px-1 py-0 text-[9px] text-white/70">
+                  ?
+                </kbd>
+              </button>
               <span className="hidden sm:inline">UTF-8</span>
               <span>TypeScript</span>
               <span className="tabular-nums">
@@ -1256,7 +1435,13 @@ function Divider() {
   );
 }
 
-function GlitchTitle({ children }: { children: string }) {
+function GlitchTitle({
+  children,
+  accent,
+}: {
+  children: string;
+  accent?: string;
+}) {
   return (
     <motion.h1
       initial={{ opacity: 0, y: 10 }}
@@ -1268,10 +1453,11 @@ function GlitchTitle({ children }: { children: string }) {
       <span className="relative bg-gradient-to-br from-white via-white to-white/60 bg-clip-text text-transparent">
         {children}
       </span>
-      {/* Cyan offset layer */}
+      {/* Accent offset layer */}
       <span
         aria-hidden
-        className="absolute inset-0 select-none text-cyan-300/0 mix-blend-screen transition-all duration-200 group-hover:translate-x-[2px] group-hover:text-cyan-300/70"
+        className="absolute inset-0 select-none opacity-0 mix-blend-screen transition-all duration-200 group-hover:translate-x-[2px] group-hover:opacity-70"
+        style={{ color: accent ?? "rgb(34,211,238)" }}
       >
         {children}
       </span>
@@ -1288,9 +1474,84 @@ function GlitchTitle({ children }: { children: string }) {
         initial={{ scaleX: 0 }}
         animate={{ scaleX: 1 }}
         transition={{ duration: 0.8, delay: 0.7, ease: [0.22, 1, 0.36, 1] }}
-        className="absolute -bottom-1.5 left-0 h-[3px] w-full origin-left rounded-full bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 opacity-70"
+        className="absolute -bottom-1.5 left-0 h-[3px] w-full origin-left rounded-full opacity-70"
+        style={{
+          backgroundImage: `linear-gradient(90deg, ${
+            accent ?? "#22d3ee"
+          }, #a78bfa, #f472b6)`,
+        }}
       />
     </motion.h1>
+  );
+}
+
+function CTACard({
+  icon,
+  title,
+  desc,
+  cta,
+  onCta,
+  accent,
+  accentRgb,
+}: {
+  icon: ReactNode;
+  title: string;
+  desc: string;
+  cta: string;
+  onCta: () => void;
+  accent: string;
+  accentRgb: string;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 14 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+      className="group relative overflow-hidden rounded-lg border border-white/10 bg-white/[0.015] p-4 transition-all hover:border-white/25"
+    >
+      <motion.span
+        aria-hidden
+        className="pointer-events-none absolute -inset-px rounded-lg opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+        style={{
+          background: `radial-gradient(320px circle at var(--mx,50%) var(--my,50%), rgba(${accentRgb},0.12), transparent 60%)`,
+        }}
+      />
+      <div className="flex items-start gap-3">
+        <div
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border"
+          style={{
+            color: accent,
+            borderColor: `rgba(${accentRgb},0.35)`,
+            backgroundColor: `rgba(${accentRgb},0.08)`,
+          }}
+        >
+          {icon}
+        </div>
+        <div className="min-w-0 flex-1">
+          <h4 className="font-mono text-sm font-semibold text-white/95">
+            {title}
+          </h4>
+          <p className="mt-1 font-mono text-[11px] leading-relaxed text-white/55">
+            {desc}
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              onCta();
+              hapticManager.light();
+            }}
+            className="mt-3 inline-flex items-center gap-2 rounded-md border border-white/10 bg-white/5 px-3 py-1.5 font-mono text-[11px] text-white/85 transition-all hover:border-white/25 hover:bg-white/10 hover:text-white"
+            style={{
+              boxShadow: `0 0 0 0 rgba(${accentRgb},0.0)`,
+            }}
+          >
+            <CircleDot className="h-3 w-3" style={{ color: accent }} />
+            {cta}
+          </button>
+        </div>
+      </div>
+    </motion.div>
   );
 }
 

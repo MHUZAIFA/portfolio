@@ -4,7 +4,14 @@ import { Resend } from "resend";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { firstName, lastName, email, subject, message } = body;
+    const { firstName, lastName, email, subject, message, intent } = body as {
+      firstName?: string;
+      lastName?: string;
+      email?: string;
+      subject?: string;
+      message?: string;
+      intent?: string;
+    };
 
     // Validate required fields
     if (!firstName || !lastName || !email || !subject || !message) {
@@ -36,6 +43,7 @@ export async function POST(request: NextRequest) {
     const resend = new Resend(process.env.RESEND_API_KEY);
 
     const fullName = `${firstName} ${lastName}`.trim();
+    const intentLabel = intent ? String(intent) : "general";
 
     const { error: sendError } = await resend.emails.send({
       from:
@@ -49,6 +57,7 @@ New contact form submission from your portfolio:
 
 Name: ${fullName}
 Email: ${email}
+Intent: ${intentLabel}
 Subject: ${subject}
 
 Message:
@@ -59,6 +68,7 @@ ${message}
           <h2 style="margin-bottom: 12px;">New message from your portfolio</h2>
           <p><strong>Name:</strong> ${fullName}</p>
           <p><strong>Email:</strong> <a href="mailto:${email}">${email}</a></p>
+          <p><strong>Intent:</strong> ${intentLabel}</p>
           <p><strong>Subject:</strong> ${subject}</p>
           <hr style="margin: 16px 0;" />
           <p style="white-space: pre-wrap;">${message}</p>

@@ -13,7 +13,7 @@ export function StructuredData() {
         "image": "https://mohammedhuzaifa.vercel.app/imgs/huzaifa.jpg",
         "sameAs": [
           "https://github.com/mohammedhuzaifa",
-          "https://linkedin.com/in/mohammedhuzaifa",
+          "https://www.linkedin.com/in/huzaifa-anjum/",
           "https://twitter.com/mohammedhuzaifa"
         ],
         "knowsAbout": [
