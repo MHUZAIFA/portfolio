@@ -282,7 +282,7 @@ export function Navigation() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search pages... (try 'work', 'projects', 'contact')"
-                  className="flex-1 bg-transparent text-white placeholder:text-white/40 focus:outline-none"
+                  className="quick-nav-search flex-1 bg-transparent text-white placeholder:text-white/40 focus:outline-none"
                 />
                 <kbd className="hidden items-center gap-1 rounded border border-white/20 bg-white/5 px-2 py-1 text-xs text-white/50 md:flex">
                   <span>ESC</span>

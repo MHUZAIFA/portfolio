@@ -42,6 +42,12 @@ select:focus-visible {
   outline-offset: 2px;
 }
 
+/* Quick nav command palette: field sits in a bordered row; skip global input focus ring */
+input.quick-nav-search:focus-visible {
+  outline: none;
+  outline-offset: 0;
+}
+
 /* Reduce motion for users who prefer it */
 @media (prefers-reduced-motion: reduce) {
   *,
