@@ -235,10 +235,10 @@ export function Navigation() {
         className="fixed bottom-6 right-6 z-50 flex items-center gap-1.5 sm:gap-2 rounded-full border-2 border-white/60 bg-black/80 px-3 py-2.5 sm:px-4 sm:py-3 backdrop-blur-md transition-all hover:border-white/80 hover:bg-white/10 md:bottom-8 md:right-8"
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        aria-label="Open navigation"
+        aria-label="Open explore"
       >
         <Search className="h-4 w-4 text-white/70" />
-        <span className="text-xs sm:text-sm text-white/70">Quick Nav</span>
+        <span className="text-xs sm:text-sm text-white/70">Explore</span>
         <kbd className="hidden items-center gap-1 rounded border border-white/20 bg-white/5 px-2 py-1 text-xs text-white/50 md:flex">
           <Command className="h-3 w-3" />
           <span>K</span>
@@ -282,7 +282,7 @@ export function Navigation() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search pages... (try 'work', 'projects', 'contact')"
-                  className="quick-nav-search flex-1 bg-transparent text-white placeholder:text-white/40 focus:outline-none"
+                  className="explore-search flex-1 bg-transparent text-white placeholder:text-white/40 focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 focus:ring-offset-0"
                 />
                 <kbd className="hidden items-center gap-1 rounded border border-white/20 bg-white/5 px-2 py-1 text-xs text-white/50 md:flex">
                   <span>ESC</span>

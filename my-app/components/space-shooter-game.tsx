@@ -191,30 +191,30 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
   // Keyboard controls
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
-      // Check if quick nav is open (check if input with quick nav placeholder exists, indicating modal is visible)
-      const quickNavInput = document.querySelector('input[placeholder*="Search pages"]');
-      const isQuickNavOpen = !!quickNavInput;
+      // Explore panel open when command palette search input is in the DOM
+      const exploreSearchInput = document.querySelector('input[placeholder*="Search pages"]');
+      const isExploreOpen = !!exploreSearchInput;
       
-      // Handle Escape key to quit game (always works, even if quick nav is open)
+      // Handle Escape key to quit game (always works, even if Explore is open)
       if (e.key === "Escape" && gameStatusRef.current === "running") {
         e.preventDefault();
         quitGameRef.current?.();
         return;
       }
       
-      // Only prevent default and handle game controls if quick nav is not open
-      if (!isQuickNavOpen && ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " ", "Space", "w", "a", "s", "d", "q", "e"].includes(e.key)) {
+      // Only prevent default and handle game controls if Explore is not open
+      if (!isExploreOpen && ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " ", "Space", "w", "a", "s", "d", "q", "e"].includes(e.key)) {
         e.preventDefault();
       }
       
-      if (!isQuickNavOpen) {
+      if (!isExploreOpen) {
         keysRef.current[e.key.toLowerCase()] = true;
 
         if (e.key === " " || e.code === "Space") {
           handleShoot();
         }
 
-        // Don't start game if quick nav is open
+        // Don't start game if Explore is open
         if ((gameStatusRef.current === "idle" || gameStatusRef.current === "over") && (e.key === "Enter" || e.code === "Space" || e.key.toLowerCase() === "w" || e.key.toLowerCase() === "a" || e.key.toLowerCase() === "s" || e.key.toLowerCase() === "d" || e.key === "ArrowUp" || e.key === "ArrowDown" || e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key.toLowerCase() === "q" || e.key.toLowerCase() === "e")) {
           startGame();
         }
