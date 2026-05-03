@@ -32,8 +32,8 @@ export function LoadingScreen({ onComplete }: LoadingScreenProps) {
 
     const startTime = performance.now();
     startTimeRef.current = startTime;
-    const wordDisplayDuration = 1000; // Time each word displays (ms)
-    const blackScreenDelay = 500; // Delay after last word (ms)
+    const wordDisplayDuration = 600; // Time each word displays (ms)
+    const blackScreenDelay = 200; // Delay after last word (ms)
     const duration = loadingWords.length * wordDisplayDuration + blackScreenDelay; // Total duration including black screen delay
 
     const wordInterval = setInterval(() => {
@@ -90,7 +90,7 @@ export function LoadingScreen({ onComplete }: LoadingScreenProps) {
         <motion.div
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.2 }}
           className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-black"
         >
           <div className="absolute inset-0 flex items-center justify-center">
@@ -101,8 +101,8 @@ export function LoadingScreen({ onComplete }: LoadingScreenProps) {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.4, ease: "easeInOut" }}
-                  className="text-center text-4xl font-light tracking-wider text-white md:text-8xl"
+                  transition={{ duration: 0.15, ease: "easeInOut" }}
+                  className="w-full text-center text-4xl font-light tracking-wider text-white md:text-8xl"
                 >
                   {loadingWords[currentWordIndex]}
                 </motion.h1>
