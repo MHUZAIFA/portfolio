@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/imgs/picture.png",
+        url: "/imgs/huzaifa.jpg",
         width: 1200,
         height: 630,
         alt: "Contact Mohammed Huzaifa",
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Contact - Mohammed Huzaifa",
     description: "Get in touch with Mohammed Huzaifa - Full Stack AI Developer and D365 Customizer",
-    images: ["/imgs/picture.png"],
+    images: ["/imgs/huzaifa.jpg"],
   },
   alternates: {
     canonical: "/contact",

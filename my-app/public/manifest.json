@@ -26,9 +26,9 @@
   ],
   "screenshots": [
     {
-      "src": "/imgs/picture.png",
-      "sizes": "1200x630",
-      "type": "image/png",
+      "src": "/imgs/huzaifa.jpg",
+      "sizes": "1200x1200",
+      "type": "image/jpeg",
       "form_factor": "wide",
       "label": "Portfolio homepage showcasing Mohammed Huzaifa's work"
     }

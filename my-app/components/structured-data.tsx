@@ -10,7 +10,7 @@ export function StructuredData() {
         "name": "Mohammed Huzaifa",
         "alternateName": "Huzaifa Mohammed",
         "description": "Graduate Student, D365 Customizer, Full Stack AI Developer, UI/UX Designer",
-        "image": "https://mohammedhuzaifa.vercel.app/picture.png",
+        "image": "https://mohammedhuzaifa.vercel.app/imgs/huzaifa.jpg",
         "sameAs": [
           "https://github.com/mohammedhuzaifa",
           "https://linkedin.com/in/mohammedhuzaifa",
@@ -102,7 +102,7 @@ export function StructuredData() {
         },
         "primaryImageOfPage": {
           "@type": "ImageObject",
-          "url": "https://mohammedhuzaifa.vercel.app/picture.png"
+          "url": "https://mohammedhuzaifa.vercel.app/imgs/huzaifa.jpg"
         },
         "datePublished": "2024-01-01T00:00:00+00:00",
         "dateModified": new Date().toISOString().split('T')[0] + "T00:00:00+00:00"

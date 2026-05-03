@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
@@ -14,6 +14,12 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+};
 
 export const metadata: Metadata = {
   title: {
@@ -43,9 +49,9 @@ export const metadata: Metadata = {
     siteName: "Mohammed Huzaifa Portfolio",
     images: [
       {
-        url: "/picture.png",
+        url: "/imgs/huzaifa.jpg",
         width: 1200,
-        height: 630,
+        height: 1200,
         alt: "Mohammed Huzaifa - Full Stack AI Developer",
       },
     ],
@@ -55,7 +61,7 @@ export const metadata: Metadata = {
     title: "Mohammed Huzaifa - Portfolio",
     description: "Portfolio website of Mohammed Huzaifa - Graduate Student, D365 Customizer, Full Stack AI Developer, UI/UX Designer",
     creator: "@mohammedhuzaifa",
-    images: ["/picture.png"],
+    images: ["/imgs/huzaifa.jpg"],
   },
   robots: {
     index: true,
@@ -80,11 +86,6 @@ export const metadata: Metadata = {
   },
   manifest: "/manifest.json",
   category: "portfolio",
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 5,
-  },
   other: {
     "theme-color": "#000000",
     "color-scheme": "dark",

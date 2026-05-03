@@ -18,7 +18,8 @@ import {
   Sparkles,
   Play,
   Database,
-  Cloud
+  Cloud,
+  Plug,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { 
@@ -60,7 +61,14 @@ import {
   SiTailwindcss,
   SiShadcnui,
   SiMaterialdesign,
-  SiMui
+  SiMui,
+  SiAnthropic,
+  SiLangchain,
+  SiHuggingface,
+  SiOllama,
+  SiPerplexity,
+  SiPytorch,
+  SiClaude,
 } from "react-icons/si";
 import {
   FaJava,
@@ -72,7 +80,7 @@ import {
 } from "react-icons/fa";
 import type { IconType } from "react-icons";
 import Link from "next/link";
-import Image from "next/image";
+import { ProfilePhotoSpotlight } from "@/components/profile-photo-spotlight";
 
 // Category definitions
 type CategoryName = "Frontend" | "Middleware" | "Database" | "Tools" | "Coding Languages" | "DevOps" | "Cloud" | "ML/AI";
@@ -120,7 +128,20 @@ const categories: Array<{
   {
     name: "ML/AI",
     color: "#ec4899", // pink
-    skillNames: ["Crewdle AI", "n8n", "ChatGPT", "Gemini"],
+    skillNames: [
+      "Crewdle AI",
+      "n8n",
+      "ChatGPT",
+      "Gemini",
+      "Anthropic",
+      "Claude",
+      "LangChain",
+      "Hugging Face",
+      "Ollama",
+      "MCP",
+      "Perplexity",
+      "PyTorch",
+    ],
   },
 ];
 
@@ -186,6 +207,14 @@ const technicalSkillsData: Array<{ name: string; icon: IconType | LucideIcon; ur
   { name: "n8n", icon: SiN8N, url: "https://n8n.io" },
   { name: "ChatGPT", icon: SiOpenai, url: "https://chat.openai.com" },
   { name: "Gemini", icon: SiGooglegemini, url: "https://gemini.google.com" },
+  { name: "Anthropic", icon: SiAnthropic, url: "https://www.anthropic.com" },
+  { name: "Claude", icon: SiClaude, url: "https://claude.ai/code" },
+  { name: "LangChain", icon: SiLangchain, url: "https://www.langchain.com" },
+  { name: "Hugging Face", icon: SiHuggingface, url: "https://huggingface.co" },
+  { name: "Ollama", icon: SiOllama, url: "https://ollama.com" },
+  { name: "MCP", icon: Plug, url: "https://modelcontextprotocol.io" },
+  { name: "Perplexity", icon: SiPerplexity, url: "https://www.perplexity.ai" },
+  { name: "PyTorch", icon: SiPytorch, url: "https://pytorch.org" },
 ];
 
 const softSkillsData: Array<{ name: string; icon: LucideIcon }> = [
@@ -372,43 +401,47 @@ export default function AboutPage() {
       >
         <div className="flex flex-col md:flex-row gap-8 md:gap-12 items-center md:items-start">
           {/* Image on the left */}
-          <div className="flex-shrink-0">
+          <div className="flex w-full shrink-0 justify-center md:w-auto md:justify-start">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
-              className="relative w-full"
+              className="relative"
             >
-              <Image
-                src="/imgs/picture.png"
-                alt="About Me"
-                width={220}
-                height={900}
-                className="object-cover"
-              />
+              <ProfilePhotoSpotlight alt="Mohammed Huzaifa" />
             </motion.div>
           </div>
 
           {/* Text content on the right */}
           <div className="flex-1 space-y-4 text-lg text-white/80">
-            <h2 className="text-2xl font-bold text-white mb-4">About Me</h2>
             <p className="text-justify text-sm lg:text-base">
-              I am a passionate graduate student and full-stack AI developer with a
-              deep interest in creating innovative web applications and designing
-              compelling user experiences. My journey in technology has been driven
-              by a continuous desire to learn, improve, and excel in my craft.
+              I am a graduate student and full-stack AI developer who likes turning
+              messy requirements into software that is dependable, observable, and
+              pleasant to use. Whether it is an internal tool or a customer-facing
+              experience, I aim for interfaces that feel fast and intentional, with
+              architecture that teammates can extend without guesswork.
             </p>
             <p className="text-justify text-sm lg:text-base">
-              With expertise spanning from frontend frameworks like React and
-              Angular to backend technologies like .NET Core and Node.js, I bring a
-              comprehensive approach to software development. I specialize in
-              Microsoft Dynamics 365 customization, helping businesses optimize
-              their operations through tailored solutions.
+              My background spans modern frontends with React and Next.js, enterprise
+              applications with Angular and .NET, and data on SQL, Cosmos DB, and
+              Azure. I also focus on Microsoft Dynamics 365—designing and shipping
+              customizations and extensions that help organizations tighten processes,
+              reduce manual work, and get more from their CRM and line-of-business
+              systems.
             </p>
             <p className="text-justify text-sm lg:text-base">
-              Beyond technical skills, I believe in the power of collaboration,
-              clear communication, and thoughtful problem-solving to deliver
-              exceptional results.
+              I work spec-driven: agree on the spec and acceptance criteria first, then
+              build. Claude Code and similar tools help me move faster, but I still
+              review what ships. I wire automations in n8n, and I have built MCP
+              servers so assistants and editors can use real tools in a controlled
+              way. I care about security and privacy, and I like owning a feature from
+              idea through deploy and follow-up.
+            </p>
+            <p className="text-justify text-sm lg:text-base">
+              I work best in teams that value direct communication, shared ownership,
+              and honest trade-offs. I keep growing through coursework, certifications,
+              and side projects that push me toward cleaner design, sharper
+              performance, and experiences that respect the user&apos;s time.
             </p>
           </div>
         </div>
