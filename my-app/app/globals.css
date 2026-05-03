@@ -32,21 +32,22 @@
   box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
 }
 
-/* High contrast focus for interactive elements */
+/* High contrast focus for interactive elements (form fields excluded — handled per-component) */
 button:focus-visible,
-a:focus-visible,
-input:focus-visible,
-textarea:focus-visible,
-select:focus-visible {
+a:focus-visible {
   outline: 2px solid #ffffff;
   outline-offset: 2px;
 }
 
-/* Explore command palette: bordered row provides context; strip focus chrome (beats base * + input rules) */
-input.explore-search:focus,
-input.explore-search:focus-visible {
+/* Form fields: never show a focus outline */
+input:focus,
+input:focus-visible,
+textarea:focus,
+textarea:focus-visible,
+select:focus,
+select:focus-visible {
   outline: none !important;
-  outline-offset: 0;
+  outline-offset: 0 !important;
   box-shadow: none !important;
 }
 
