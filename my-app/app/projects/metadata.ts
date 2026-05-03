@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Projects - Mohammed Huzaifa",
-  description: "Explore Mohammed Huzaifa's portfolio of projects including AI applications, mobile apps, web development, and automation solutions. Full Stack Developer showcasing React, Next.js, Python, and more.",
+  description: "Explore Mohammed Huzaifa's portfolio of projects including AI applications, mobile apps, web development, and automation solutions. Full Stack AI Developer showcasing React, Next.js, Python, and more.",
   keywords: ["projects", "portfolio", "Mohammed Huzaifa", "AI", "machine learning", "mobile apps", "web development", "automation", "React", "Next.js", "Python"],
   openGraph: {
     title: "Projects - Mohammed Huzaifa",

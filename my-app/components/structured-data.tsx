@@ -9,7 +9,7 @@ export function StructuredData() {
         "@id": "https://mohammedhuzaifa.vercel.app/#person",
         "name": "Mohammed Huzaifa",
         "alternateName": "Huzaifa Mohammed",
-        "description": "Graduate Student, D365 Customizer, Full Stack Developer, UI/UX Designer",
+        "description": "Graduate Student, D365 Customizer, Full Stack AI Developer, UI/UX Designer",
         "image": "https://mohammedhuzaifa.vercel.app/picture.png",
         "sameAs": [
           "https://github.com/mohammedhuzaifa",
@@ -33,7 +33,7 @@ export function StructuredData() {
         "hasOccupation": [
           {
             "@type": "Occupation",
-            "name": "Full Stack Developer",
+            "name": "Full Stack AI Developer",
             "occupationLocation": {
               "@type": "City",
               "name": "Mumbai",
@@ -75,7 +75,7 @@ export function StructuredData() {
         "@id": "https://mohammedhuzaifa.vercel.app/#website",
         "url": "https://mohammedhuzaifa.vercel.app",
         "name": "Mohammed Huzaifa - Portfolio",
-        "description": "Portfolio website of Mohammed Huzaifa - Graduate Student, D365 Customizer, Full Stack Developer, UI/UX Designer",
+        "description": "Portfolio website of Mohammed Huzaifa - Graduate Student, D365 Customizer, Full Stack AI Developer, UI/UX Designer",
         "publisher": {
           "@id": "https://mohammedhuzaifa.vercel.app/#person"
         },

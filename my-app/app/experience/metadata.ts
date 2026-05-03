@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Experience - Mohammed Huzaifa",
   description: "Explore Mohammed Huzaifa's professional experience including software engineering roles at CitiusTech, Willis Towers Watson, and Flexspring. View education background and volunteering activities.",
-  keywords: ["experience", "work history", "Mohammed Huzaifa", "software engineer", "full stack developer", "CitiusTech", "Willis Towers Watson", "Flexspring", "education"],
+  keywords: ["experience", "work history", "Mohammed Huzaifa", "software engineer", "full stack AI developer", "CitiusTech", "Willis Towers Watson", "Flexspring", "education"],
   openGraph: {
     title: "Experience - Mohammed Huzaifa",
     description: "Explore Mohammed Huzaifa's professional experience including software engineering roles and education background.",

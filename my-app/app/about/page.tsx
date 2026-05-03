@@ -393,7 +393,7 @@ export default function AboutPage() {
           <div className="flex-1 space-y-4 text-lg text-white/80">
             <h2 className="text-2xl font-bold text-white mb-4">About Me</h2>
             <p className="text-justify text-sm lg:text-base">
-              I am a passionate graduate student and full-stack developer with a
+              I am a passionate graduate student and full-stack AI developer with a
               deep interest in creating innovative web applications and designing
               compelling user experiences. My journey in technology has been driven
               by a continuous desire to learn, improve, and excel in my craft.

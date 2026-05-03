@@ -8,7 +8,7 @@ import { staggerItem } from "@/components/providers/motion-provider";
 
 const roles = [
   "Graduate Student",
-  "Full Stack Developer",
+  "Full Stack AI Developer",
   "D365 Customizer",
   "UI/UX Designer",
 ];

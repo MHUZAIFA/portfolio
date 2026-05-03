@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Contact - Mohammed Huzaifa",
-  description: "Get in touch with Mohammed Huzaifa - Full Stack Developer and D365 Customizer. Contact me for collaboration opportunities, project inquiries, or professional networking.",
-  keywords: ["contact", "Mohammed Huzaifa", "hire", "collaboration", "full stack developer", "D365 customizer", "email", "social media"],
+  description: "Get in touch with Mohammed Huzaifa - Full Stack AI Developer and D365 Customizer. Contact me for collaboration opportunities, project inquiries, or professional networking.",
+  keywords: ["contact", "Mohammed Huzaifa", "hire", "collaboration", "full stack AI developer", "D365 customizer", "email", "social media"],
   openGraph: {
     title: "Contact - Mohammed Huzaifa",
-    description: "Get in touch with Mohammed Huzaifa - Full Stack Developer and D365 Customizer. Contact me for collaboration opportunities and project inquiries.",
+    description: "Get in touch with Mohammed Huzaifa - Full Stack AI Developer and D365 Customizer. Contact me for collaboration opportunities and project inquiries.",
     url: "https://mohammedhuzaifa.vercel.app/contact",
     type: "website",
     images: [
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Contact - Mohammed Huzaifa",
-    description: "Get in touch with Mohammed Huzaifa - Full Stack Developer and D365 Customizer",
+    description: "Get in touch with Mohammed Huzaifa - Full Stack AI Developer and D365 Customizer",
     images: ["/imgs/picture.png"],
   },
   alternates: {
