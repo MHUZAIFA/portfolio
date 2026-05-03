@@ -520,15 +520,17 @@ function TiltCard({
 }
 
 /* ─────────────────────────────────────────────────────────
-   Project card (commit / file aesthetic)
+   Project commit row (git-log aesthetic — no nested card)
    ───────────────────────────────────────────────────────── */
 
-function ProjectCommitCard({
+function ProjectCommitRow({
   project,
   index,
+  isLast,
 }: {
   project: Project;
   index: number;
+  isLast: boolean;
 }) {
   const meta = getCategoryMeta(project.category);
   const hash = commitHash(project.id);
@@ -536,135 +538,114 @@ function ProjectCommitCard({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 24 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: index * 0.06, ease: [0.22, 1, 0.36, 1] }}
-      className="group/card"
+      initial={{ opacity: 0, x: -12 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.4, delay: index * 0.05, ease: [0.22, 1, 0.36, 1] }}
+      className="group relative"
     >
-      <Link href={`/projects/${project.id}`} onClick={() => hapticManager.light()}>
-        <TiltCard className="group cursor-pointer">
-          <div className="relative overflow-hidden rounded-xl border border-white/10 bg-gradient-to-br from-white/[0.04] to-white/[0.01] backdrop-blur-md transition-all duration-300 hover:border-white/25">
-            {/* Featured shimmer */}
+      {/* Vertical tree line connecting commits */}
+      {!isLast && (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute left-[11px] top-6 bottom-0 w-px bg-gradient-to-b from-white/15 via-white/10 to-white/5 sm:left-[13px]"
+        />
+      )}
+
+      <Link
+        href={`/projects/${project.id}`}
+        onClick={() => hapticManager.light()}
+        className="relative flex items-start gap-3 rounded-md px-1 py-3 transition-colors hover:bg-white/[0.025] sm:gap-4 sm:px-2"
+      >
+        {/* Commit node */}
+        <div className="relative z-10 flex shrink-0 flex-col items-center pt-1.5">
+          <span
+            className="h-[10px] w-[10px] rounded-full ring-[3px] ring-[#0a0a0c] transition-all group-hover:scale-125 sm:h-3 sm:w-3"
+            style={{
+              backgroundColor: meta.color,
+              boxShadow: `0 0 10px ${meta.color}, 0 0 2px ${meta.color}`,
+            }}
+          />
+        </div>
+
+        {/* Thumbnail (flat, no border) */}
+        {project.thumbnail && (
+          <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md bg-white/[0.03] sm:h-14 sm:w-14">
+            <Image
+              src={project.thumbnail}
+              alt={project.name}
+              fill
+              className="object-cover opacity-90 transition-all duration-500 group-hover:scale-110 group-hover:opacity-100"
+              sizes="56px"
+            />
+          </div>
+        )}
+
+        {/* Content */}
+        <div className="min-w-0 flex-1">
+          {/* Header: commit hash · filename · date */}
+          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 font-mono text-[11px] text-white/45">
+            <span className="rounded bg-white/[0.04] px-1.5 py-0.5 text-white/70 transition-colors group-hover:bg-white/[0.08] group-hover:text-white">
+              {hash}
+            </span>
+            <span className="text-white/25">·</span>
+            <span className="text-white/70">
+              {project.id}
+              <span className="text-white/35">{meta.ext}</span>
+            </span>
             {project.featured && (
-              <motion.div
-                aria-hidden
-                className="pointer-events-none absolute -inset-px rounded-xl opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-                style={{
-                  background:
-                    "linear-gradient(120deg, transparent 30%, rgba(250,204,21,0.18) 50%, transparent 70%)",
-                }}
-                animate={{ backgroundPositionX: ["0%", "200%"] }}
-                transition={{ duration: 2.4, repeat: Infinity, ease: "linear" }}
-              />
+              <span className="inline-flex items-center gap-0.5 text-yellow-300/90">
+                <Star className="h-2.5 w-2.5 fill-yellow-300 text-yellow-300" />
+                <span className="text-[10px]">starred</span>
+              </span>
             )}
+            <span className="ml-auto shrink-0 text-[10px] text-white/35 sm:text-[11px]">
+              {project.date}
+            </span>
+          </div>
 
-            {/* Top: commit chrome */}
-            <div className="flex items-center justify-between gap-2 border-b border-white/5 bg-white/[0.02] px-3 py-2 font-mono text-[10px] text-white/55 sm:px-4 sm:text-[11px]">
-              <div className="flex min-w-0 items-center gap-2">
-                <GitCommit className="h-3 w-3 shrink-0 text-cyan-300/70" />
-                <span className="text-white/70">{hash}</span>
-                <span className="hidden text-white/25 sm:inline">·</span>
-                <span className="hidden items-center gap-1 text-white/45 sm:inline-flex">
-                  <GitBranch className="h-3 w-3" />
-                  <span>{project.id}</span>
-                </span>
-              </div>
-              <div className="flex shrink-0 items-center gap-1.5">
-                <span
-                  className="h-2 w-2 rounded-full"
-                  style={{ backgroundColor: meta.color, boxShadow: `0 0 8px ${meta.color}` }}
-                />
-                <span className="text-white/55">{meta.lang}</span>
-              </div>
-            </div>
+          {/* Title + arrow */}
+          <div className="mt-1 flex items-center gap-2">
+            <h3 className="text-base font-semibold tracking-tight text-white/95 transition-colors group-hover:text-white sm:text-lg">
+              {project.name}
+            </h3>
+            <ChevronRight className="h-4 w-4 shrink-0 text-white/20 transition-all group-hover:translate-x-1 group-hover:text-cyan-300" />
+          </div>
 
-            {/* Body */}
-            <div className="relative p-4 sm:p-5">
-              <div className="flex items-start gap-3 sm:gap-4">
-                {project.thumbnail && (
-                  <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-white/10 bg-white/5 sm:h-20 sm:w-20">
-                    <Image
-                      src={project.thumbnail}
-                      alt={project.name}
-                      fill
-                      className="object-cover transition-transform duration-500 group-hover:scale-110"
-                      sizes="80px"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-                  </div>
-                )}
+          {/* Description */}
+          <p className="mt-1 line-clamp-2 font-mono text-[11px] leading-relaxed text-white/55 sm:text-xs">
+            <span className="text-white/25">{"// "}</span>
+            {project.description}
+          </p>
 
-                <div className="min-w-0 flex-1">
-                  <div className="mb-1 flex flex-wrap items-center gap-x-1.5 gap-y-1 font-mono text-xs text-white/45">
-                    <span className="text-white/35">file:</span>
-                    <span className="text-white/85">
-                      {project.id}
-                      <span className="text-white/40">{meta.ext}</span>
-                    </span>
-                    {project.featured && (
-                      <span className="ml-1 inline-flex items-center gap-1 rounded-full border border-yellow-400/30 bg-yellow-400/10 px-1.5 py-0.5 text-[9px] font-medium text-yellow-200/90">
-                        <Star className="h-2.5 w-2.5 fill-yellow-300 text-yellow-300" />
-                        starred
-                      </span>
-                    )}
-                  </div>
+          {/* Meta + tags inline */}
+          <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[10px] sm:text-[11px]">
+            <span className="inline-flex items-center gap-1 text-white/45">
+              <Icon className="h-3 w-3" />
+              {project.category}
+            </span>
 
-                  <h3 className="text-base font-semibold tracking-tight text-white transition-colors sm:text-lg">
-                    {project.name}
-                  </h3>
-
-                  <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[10px] text-white/45 sm:text-[11px]">
-                    <Icon className="h-3 w-3" />
-                    <span>{project.category}</span>
-                    <span className="text-white/20">·</span>
-                    <span>{project.date}</span>
-                  </div>
-                </div>
-
-                <motion.div
-                  className="shrink-0 rounded-md border border-white/10 bg-white/5 p-1.5 text-white/40 transition-all group-hover:border-white/30 group-hover:bg-white/10 group-hover:text-white"
-                  whileHover={{ rotate: -12 }}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </motion.div>
-              </div>
-
-              <p className="mt-3 line-clamp-2 font-mono text-[11px] leading-relaxed text-white/55 sm:mt-4 sm:text-xs">
-                <span className="text-white/30">{"// "}</span>
-                {project.description}
-              </p>
-
-              {project.technologies && project.technologies.length > 0 && (
-                <div className="mt-3 flex flex-wrap items-center gap-1.5 font-mono text-[10px] sm:text-[11px]">
-                  <span className="text-white/35">tech:</span>
-                  <span className="text-white/40">[</span>
-                  {project.technologies.slice(0, 5).map((t, i) => (
-                    <span key={t} className="inline-flex items-center">
-                      <span className="rounded-md border border-emerald-300/15 bg-emerald-300/[0.06] px-1.5 py-0.5 text-emerald-200/90 transition-all group-hover:border-emerald-300/30 group-hover:bg-emerald-300/10">
-                        &quot;{t}&quot;
-                      </span>
-                      {i < Math.min(project.technologies!.length, 5) - 1 && (
-                        <span className="mx-0.5 text-white/30">,</span>
-                      )}
+            {project.technologies && project.technologies.length > 0 && (
+              <>
+                <span className="text-white/20">·</span>
+                <div className="flex flex-wrap items-center gap-1">
+                  {project.technologies.slice(0, 4).map((t) => (
+                    <span
+                      key={t}
+                      className="rounded border border-white/[0.06] bg-white/[0.03] px-1.5 py-0.5 text-white/60 transition-colors group-hover:border-emerald-300/20 group-hover:bg-emerald-300/[0.06] group-hover:text-emerald-200/90"
+                    >
+                      {t}
                     </span>
                   ))}
-                  {project.technologies.length > 5 && (
+                  {project.technologies.length > 4 && (
                     <span className="text-white/40">
-                      , <span className="text-white/55">+{project.technologies.length - 5}</span>
+                      +{project.technologies.length - 4}
                     </span>
                   )}
-                  <span className="text-white/40">]</span>
                 </div>
-              )}
-
-              {/* Hover scanning line */}
-              <motion.span
-                aria-hidden
-                className="pointer-events-none absolute bottom-0 left-0 h-px w-0 bg-gradient-to-r from-transparent via-cyan-300/70 to-transparent transition-[width] duration-500 group-hover:w-full"
-              />
-            </div>
+              </>
+            )}
           </div>
-        </TiltCard>
+        </div>
       </Link>
     </motion.div>
   );
@@ -883,41 +864,91 @@ export default function ProjectsPage() {
               <Tok.cm>{"// query"}</Tok.cm>
             </CodeLine>
             <div className="my-2 flex flex-col gap-2 sm:flex-row">
-              <div className="group relative flex flex-1 items-center rounded-md border border-white/10 bg-black/30 px-3 py-2.5 backdrop-blur-sm transition-colors focus-within:border-cyan-300/40 focus-within:bg-black/40">
-                <span className="select-none font-mono text-sm text-emerald-300/80">$</span>
-                <span className="ml-2 select-none font-mono text-xs text-white/45">
+              <div
+                className={`group relative flex flex-1 items-center gap-2 overflow-hidden rounded-lg border bg-black/40 px-3 py-2.5 backdrop-blur-sm transition-all duration-200 focus-within:bg-black/50 ${
+                  searchQuery && filtered.length === 0
+                    ? "border-rose-400/30 focus-within:border-rose-400/50 focus-within:shadow-[0_0_0_1px_rgba(251,113,133,0.25),0_0_24px_-6px_rgba(251,113,133,0.35)]"
+                    : "border-white/10 focus-within:border-cyan-300/40 focus-within:shadow-[0_0_0_1px_rgba(34,211,238,0.25),0_0_24px_-6px_rgba(34,211,238,0.4)]"
+                }`}
+              >
+                {/* Focus scan line */}
+                <motion.span
+                  aria-hidden
+                  className="pointer-events-none absolute inset-x-0 bottom-0 h-px origin-left bg-gradient-to-r from-transparent via-cyan-300/70 to-transparent opacity-0 group-focus-within:opacity-100"
+                  initial={{ scaleX: 0 }}
+                  animate={{ scaleX: searchQuery ? 1 : 0 }}
+                  transition={{ duration: 0.3 }}
+                />
+
+                {/* Prompt + command */}
+                <span className="shrink-0 select-none font-mono text-sm text-emerald-400/80">
+                  $
+                </span>
+                <Search className="h-3.5 w-3.5 shrink-0 text-white/40 transition-colors group-focus-within:text-cyan-300" />
+                <span className="shrink-0 select-none font-mono text-xs text-cyan-300/70">
                   grep
+                </span>
+                <span className="hidden shrink-0 select-none font-mono text-[11px] text-white/35 sm:inline">
+                  -i
+                </span>
+
+                {/* Quoted input */}
+                <span className="shrink-0 select-none font-mono text-sm text-emerald-300/60">
+                  &quot;
                 </span>
                 <Input
                   ref={searchInputRef}
                   type="text"
-                  placeholder='"react" --in projects'
+                  placeholder="react, ai, python..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="h-auto border-0 bg-transparent px-2 py-0 font-mono text-sm text-white shadow-none placeholder:text-white/30 focus-visible:ring-0"
+                  className="h-auto min-w-0 flex-1 border-0 bg-transparent px-0 py-0 font-mono text-sm text-emerald-200 shadow-none placeholder:text-white/25 focus-visible:ring-0"
                 />
-                <span className="ml-1 hidden font-mono text-[11px] text-white/40 sm:inline">
-                  {sortOptions.find((s) => s.value === sortBy)?.flag}
+                <span
+                  className={`shrink-0 select-none font-mono text-sm text-emerald-300/60 transition-opacity opacity-100`}
+                >
+                  &quot;
                 </span>
-                {searchQuery ? (
-                  <button
-                    type="button"
-                    aria-label="Clear search"
-                    onClick={() => {
-                      setSearchQuery("");
-                      searchInputRef.current?.focus();
-                      hapticManager.light();
-                    }}
-                    className="ml-2 rounded p-1 text-white/40 transition hover:bg-white/10 hover:text-white"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                ) : (
-                  <kbd className="ml-2 hidden rounded border border-white/15 bg-white/5 px-1.5 py-0.5 font-mono text-[10px] text-white/50 sm:inline">
-                    /
-                  </kbd>
-                )}
-                <Caret className="ml-1 hidden group-focus-within:inline-block" />
+
+                {/* Right: live match count + clear / shortcut */}
+                <div className="ml-auto flex shrink-0 items-center gap-1.5">
+                  <AnimatePresence mode="popLayout">
+                    {searchQuery && (
+                      <motion.span
+                        key={`count-${filtered.length === 0 ? "none" : "ok"}`}
+                        initial={{ opacity: 0, scale: 0.85, y: -2 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.85, y: -2 }}
+                        transition={{ duration: 0.15 }}
+                        className={`inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 font-mono text-[10px] tabular-nums ${
+                          filtered.length === 0
+                            ? "border-rose-400/30 bg-rose-400/10 text-rose-200"
+                            : "border-emerald-400/25 bg-emerald-400/10 text-emerald-200"
+                        }`}
+                      >
+                        <span className="h-1 w-1 animate-pulse rounded-full bg-current" />
+                        {filtered.length}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+
+                  {searchQuery ? (
+                    <button
+                      type="button"
+                      aria-label="Clear search"
+                      onClick={() => {
+                        setSearchQuery("");
+                        searchInputRef.current?.focus();
+                        hapticManager.light();
+                      }}
+                      className="rounded p-1 text-white/40 transition hover:bg-white/10 hover:text-white"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  ) : (
+                    <></>
+                  )}
+                </div>
               </div>
 
               <div ref={sortMenuRef} className="relative">
@@ -1055,10 +1086,15 @@ export default function ProjectsPage() {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.25 }}
-                    className="grid grid-cols-1 gap-3 sm:gap-4 lg:grid-cols-2"
+                    className="flex flex-col"
                   >
                     {filtered.map((p, i) => (
-                      <ProjectCommitCard key={p.id} project={p} index={i} />
+                      <ProjectCommitRow
+                        key={p.id}
+                        project={p}
+                        index={i}
+                        isLast={i === filtered.length - 1}
+                      />
                     ))}
                   </motion.div>
                 )}
