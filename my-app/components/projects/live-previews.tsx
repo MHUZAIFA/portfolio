@@ -1024,6 +1024,180 @@ function AIChatPreview() {
 }
 
 /* ─────────────────────────────────────────────────────────
+   Per-project preview mapping
+   ───────────────────────────────────────────────────────── */
+
+type PreviewKind =
+  | "code"
+  | "workflow"
+  | "scan"
+  | "todo"
+  | "ecommerce"
+  | "architecture"
+  | "terminal"
+  | "ai-chat";
+
+type PreviewMeta = {
+  kind: PreviewKind;
+  title: string;
+  icon: ReactNode;
+  accentRgb: string;
+};
+
+const PREVIEW_META: Record<PreviewKind, PreviewMeta> = {
+  code: {
+    kind: "code",
+    title: "App.tsx",
+    icon: <FileCode />,
+    accentRgb: "34,211,238",
+  },
+  workflow: {
+    kind: "workflow",
+    title: "workflow.json",
+    icon: <Workflow />,
+    accentRgb: "168,85,247",
+  },
+  scan: {
+    kind: "scan",
+    title: "scan.app",
+    icon: <Smartphone />,
+    accentRgb: "52,211,153",
+  },
+  todo: {
+    kind: "todo",
+    title: "todos.ts",
+    icon: <ListTodo />,
+    accentRgb: "110,231,183",
+  },
+  ecommerce: {
+    kind: "ecommerce",
+    title: "store.tsx",
+    icon: <ShoppingBag />,
+    accentRgb: "96,165,250",
+  },
+  architecture: {
+    kind: "architecture",
+    title: "system.arch",
+    icon: <Server />,
+    accentRgb: "192,132,252",
+  },
+  terminal: {
+    kind: "terminal",
+    title: "~/term.zsh",
+    icon: <TerminalIcon />,
+    accentRgb: "250,204,21",
+  },
+  "ai-chat": {
+    kind: "ai-chat",
+    title: "agent.chat",
+    icon: <MessageSquare />,
+    accentRgb: "244,114,182",
+  },
+};
+
+const PROJECT_TO_PREVIEW: Record<string, PreviewKind> = {
+  "ai-bots": "code",
+  recyclevision: "scan",
+  "ai-report-workflow": "workflow",
+  metricstics: "terminal",
+  mytasks: "todo",
+  snkrs: "ecommerce",
+  helpdesk: "ai-chat",
+};
+
+const CATEGORY_TO_PREVIEW: Record<string, PreviewKind> = {
+  "Machine Learning & AI": "code",
+  "Mobile Application": "scan",
+  "Automation / Reporting": "workflow",
+  "Productivity & Utilities": "terminal",
+  "Productivity & Tracking": "todo",
+  "E-Commerce": "ecommerce",
+  Support: "ai-chat",
+};
+
+function resolvePreviewKind(projectId?: string, category?: string): PreviewKind {
+  if (projectId && PROJECT_TO_PREVIEW[projectId]) return PROJECT_TO_PREVIEW[projectId];
+  if (category && CATEGORY_TO_PREVIEW[category]) return CATEGORY_TO_PREVIEW[category];
+  return "code";
+}
+
+function renderPreviewBody(kind: PreviewKind): ReactNode {
+  switch (kind) {
+    case "code":
+      return <CodeWritingPreview />;
+    case "workflow":
+      return <WorkflowPreview />;
+    case "scan":
+      return <MobileScanPreview />;
+    case "todo":
+      return <TodoListPreview />;
+    case "ecommerce":
+      return <EcommercePreview />;
+    case "architecture":
+      return <ArchitecturePreview />;
+    case "terminal":
+      return <TerminalPreview />;
+    case "ai-chat":
+      return <AIChatPreview />;
+  }
+}
+
+/**
+ * Compact per-project preview frame designed to slot beside a project row.
+ * No hover lift (avoids fighting parent <Link> hover) and a tighter chrome.
+ */
+export function ProjectPreview({
+  projectId,
+  category,
+  className = "",
+}: {
+  projectId?: string;
+  category?: string;
+  className?: string;
+}) {
+  const kind = resolvePreviewKind(projectId, category);
+  const meta = PREVIEW_META[kind];
+  const accent = `rgba(${meta.accentRgb},0.18)`;
+
+  return (
+    <div
+      className={`relative h-[168px] w-full overflow-hidden rounded-lg border border-white/10 bg-black/40 backdrop-blur-md transition-colors group-hover:border-white/25 ${className}`}
+    >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -inset-px rounded-lg opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+        style={{
+          background: `radial-gradient(360px circle at 50% 0%, ${accent}, transparent 60%)`,
+        }}
+      />
+
+      <div className="relative flex items-center gap-1.5 border-b border-white/5 bg-white/[0.02] px-2.5 py-1.5">
+        <span className="flex gap-0.5">
+          <span className="h-1.5 w-1.5 rounded-full bg-red-500/70" />
+          <span className="h-1.5 w-1.5 rounded-full bg-yellow-500/70" />
+          <span className="h-1.5 w-1.5 rounded-full bg-green-500/70" />
+        </span>
+        <span className="ml-1 flex h-3.5 w-3.5 items-center justify-center text-white/55 [&>svg]:h-3 [&>svg]:w-3">
+          {meta.icon}
+        </span>
+        <span className="font-mono text-[10px] text-white/55">{meta.title}</span>
+        <span className="ml-auto flex items-center gap-1 font-mono text-[8px] text-white/35">
+          <span
+            className="h-1 w-1 animate-pulse rounded-full"
+            style={{ backgroundColor: `rgb(${meta.accentRgb})` }}
+          />
+          live
+        </span>
+      </div>
+
+      <div className="relative h-[calc(168px-26px)] p-3">
+        {renderPreviewBody(kind)}
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────
    Public component
    ───────────────────────────────────────────────────────── */
 

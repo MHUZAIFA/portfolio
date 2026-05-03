@@ -32,13 +32,12 @@ import {
   Hash,
   Keyboard,
   Play,
-  FlaskConical,
   Rocket,
   CircleDot,
   CalendarCheck,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { LivePreviews } from "@/components/projects/live-previews";
+import { ProjectPreview } from "@/components/projects/live-previews";
 import { hapticManager } from "@/lib/haptic-manager";
 import {
   InteractiveTerminal,
@@ -545,83 +544,94 @@ function ProjectCommitRow({
           />
         </div>
 
-        {/* Thumbnail (flat, no border) */}
-        {project.thumbnail && (
-          <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md bg-white/[0.03] sm:h-14 sm:w-14">
-            <Image
-              src={project.thumbnail}
-              alt={project.name}
-              fill
-              className="object-cover opacity-90 transition-all duration-500 group-hover:scale-110 group-hover:opacity-100"
-              sizes="56px"
-            />
-          </div>
-        )}
-
-        {/* Content */}
-        <div className="min-w-0 flex-1">
-          {/* Header: commit hash · filename · date */}
-          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 font-mono text-[11px] text-white/45">
-            <span className="rounded bg-white/[0.04] px-1.5 py-0.5 text-white/70 transition-colors group-hover:bg-white/[0.08] group-hover:text-white">
-              {hash}
-            </span>
-            <span className="text-white/25">·</span>
-            <span className="text-white/70">
-              {project.id}
-              <span className="text-white/35">{meta.ext}</span>
-            </span>
-            {project.featured && (
-              <span className="inline-flex items-center gap-0.5 text-yellow-300/90">
-                <Star className="h-2.5 w-2.5 fill-yellow-300 text-yellow-300" />
-                <span className="text-[10px]">starred</span>
-              </span>
+        {/* Main row: text + live preview */}
+        <div className="flex min-w-0 flex-1 flex-col gap-3 md:flex-row md:gap-5">
+          {/* Left: text content */}
+          <div className="flex min-w-0 flex-1 items-start gap-3 sm:gap-4">
+            {/* Thumbnail (flat, no border) */}
+            {project.thumbnail && (
+              <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md bg-white/[0.03] sm:h-14 sm:w-14">
+                <Image
+                  src={project.thumbnail}
+                  alt={project.name}
+                  fill
+                  className="object-cover opacity-90 transition-all duration-500 group-hover:scale-110 group-hover:opacity-100"
+                  sizes="56px"
+                />
+              </div>
             )}
-            <span className="ml-auto shrink-0 text-[10px] text-white/35 sm:text-[11px]">
-              {project.date}
-            </span>
+
+            {/* Content */}
+            <div className="min-w-0 flex-1">
+              {/* Header: commit hash · filename · date */}
+              <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 font-mono text-[11px] text-white/45">
+                <span className="rounded bg-white/[0.04] px-1.5 py-0.5 text-white/70 transition-colors group-hover:bg-white/[0.08] group-hover:text-white">
+                  {hash}
+                </span>
+                <span className="text-white/25">·</span>
+                <span className="text-white/70">
+                  {project.id}
+                  <span className="text-white/35">{meta.ext}</span>
+                </span>
+                {project.featured && (
+                  <span className="inline-flex items-center gap-0.5 text-yellow-300/90">
+                    <Star className="h-2.5 w-2.5 fill-yellow-300 text-yellow-300" />
+                    <span className="text-[10px]">starred</span>
+                  </span>
+                )}
+                <span className="ml-auto shrink-0 text-[10px] text-white/35 sm:text-[11px]">
+                  {project.date}
+                </span>
+              </div>
+
+              {/* Title + arrow */}
+              <div className="mt-1 flex items-center gap-2">
+                <h3 className="text-base font-semibold tracking-tight text-white/95 transition-colors group-hover:text-white sm:text-lg">
+                  {project.name}
+                </h3>
+                <ChevronRight className="h-4 w-4 shrink-0 text-white/20 transition-all group-hover:translate-x-1 group-hover:text-cyan-300" />
+              </div>
+
+              {/* Description */}
+              <p className="mt-1 line-clamp-2 font-mono text-[11px] leading-relaxed text-white/55 sm:text-xs">
+                <span className="text-white/25">{"// "}</span>
+                {project.description}
+              </p>
+
+              {/* Meta + tags inline */}
+              <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[10px] sm:text-[11px]">
+                <span className="inline-flex items-center gap-1 text-white/45">
+                  <Icon className="h-3 w-3" />
+                  {project.category}
+                </span>
+
+                {project.technologies && project.technologies.length > 0 && (
+                  <>
+                    <span className="text-white/20">·</span>
+                    <div className="flex flex-wrap items-center gap-1">
+                      {project.technologies.slice(0, 4).map((t) => (
+                        <span
+                          key={t}
+                          className="rounded border border-white/[0.06] bg-white/[0.03] px-1.5 py-0.5 text-white/60 transition-colors group-hover:border-emerald-300/20 group-hover:bg-emerald-300/[0.06] group-hover:text-emerald-200/90"
+                        >
+                          {t}
+                        </span>
+                      ))}
+                      {project.technologies.length > 4 && (
+                        <span className="text-white/40">
+                          +{project.technologies.length - 4}
+                        </span>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
           </div>
 
-          {/* Title + arrow */}
-          <div className="mt-1 flex items-center gap-2">
-            <h3 className="text-base font-semibold tracking-tight text-white/95 transition-colors group-hover:text-white sm:text-lg">
-              {project.name}
-            </h3>
-            <ChevronRight className="h-4 w-4 shrink-0 text-white/20 transition-all group-hover:translate-x-1 group-hover:text-cyan-300" />
-          </div>
-
-          {/* Description */}
-          <p className="mt-1 line-clamp-2 font-mono text-[11px] leading-relaxed text-white/55 sm:text-xs">
-            <span className="text-white/25">{"// "}</span>
-            {project.description}
-          </p>
-
-          {/* Meta + tags inline */}
-          <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[10px] sm:text-[11px]">
-            <span className="inline-flex items-center gap-1 text-white/45">
-              <Icon className="h-3 w-3" />
-              {project.category}
-            </span>
-
-            {project.technologies && project.technologies.length > 0 && (
-              <>
-                <span className="text-white/20">·</span>
-                <div className="flex flex-wrap items-center gap-1">
-                  {project.technologies.slice(0, 4).map((t) => (
-                    <span
-                      key={t}
-                      className="rounded border border-white/[0.06] bg-white/[0.03] px-1.5 py-0.5 text-white/60 transition-colors group-hover:border-emerald-300/20 group-hover:bg-emerald-300/[0.06] group-hover:text-emerald-200/90"
-                    >
-                      {t}
-                    </span>
-                  ))}
-                  {project.technologies.length > 4 && (
-                    <span className="text-white/40">
-                      +{project.technologies.length - 4}
-                    </span>
-                  )}
-                </div>
-              </>
-            )}
+          {/* Right: live animated preview matched to project type */}
+          <div className="w-full shrink-0 md:w-[280px] lg:w-[320px]">
+            <ProjectPreview projectId={project.id} category={project.category} />
           </div>
         </div>
       </Link>
@@ -1239,33 +1249,6 @@ export default function ProjectsPage() {
                 onTriggerMatrix={() => setMatrixOn(true)}
                 onThemeChange={(t) => setPersona(t)}
               />
-            </motion.div>
-
-            <Divider />
-
-            {/* Live previews — animated mini-scenes of what each project type looks like */}
-            <div className="my-4">
-              <SectionHeader
-                num="16"
-                label="Live Labs · Previews"
-                note="animated mini-scenes"
-                icon={<FlaskConical className="h-4 w-4" />}
-              />
-              <p className="mt-2 max-w-2xl font-mono text-[11px] leading-relaxed text-white/50 sm:text-xs">
-                <span className="text-white/25">{"// "}</span>
-                Hover, poke, play. Each preview is a tiny running animation of
-                a project category.
-              </p>
-            </div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-80px" }}
-              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-              className="mt-3 sm:mt-4"
-            >
-              <LivePreviews />
             </motion.div>
 
             <Divider />
