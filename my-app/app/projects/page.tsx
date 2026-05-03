@@ -15,7 +15,6 @@ import {
   type ReactNode,
 } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import {
   Search,
   X,
@@ -35,6 +34,8 @@ import {
   Rocket,
   CircleDot,
   CalendarCheck,
+  FileText,
+  Mail,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { ProjectPreview } from "@/components/projects/live-previews";
@@ -412,12 +413,24 @@ const Tok = {
    IDE chrome
    ───────────────────────────────────────────────────────── */
 
+type TabId = "projects" | "readme" | "terminal";
+
+const TAB_LIST: { id: TabId; label: string; dot: string }[] = [
+  { id: "projects", label: "projects.tsx", dot: "#3178c6" },
+  { id: "readme", label: "README.md", dot: "#60a5fa" },
+  { id: "terminal", label: "terminal.sh", dot: "#34d399" },
+];
+
 function IDEWindow({
   children,
   accent,
+  activeTab,
+  onTabChange,
 }: {
   children: ReactNode;
   accent?: string;
+  activeTab: TabId;
+  onTabChange: (id: TabId) => void;
 }) {
   return (
     <motion.div
@@ -448,13 +461,34 @@ function IDEWindow({
 
       {/* Tab bar */}
       <div className="flex items-end gap-px border-b border-white/10 bg-white/[0.02] px-2 pt-2">
-        <Tab active accent={accent}>projects.tsx</Tab>
-        <Tab accent={accent}>README.md</Tab>
-        <Tab accent={accent}>terminal.sh</Tab>
+        {TAB_LIST.map((t) => (
+          <Tab
+            key={t.id}
+            active={activeTab === t.id}
+            accent={accent}
+            dot={t.dot}
+            onClick={() => {
+              if (activeTab !== t.id) {
+                onTabChange(t.id);
+                hapticManager.light();
+              }
+            }}
+          >
+            {t.label}
+          </Tab>
+        ))}
         <span className="ml-1 px-2 pb-2 text-xs text-white/30">+</span>
       </div>
 
-      <div className="p-4 sm:p-6 md:p-8">{children}</div>
+      <div
+        className={
+          activeTab === "terminal"
+            ? "p-0"
+            : "p-4 sm:p-6 md:p-8"
+        }
+      >
+        {children}
+      </div>
     </motion.div>
   );
 }
@@ -463,22 +497,28 @@ function Tab({
   children,
   active,
   accent,
+  dot,
+  onClick,
 }: {
   children: ReactNode;
   active?: boolean;
   accent?: string;
+  dot?: string;
+  onClick?: () => void;
 }) {
   return (
-    <div
-      className={`relative flex items-center gap-2 rounded-t-md border border-b-0 px-3 py-1.5 font-mono text-xs transition-colors ${
+    <button
+      type="button"
+      onClick={onClick}
+      className={`relative flex cursor-pointer items-center gap-2 rounded-t-md border border-b-0 px-3 py-1.5 font-mono text-xs transition-colors ${
         active
           ? "border-white/15 bg-[#0a0a0c] text-white/90"
-          : "border-transparent text-white/40 hover:text-white/70"
+          : "border-transparent text-white/40 hover:bg-white/[0.03] hover:text-white/75"
       }`}
     >
       <span
         className="h-1.5 w-1.5 rounded-full"
-        style={{ backgroundColor: accent ?? "rgba(34,211,238,0.8)" }}
+        style={{ backgroundColor: dot ?? accent ?? "rgba(34,211,238,0.8)" }}
       />
       {children}
       {active && (
@@ -492,7 +532,7 @@ function Tab({
           }}
         />
       )}
-    </div>
+    </button>
   );
 }
 
@@ -503,11 +543,9 @@ function Tab({
 function ProjectCommitRow({
   project,
   index,
-  isLast,
 }: {
   project: Project;
   index: number;
-  isLast: boolean;
 }) {
   const meta = getCategoryMeta(project.category);
   const hash = commitHash(project.id);
@@ -520,13 +558,11 @@ function ProjectCommitRow({
       transition={{ duration: 0.4, delay: index * 0.05, ease: [0.22, 1, 0.36, 1] }}
       className="group relative"
     >
-      {/* Vertical tree line connecting commits */}
-      {!isLast && (
-        <span
-          aria-hidden
-          className="pointer-events-none absolute left-[11px] top-6 bottom-0 w-px bg-gradient-to-b from-white/15 via-white/10 to-white/5 sm:left-[13px]"
-        />
-      )}
+      {/* Vertical tree line connecting commits — always rendered so the trail stays continuous */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute left-[11px] top-6 bottom-0 w-px bg-gradient-to-b from-white/15 via-white/10 to-white/8 sm:left-[13px]"
+      />
 
       <Link
         href={`/projects/${project.id}`}
@@ -547,85 +583,69 @@ function ProjectCommitRow({
         {/* Main row: text + live preview */}
         <div className="flex min-w-0 flex-1 flex-col gap-3 md:flex-row md:gap-5">
           {/* Left: text content */}
-          <div className="flex min-w-0 flex-1 items-start gap-3 sm:gap-4">
-            {/* Thumbnail (flat, no border) */}
-            {project.thumbnail && (
-              <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md bg-white/[0.03] sm:h-14 sm:w-14">
-                <Image
-                  src={project.thumbnail}
-                  alt={project.name}
-                  fill
-                  className="object-cover opacity-90 transition-all duration-500 group-hover:scale-110 group-hover:opacity-100"
-                  sizes="56px"
-                />
-              </div>
-            )}
-
-            {/* Content */}
-            <div className="min-w-0 flex-1">
-              {/* Header: commit hash · filename · date */}
-              <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 font-mono text-[11px] text-white/45">
-                <span className="rounded bg-white/[0.04] px-1.5 py-0.5 text-white/70 transition-colors group-hover:bg-white/[0.08] group-hover:text-white">
-                  {hash}
+          <div className="min-w-0 flex-1">
+            {/* Header: commit hash · filename · date */}
+            <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 font-mono text-[11px] text-white/45">
+              <span className="rounded bg-white/[0.04] px-1.5 py-0.5 text-white/70 transition-colors group-hover:bg-white/[0.08] group-hover:text-white">
+                {hash}
+              </span>
+              <span className="text-white/25">·</span>
+              <span className="text-white/70">
+                {project.id}
+                <span className="text-white/35">{meta.ext}</span>
+              </span>
+              {project.featured && (
+                <span className="inline-flex items-center gap-0.5 text-yellow-300/90">
+                  <Star className="h-2.5 w-2.5 fill-yellow-300 text-yellow-300" />
+                  <span className="text-[10px]">starred</span>
                 </span>
-                <span className="text-white/25">·</span>
-                <span className="text-white/70">
-                  {project.id}
-                  <span className="text-white/35">{meta.ext}</span>
-                </span>
-                {project.featured && (
-                  <span className="inline-flex items-center gap-0.5 text-yellow-300/90">
-                    <Star className="h-2.5 w-2.5 fill-yellow-300 text-yellow-300" />
-                    <span className="text-[10px]">starred</span>
-                  </span>
-                )}
-                <span className="ml-auto shrink-0 text-[10px] text-white/35 sm:text-[11px]">
-                  {project.date}
-                </span>
-              </div>
+              )}
+              <span className="ml-auto shrink-0 text-[10px] text-white/35 sm:text-[11px]">
+                {project.date}
+              </span>
+            </div>
 
-              {/* Title + arrow */}
-              <div className="mt-1 flex items-center gap-2">
-                <h3 className="text-base font-semibold tracking-tight text-white/95 transition-colors group-hover:text-white sm:text-lg">
-                  {project.name}
-                </h3>
-                <ChevronRight className="h-4 w-4 shrink-0 text-white/20 transition-all group-hover:translate-x-1 group-hover:text-cyan-300" />
-              </div>
+            {/* Title + arrow */}
+            <div className="mt-1 flex items-center gap-2">
+              <h3 className="text-base font-semibold tracking-tight text-white/95 transition-colors group-hover:text-white sm:text-lg">
+                {project.name}
+              </h3>
+              <ChevronRight className="h-4 w-4 shrink-0 text-white/20 transition-all group-hover:translate-x-1 group-hover:text-cyan-300" />
+            </div>
 
-              {/* Description */}
-              <p className="mt-1 line-clamp-2 font-mono text-[11px] leading-relaxed text-white/55 sm:text-xs">
-                <span className="text-white/25">{"// "}</span>
-                {project.description}
-              </p>
+            {/* Description */}
+            <p className="mt-1 line-clamp-2 font-mono text-[11px] leading-relaxed text-white/55 sm:text-xs">
+              <span className="text-white/25">{"// "}</span>
+              {project.description}
+            </p>
 
-              {/* Meta + tags inline */}
-              <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[10px] sm:text-[11px]">
-                <span className="inline-flex items-center gap-1 text-white/45">
-                  <Icon className="h-3 w-3" />
-                  {project.category}
-                </span>
+            {/* Meta + tags inline */}
+            <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[10px] sm:text-[11px]">
+              <span className="inline-flex items-center gap-1 text-white/45">
+                <Icon className="h-3 w-3" />
+                {project.category}
+              </span>
 
-                {project.technologies && project.technologies.length > 0 && (
-                  <>
-                    <span className="text-white/20">·</span>
-                    <div className="flex flex-wrap items-center gap-1">
-                      {project.technologies.slice(0, 4).map((t) => (
-                        <span
-                          key={t}
-                          className="rounded border border-white/[0.06] bg-white/[0.03] px-1.5 py-0.5 text-white/60 transition-colors group-hover:border-emerald-300/20 group-hover:bg-emerald-300/[0.06] group-hover:text-emerald-200/90"
-                        >
-                          {t}
-                        </span>
-                      ))}
-                      {project.technologies.length > 4 && (
-                        <span className="text-white/40">
-                          +{project.technologies.length - 4}
-                        </span>
-                      )}
-                    </div>
-                  </>
-                )}
-              </div>
+              {project.technologies && project.technologies.length > 0 && (
+                <>
+                  <span className="text-white/20">·</span>
+                  <div className="flex flex-wrap items-center gap-1">
+                    {project.technologies.slice(0, 4).map((t) => (
+                      <span
+                        key={t}
+                        className="rounded border border-white/[0.06] bg-white/[0.03] px-1.5 py-0.5 text-white/60 transition-colors group-hover:border-emerald-300/20 group-hover:bg-emerald-300/[0.06] group-hover:text-emerald-200/90"
+                      >
+                        {t}
+                      </span>
+                    ))}
+                    {project.technologies.length > 4 && (
+                      <span className="text-white/40">
+                        +{project.technologies.length - 4}
+                      </span>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
@@ -635,6 +655,53 @@ function ProjectCommitRow({
           </div>
         </div>
       </Link>
+    </motion.div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────
+   Timeline tail — sits below the last commit so the tree
+   doesn't end on a hard cut. Continues the line and ends
+   with an open "root" terminator node.
+   ───────────────────────────────────────────────────────── */
+
+function TimelineTail() {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5, delay: 0.2 }}
+      className="relative"
+    >
+      {/* Continuing line that fades into the void */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute left-[11px] top-0 h-10 w-px bg-gradient-to-b from-white/8 via-white/5 to-transparent sm:left-[13px]"
+      />
+
+      {/* Terminator row */}
+      <div className="relative flex items-center gap-3 px-1 pt-10 pb-2 sm:gap-4 sm:px-2">
+        <div className="relative z-10 flex shrink-0 flex-col items-center">
+          <motion.span
+            animate={{
+              opacity: [0.4, 0.8, 0.4],
+              scale: [1, 1.08, 1],
+            }}
+            transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+            className="h-[10px] w-[10px] rounded-full border border-white/30 bg-[#0a0a0c] ring-[3px] ring-[#0a0a0c] sm:h-3 sm:w-3"
+          />
+        </div>
+
+        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 font-mono text-[11px] text-white/40">
+          <span className="rounded bg-white/[0.04] px-1.5 py-0.5 text-white/55">
+            0000000
+          </span>
+          <span className="text-white/25">·</span>
+          <span className="text-white/50">root commit</span>
+          <span className="text-white/25">·</span>
+          <span className="text-white/35">end of log</span>
+        </div>
+      </div>
     </motion.div>
   );
 }
@@ -666,6 +733,7 @@ export default function ProjectsPage() {
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [matrixOn, setMatrixOn] = useState(false);
   const [persona, setPersona] = useState<PersonaId>("coder");
+  const [activeTab, setActiveTab] = useState<TabId>("projects");
   const sortMenuRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -868,7 +936,56 @@ export default function ProjectsPage() {
       />
 
       <div className="mx-auto max-w-6xl px-3 pt-24 pb-32 sm:px-4 md:px-6 md:pt-12 md:pb-24 mt-12">
-        <IDEWindow accent={activePersona.accent}>
+        <IDEWindow
+          accent={activePersona.accent}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        >
+          <AnimatePresence mode="wait">
+            {activeTab === "readme" && (
+              <motion.div
+                key="readme"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.25 }}
+              >
+                <ReadmeView
+                  projectCount={projects.length}
+                  totalTech={totalTech}
+                  yearRange={yearRange}
+                  allProjects={projects}
+                  onJumpToProjects={() => setActiveTab("projects")}
+                  onJumpToTerminal={() => setActiveTab("terminal")}
+                />
+              </motion.div>
+            )}
+
+            {activeTab === "terminal" && (
+              <motion.div
+                key="terminal"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.25 }}
+                className="w-full min-w-0"
+              >
+                <TerminalView
+                  projects={terminalProjects}
+                  onTriggerMatrix={() => setMatrixOn(true)}
+                  onThemeChange={(t) => setPersona(t)}
+                />
+              </motion.div>
+            )}
+
+            {activeTab === "projects" && (
+              <motion.div
+                key="projects"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.25 }}
+              >
           <div className="font-mono">
             {/* JSDoc style intro */}
             <CodeLine number={1}>
@@ -1193,9 +1310,9 @@ export default function ProjectsPage() {
                         key={p.id}
                         project={p}
                         index={i}
-                        isLast={i === filtered.length - 1}
                       />
                     ))}
+                    <TimelineTail />
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -1300,20 +1417,39 @@ export default function ProjectsPage() {
               <Caret />
             </div>
           </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-          {/* Status bar */}
-          <div className="-mx-4 mt-6 flex flex-wrap items-center justify-between gap-2 border-t border-white/10 bg-white/[0.02] px-4 py-2 font-mono text-[10px] text-white/45 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8 md:text-[11px]">
+          {/* Status bar — adapts to the active tab */}
+          <div
+            className={`flex flex-wrap items-center justify-between gap-2 border-t border-white/10 bg-white/[0.02] py-2 font-mono text-[10px] text-white/45 md:text-[11px] ${
+              activeTab === "terminal"
+                ? "mt-0 px-4 sm:px-6 md:px-8"
+                : "mt-6 -mx-4 px-4 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8"
+            }`}
+          >
             <div className="flex items-center gap-3 sm:gap-4">
               <span
                 className="inline-flex items-center gap-1.5"
                 style={{ color: activePersona.accent }}
               >
                 <GitBranch className="h-3 w-3" />
-                <span>{branchLabel}</span>
+                <span>
+                  {activeTab === "projects"
+                    ? branchLabel
+                    : activeTab === "readme"
+                    ? "docs/main"
+                    : "zsh/interactive"}
+                </span>
               </span>
               <span className="hidden items-center gap-1.5 sm:inline-flex">
                 <Hash className="h-3 w-3" />
-                {filtered.length} matches
+                {activeTab === "projects"
+                  ? `${filtered.length} matches`
+                  : activeTab === "readme"
+                  ? `${projects.length} entries`
+                  : "live shell"}
               </span>
               <span className="hidden items-center gap-1.5 md:inline-flex">
                 <span
@@ -1335,7 +1471,13 @@ export default function ProjectsPage() {
                 </kbd>
               </button>
               <span className="hidden sm:inline">UTF-8</span>
-              <span>TypeScript</span>
+              <span>
+                {activeTab === "projects"
+                  ? "TypeScript"
+                  : activeTab === "readme"
+                  ? "Markdown"
+                  : "Shell"}
+              </span>
               <span className="tabular-nums">
                 {now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
               </span>
@@ -1587,5 +1729,288 @@ function EmptyState({ onReset }: { onReset: () => void }) {
         reset()
       </button>
     </motion.div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────
+   README.md view — simplified, markdown-styled text
+   ───────────────────────────────────────────────────────── */
+
+function MdHeading({
+  level,
+  children,
+}: {
+  level: 1 | 2 | 3;
+  children: ReactNode;
+}) {
+  if (level === 1) {
+    return (
+      <h1 className="font-mono text-2xl font-bold leading-tight tracking-tight text-white sm:text-3xl">
+        <span className="mr-2 text-white/30">#</span>
+        {children}
+      </h1>
+    );
+  }
+  if (level === 2) {
+    return (
+      <h2 className="mt-8 mb-3 border-b border-white/10 pb-2 font-mono text-base font-semibold text-white/90 sm:text-lg">
+        <span className="mr-2 text-white/30">##</span>
+        {children}
+      </h2>
+    );
+  }
+  return (
+    <h3 className="mt-5 mb-2 font-mono text-sm font-semibold text-white/85">
+      <span className="mr-2 text-white/30">###</span>
+      {children}
+    </h3>
+  );
+}
+
+function MdBullet({ children }: { children: ReactNode }) {
+  return (
+    <li className="flex gap-2 text-[13px] leading-relaxed text-white/75">
+      <span className="select-none text-white/30">−</span>
+      <span className="min-w-0 flex-1">{children}</span>
+    </li>
+  );
+}
+
+function ReadmeView({
+  projectCount,
+  totalTech,
+  yearRange,
+  allProjects,
+  onJumpToProjects,
+  onJumpToTerminal,
+}: {
+  projectCount: number;
+  totalTech: number;
+  yearRange: { min: number; max: number };
+  allProjects: Project[];
+  onJumpToProjects: () => void;
+  onJumpToTerminal: () => void;
+}) {
+  const techStack = [
+    "TypeScript",
+    "Python",
+    "React",
+    "Next.js",
+    "Angular",
+    "TailwindCSS",
+    "Firebase",
+    "n8n",
+    "Hugging Face",
+    "PWA",
+  ];
+
+  return (
+    <div className="font-mono">
+      {/* File header */}
+      <div className="mb-6 flex items-center gap-2 border-b border-white/10 pb-3 font-mono text-[11px] text-white/45">
+        <FileText className="h-3.5 w-3.5 text-blue-300" />
+        <span className="text-white/65">README.md</span>
+        <span className="text-white/25">·</span>
+        <span>markdown</span>
+        <span className="ml-auto text-white/35">{projectCount} entries</span>
+      </div>
+
+      <MdHeading level={1}>Mohammed Huzaifa — Projects</MdHeading>
+      <p className="mt-4 border-l-2 border-cyan-300/40 bg-white/[0.02] px-3 py-2 font-mono text-[13px] italic text-white/70">
+        &gt; A living archive of things I&apos;ve designed, built, and learned
+        from. Each entry is a story — what it does, why it exists, and what I
+        took away.
+      </p>
+
+      <MdHeading level={2}>What you&apos;ll find</MdHeading>
+      <ul className="space-y-1.5">
+        <MdBullet>
+          <span className="text-amber-200">{projectCount}</span> hand-picked
+          projects spanning ML/AI, mobile, web, and automation.
+        </MdBullet>
+        <MdBullet>
+          <span className="text-amber-200">{totalTech}</span> technologies
+          across <span className="text-amber-200">{yearRange.max - yearRange.min + 1}</span>{" "}
+          years (<span className="text-white/55">{yearRange.min}–{yearRange.max}</span>).
+        </MdBullet>
+        <MdBullet>
+          Animated mini-previews showing what each project type{" "}
+          <em className="not-italic text-white/90">looks like</em> in motion.
+        </MdBullet>
+        <MdBullet>
+          A real-ish interactive terminal — try{" "}
+          <code className="rounded bg-white/[0.06] px-1.5 py-0.5 font-mono text-[11px] text-cyan-300">
+            help
+          </code>
+          ,{" "}
+          <code className="rounded bg-white/[0.06] px-1.5 py-0.5 font-mono text-[11px] text-cyan-300">
+            ls
+          </code>
+          , or{" "}
+          <code className="rounded bg-white/[0.06] px-1.5 py-0.5 font-mono text-[11px] text-cyan-300">
+            sudo hireme
+          </code>
+          .
+        </MdBullet>
+      </ul>
+
+      <MdHeading level={2}>Tech stack</MdHeading>
+      <div className="flex flex-wrap gap-1.5">
+        {techStack.map((t) => (
+          <span
+            key={t}
+            className="rounded-md border border-white/10 bg-white/[0.03] px-2 py-1 font-mono text-[11px] text-white/70"
+          >
+            {t}
+          </span>
+        ))}
+      </div>
+
+      {allProjects.length > 0 && (
+        <>
+          <MdHeading level={2}>Projects</MdHeading>
+          <ol className="space-y-2.5">
+            {allProjects.map((p, i) => (
+              <li
+                key={p.id}
+                className="rounded-md border border-white/10 bg-white/[0.02] px-3 py-2.5"
+              >
+                <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                  <span className="font-mono text-[11px] tabular-nums text-white/35">
+                    {String(i + 1).padStart(2, "0")}.
+                  </span>
+                  <Link
+                    href={`/projects/${p.id}`}
+                    className="font-mono text-sm font-semibold text-white/95 underline-offset-4 hover:text-cyan-200 hover:underline"
+                  >
+                    {p.name}
+                  </Link>
+                  {p.featured && (
+                    <span className="inline-flex items-center gap-0.5 rounded bg-yellow-300/10 px-1 py-0.5 font-mono text-[9px] text-yellow-200">
+                      <Star className="h-2.5 w-2.5 fill-yellow-300 text-yellow-300" />
+                      starred
+                    </span>
+                  )}
+                  <span className="text-white/25">·</span>
+                  <span className="font-mono text-[11px] text-white/45">
+                    {p.category}
+                  </span>
+                  <span className="ml-auto font-mono text-[10px] text-white/35">
+                    {p.date}
+                  </span>
+                </div>
+                <p className="mt-1 text-[13px] leading-relaxed text-white/65">
+                  {p.description}
+                </p>
+                {p.technologies && p.technologies.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {p.technologies.map((t) => (
+                      <span
+                        key={t}
+                        className="rounded border border-white/[0.06] bg-white/[0.03] px-1.5 py-0.5 font-mono text-[10px] text-white/55"
+                      >
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </li>
+            ))}
+          </ol>
+        </>
+      )}
+
+      <MdHeading level={2}>Get in touch</MdHeading>
+      <ul className="space-y-1.5">
+        <MdBullet>
+          <button
+            type="button"
+            onClick={() => {
+              void openCalendlyDirect();
+              hapticManager.light();
+            }}
+            className="inline-flex items-center gap-1.5 font-mono text-[13px] text-cyan-200 underline-offset-4 hover:underline"
+          >
+            <CalendarCheck className="h-3.5 w-3.5" />
+            Book a 30-min call
+          </button>{" "}
+          <span className="text-white/40">— grab a slot on my calendar.</span>
+        </MdBullet>
+        <MdBullet>
+          <button
+            type="button"
+            onClick={() => {
+              onJumpToTerminal();
+              window.dispatchEvent(
+                new CustomEvent("terminal:run", { detail: "sudo hireme" }),
+              );
+            }}
+            className="inline-flex items-center gap-1.5 font-mono text-[13px] text-emerald-200 underline-offset-4 hover:underline"
+          >
+            <Terminal className="h-3.5 w-3.5" />
+            Run `sudo hireme`
+          </button>{" "}
+          <span className="text-white/40">— jump to the shell tab.</span>
+        </MdBullet>
+        <MdBullet>
+          <a
+            href="mailto:mhuzaifa.career@outlook.com"
+            className="inline-flex items-center gap-1.5 font-mono text-[13px] text-pink-200 underline-offset-4 hover:underline"
+          >
+            <Mail className="h-3.5 w-3.5" />
+            mhuzaifa.career@outlook.com
+          </a>
+        </MdBullet>
+      </ul>
+
+      <MdHeading level={2}>License</MdHeading>
+      <p className="font-mono text-[12px] leading-relaxed text-white/55">
+        <span className="text-white/30">©</span> {new Date().getFullYear()}{" "}
+        Mohammed Huzaifa. Built with curiosity, caffeine, and the occasional{" "}
+        <code className="rounded bg-white/[0.06] px-1 py-0.5 text-[11px] text-cyan-300">
+          rm -rf node_modules
+        </code>
+        .
+      </p>
+
+      {/* Bottom navigation back to other tabs */}
+      <div className="mt-10 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-4">
+        <button
+          type="button"
+          onClick={onJumpToProjects}
+          className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/5 px-3 py-1.5 font-mono text-[11px] text-white/75 transition-all hover:border-cyan-300/30 hover:bg-cyan-300/10 hover:text-cyan-100"
+        >
+          <Folder className="h-3 w-3" />
+          open projects.tsx
+          <ChevronRight className="h-3 w-3" />
+        </button>
+        <span className="font-mono text-[10px] text-white/30">— EOF —</span>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────
+   terminal.sh view — focused, full-bleed interactive shell
+   ───────────────────────────────────────────────────────── */
+
+function TerminalView({
+  projects: terminalProjects,
+  onTriggerMatrix,
+  onThemeChange,
+}: {
+  projects: TerminalProject[];
+  onTriggerMatrix: () => void;
+  onThemeChange: (id: PersonaId) => void;
+}) {
+  return (
+    <div className="w-full min-w-0">
+      <InteractiveTerminal
+        projects={terminalProjects}
+        onTriggerMatrix={onTriggerMatrix}
+        onThemeChange={onThemeChange}
+        variant="bare"
+      />
+    </div>
   );
 }

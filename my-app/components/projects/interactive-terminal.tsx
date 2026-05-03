@@ -217,10 +217,13 @@ export function InteractiveTerminal({
   projects,
   onTriggerMatrix,
   onThemeChange,
+  variant = "card",
 }: {
   projects: TerminalProject[];
   onTriggerMatrix?: () => void;
   onThemeChange?: (theme: "coder" | "architect" | "ai" | "designer") => void;
+  /** `"card"` = window chrome + status bar; `"bare"` = scroll area + input only (e.g. dedicated terminal tab) */
+  variant?: "card" | "bare";
 }) {
   const router = useRouter();
   const [lines, setLines] = useState<Line[]>(() => [
@@ -1153,16 +1156,23 @@ export function InteractiveTerminal({
     return () => window.removeEventListener("terminal:run", h as EventListener);
   }, [handleCommand]);
 
+  const isBare = variant === "bare";
+
   return (
     <div
       ref={containerRef}
-      className={`group/term relative overflow-hidden rounded-xl border bg-[#0a0a0c]/85 shadow-2xl shadow-black/50 backdrop-blur-xl transition-all duration-300 ${
-        isFocused
-          ? "border-cyan-300/40 shadow-[0_0_0_1px_rgba(34,211,238,0.2),0_20px_60px_-20px_rgba(34,211,238,0.35)]"
-          : "border-white/10"
-      }`}
+      className={
+        isBare
+          ? "group/term relative w-full min-w-0"
+          : `group/term relative overflow-hidden rounded-xl border bg-[#0a0a0c]/85 shadow-2xl shadow-black/50 backdrop-blur-xl transition-all duration-300 ${
+              isFocused
+                ? "border-cyan-300/40 shadow-[0_0_0_1px_rgba(34,211,238,0.2),0_20px_60px_-20px_rgba(34,211,238,0.35)]"
+                : "border-white/10"
+            }`
+      }
     >
-      {/* Chrome */}
+      {/* Window chrome — only in card layout */}
+      {!isBare && (
       <div className="flex items-center justify-between gap-2 border-b border-white/10 bg-white/[0.03] px-3 py-2 font-mono text-[10px] text-white/45">
         <div className="flex items-center gap-1.5">
           <motion.span
@@ -1191,12 +1201,19 @@ export function InteractiveTerminal({
           </span>
         </div>
       </div>
+      )}
 
       {/* Body */}
       <div
         ref={scrollRef}
         onClick={() => inputRef.current?.focus()}
-        className="relative max-h-[440px] min-h-[320px] cursor-text overflow-y-auto scroll-smooth p-3 font-mono text-[12px] leading-relaxed text-white/75 sm:p-4 sm:text-[13px] [scrollbar-width:thin] [scrollbar-color:rgba(255,255,255,0.15)_transparent]"
+        className={`relative cursor-text overflow-y-auto scroll-smooth font-mono text-[12px] leading-relaxed text-white/75 sm:text-[13px] [scrollbar-width:thin] [scrollbar-color:rgba(255,255,255,0.15)_transparent] ${
+          isBare
+            ? `w-full min-w-0 max-h-[min(88vh,960px)] min-h-[min(520px,58vh)] bg-[#0a0a0c]/80 p-3 transition-shadow duration-300 sm:p-4 ${
+                isFocused ? "shadow-[inset_0_0_0_1px_rgba(34,211,238,0.35)]" : ""
+              }`
+            : "max-h-[min(72vh,680px)] min-h-[400px] p-3 sm:p-4"
+        }`}
       >
         {/* Scanlines overlay */}
         <div
@@ -1376,7 +1393,8 @@ export function InteractiveTerminal({
         </form>
       </div>
 
-      {/* Status bar */}
+      {/* Status bar — only in card layout */}
+      {!isBare && (
       <div className="flex items-center justify-between gap-2 border-t border-white/10 bg-white/[0.02] px-3 py-1.5 font-mono text-[9px] text-white/40 sm:text-[10px]">
         <div className="flex items-center gap-3">
           <span className="inline-flex items-center gap-1">
@@ -1402,6 +1420,7 @@ export function InteractiveTerminal({
           <span className="hidden sm:inline">clear</span>
         </div>
       </div>
+      )}
     </div>
   );
 }
