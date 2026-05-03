@@ -935,7 +935,7 @@ export default function ProjectsPage() {
         }}
       />
 
-      <div className="mx-auto max-w-6xl px-3 pt-24 pb-32 sm:px-4 md:px-6 md:pt-12 md:pb-24 mt-12">
+      <div className="mx-auto max-w-6xl px-3 py-24 pb-32 sm:px-4 md:px-6 mt-12">
         <IDEWindow
           accent={activePersona.accent}
           activeTab={activeTab}

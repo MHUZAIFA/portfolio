@@ -64,9 +64,11 @@ export function AppWrapper({ children }: { children: React.ReactNode }) {
           </div>
         </Suspense>
       )}
-      <div className="h-screen bg-black text-white">
+      <div className="flex min-h-dvh flex-col bg-black text-white">
         {!isLoading && <Navigation />}
-        <main id="main-content">{children}</main>
+        <main id="main-content" className="flex-1 w-full">
+          {children}
+        </main>
       </div>
     </MotionProvider>
   );
