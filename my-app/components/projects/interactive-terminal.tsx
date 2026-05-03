@@ -123,6 +123,10 @@ const COMMANDS: CmdMeta[] = [
   { name: "github", desc: "open github profile", group: "contact" },
   { name: "linkedin", desc: "open linkedin profile", group: "contact" },
   { name: "email", desc: "compose email", group: "contact" },
+  { name: "book", desc: "schedule a 30-min call · calendly", group: "contact" },
+  { name: "calendly", desc: "alias of book", group: "contact" },
+  { name: "schedule", desc: "alias of book", group: "contact" },
+  { name: "meet", desc: "alias of book", group: "contact" },
   { name: "resume", desc: "résumé info", group: "contact" },
 
   // customize
@@ -565,8 +569,36 @@ export function InteractiveTerminal({
         case "mail":
           push("success", <span>→ composing email…</span>);
           if (typeof window !== "undefined") {
-            window.location.href = "mailto:mohammed@huzaifa.dev";
+            window.location.href = "mailto:mhuzaifa.career@outlook.com";
           }
+          break;
+
+        case "book":
+        case "calendly":
+        case "schedule":
+        case "meet":
+          push("output", <BookCallOutput />);
+          push(
+            "success",
+            <span>→ launching {C.key("calendly popup")}…</span>,
+          );
+          // Open Calendly popup (loads widget on-demand, falls back to tab)
+          (async () => {
+            try {
+              const mod = await import("@/components/contact/book-call");
+              // Trigger via a hidden click path: we re-use the hook logic
+              // by dispatching a synthetic call through `openCalendlyDirect`.
+              await mod.openCalendlyDirect();
+            } catch {
+              if (typeof window !== "undefined") {
+                window.open(
+                  "https://calendly.com/huzaifafcrit/30min",
+                  "_blank",
+                  "noopener,noreferrer",
+                );
+              }
+            }
+          })();
           break;
 
         case "resume":
@@ -1465,6 +1497,7 @@ function HelpOutput() {
       title: "connect",
       items: [
         ["contact", "all ways to reach me"],
+        ["book / calendly", "schedule a 30-min call"],
         ["github / gh", "open github"],
         ["linkedin / li", "open linkedin"],
         ["email", "compose email"],
@@ -1952,15 +1985,49 @@ function StackOutput({ projects }: { projects: TerminalProject[] }) {
   );
 }
 
+function BookCallOutput() {
+  return (
+    <div className="mt-1 flex flex-col gap-1 rounded border border-cyan-300/20 bg-cyan-500/[0.05] p-3">
+      <pre className="whitespace-pre font-mono text-[10px] leading-[1.2] text-cyan-300/90 sm:text-[11px]">
+{` ┌───────────────────────┐
+ │  M  T  W  T  F  S  S  │
+ │  ─  ─  ─  ─  ─  ─  ─  │
+ │  1  2  3  4  5  6  7  │
+ │  8  9 10 11 12 13 14  │
+ │ 15 16 17 18 ●  20 21  │
+ │ 22 23 24 25 26 27 28  │
+ └───────────────────────┘`}
+      </pre>
+      <span className="text-white/70">
+        {C.key("calendly")} · 30-minute chat · let&apos;s talk about{" "}
+        {C.str("ideas")}, {C.str("roles")}, or {C.str("just to say hi")}.
+      </span>
+      <span className="text-[10px] text-white/45">
+        link:{" "}
+        <a
+          href="https://calendly.com/huzaifafcrit/30min"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-cyan-300 underline decoration-cyan-300/30 underline-offset-2 hover:decoration-cyan-300"
+        >
+          calendly.com/huzaifafcrit/30min
+        </a>
+      </span>
+    </div>
+  );
+}
+
 function ContactOutput() {
   const links: { label: string; value: string; href: string }[] = [
-    { label: "email", value: "reach out", href: "mailto:mohammed@huzaifa.dev" },
-    { label: "github", value: "@mohammedhuzaifa", href: "https://github.com/mohammedhuzaifa" },
+    { label: "email", value: "mhuzaifa.career@outlook.com", href: "mailto:mhuzaifa.career@outlook.com" },
+    { label: "book", value: "calendly.com/huzaifafcrit/30min", href: "https://calendly.com/huzaifafcrit/30min" },
+    { label: "github", value: "@mhuzaifa", href: "https://github.com/mhuzaifa" },
     {
       label: "linkedin",
       value: "/in/huzaifa-anjum",
       href: "https://www.linkedin.com/in/huzaifa-anjum/",
     },
+    { label: "x", value: "@_huzaifaanjum_", href: "https://x.com/_huzaifaanjum_" },
     { label: "site", value: "huzaifa.dev", href: "/" },
   ];
   return (

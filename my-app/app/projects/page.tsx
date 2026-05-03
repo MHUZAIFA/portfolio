@@ -35,6 +35,7 @@ import {
   FlaskConical,
   Rocket,
   CircleDot,
+  CalendarCheck,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { LivePreviews } from "@/components/projects/live-previews";
@@ -44,6 +45,7 @@ import {
   type TerminalProject,
 } from "@/components/projects/interactive-terminal";
 import { MatrixRain } from "@/components/projects/matrix-rain";
+import { openCalendlyDirect } from "@/components/contact/book-call";
 import {
   LanguageBar,
   type LangSlice,
@@ -823,7 +825,12 @@ export default function ProjectsPage() {
     : "main";
 
   return (
-    <div className="relative">
+    <div className="relative bg-black">
+      {/* pure-black base so the page is truly #000 regardless of scroll/theme */}
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-0 -z-30 bg-black"
+      />
       <GridBackdrop />
       <AmbientGlow accent={activePersona.accentRgb} />
       <FloatingGlyphs />
@@ -1264,7 +1271,18 @@ export default function ProjectsPage() {
             <Divider />
 
             {/* Collaboration CTA */}
-            <div className="my-6 grid gap-3 sm:grid-cols-2">
+            <div className="my-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <CTACard
+                accent={activePersona.accent}
+                accentRgb={activePersona.accentRgb}
+                icon={<CalendarCheck className="h-4 w-4" />}
+                title="book a 30-min call"
+                desc="Grab a slot on my calendar — chat about ideas, roles, or just to say hi."
+                cta="open calendly"
+                onCta={() => {
+                  void openCalendlyDirect();
+                }}
+              />
               <CTACard
                 accent={activePersona.accent}
                 accentRgb={activePersona.accentRgb}

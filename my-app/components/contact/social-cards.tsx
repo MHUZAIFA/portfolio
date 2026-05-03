@@ -10,6 +10,7 @@ import {
   FaInstagram,
   FaFacebook,
   FaSpotify,
+  FaCalendarCheck,
 } from "react-icons/fa6";
 import type { IconType } from "react-icons";
 import { hapticManager } from "@/lib/haptic-manager";
@@ -50,6 +51,15 @@ const socials: Social[] = [
     brand:
       "bg-emerald-500/15 ring-emerald-400/25 group-hover:bg-emerald-500/25 group-hover:ring-emerald-400/40",
     iconColor: "text-emerald-300",
+  },
+  {
+    name: "Book a call",
+    handle: "30-min chat · calendly",
+    url: "https://calendly.com/huzaifafcrit/30min",
+    icon: FaCalendarCheck,
+    brand:
+      "bg-cyan-500/15 ring-cyan-400/25 group-hover:bg-cyan-500/25 group-hover:ring-cyan-400/45",
+    iconColor: "text-cyan-300",
   },
   {
     name: "X / Twitter",

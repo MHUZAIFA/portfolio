@@ -12,9 +12,9 @@ import {
 } from "lucide-react";
 import { hapticManager } from "@/lib/haptic-manager";
 import { staggerItem } from "@/components/providers/motion-provider";
+import { openCalendlyDirect } from "@/components/contact/book-call";
 
 const EMAIL = "mhuzaifa.career@outlook.com";
-const SCHEDULE_URL = "https://calendly.com/mhuzaifa-career";
 
 const subscribeNoop = () => () => {};
 const getClientTimezone = () => {
@@ -80,8 +80,9 @@ export function QuickActions() {
       ariaLabel: "Schedule a meeting",
       accent: "from-violet-500/20 via-fuchsia-500/10 to-transparent",
       iconAccent: "text-violet-300 group-hover:text-violet-200",
-      href: SCHEDULE_URL,
-      external: true,
+      onClick: () => {
+        void openCalendlyDirect();
+      },
     },
     {
       id: "response",
@@ -96,9 +97,9 @@ export function QuickActions() {
     {
       id: "timezone",
       icon: Globe2,
-      title: "Working timezone",
-      detail: "EST · Montréal, Canada",
-      cta: tz ? `Your timezone: ${tz}` : "Open to global teams",
+      title: "Time zones",
+      detail: `Mine: EST  ·  Yours: ${tz || "—"}`,
+      cta: "Schedules align easily",
       ariaLabel: "Working timezone",
       accent: "from-amber-500/20 via-orange-500/10 to-transparent",
       iconAccent: "text-amber-300 group-hover:text-amber-200",
