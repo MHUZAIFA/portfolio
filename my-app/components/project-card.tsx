@@ -38,8 +38,14 @@ export function ProjectCard({
         whileHover={{ x: 2 }}
         whileTap={{ scale: 0.99 }}
       >
-        <Link href={`/projects/${id}`} onClick={() => hapticManager.light()}>
-          <Card className="group relative cursor-pointer overflow-hidden border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] p-4 sm:p-5 backdrop-blur-sm transition-all duration-300 hover:border-white/20 hover:bg-white/5">
+      <Link href={`/projects/${id}`} onClick={() => hapticManager.light()}>
+        <Card className={`group relative cursor-pointer overflow-hidden border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] p-4 sm:p-5 backdrop-blur-sm transition-all duration-300 hover:border-white/20 hover:bg-white/5 ${featured ? "ring-1 ring-yellow-400/10 hover:ring-yellow-400/20" : ""}`}>
+            {featured && (
+              <span
+                aria-hidden
+                className="pointer-events-none absolute inset-y-0 left-0 w-[2px] bg-gradient-to-b from-yellow-400/0 via-yellow-400/60 to-orange-500/0"
+              />
+            )}
             {/* Mobile: Image + Title in same row */}
             <div className="flex items-center gap-3 sm:hidden">
               {thumbnail && (
@@ -183,9 +189,15 @@ export function ProjectCard({
       className={featured ? "md:col-span-2" : ""}
     >
       <Link href={`/projects/${id}`} onClick={() => hapticManager.light()}>
-        <Card className="group relative h-full cursor-pointer overflow-hidden border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] p-0 backdrop-blur-sm transition-all duration-300 hover:border-white/20 hover:shadow-2xl hover:shadow-white/5">
+        <Card className={`group relative h-full cursor-pointer overflow-hidden border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] p-0 backdrop-blur-sm transition-all duration-300 hover:border-white/20 hover:shadow-2xl hover:shadow-white/5 ${featured ? "ring-1 ring-yellow-400/10 hover:ring-yellow-400/30 hover:shadow-yellow-500/10" : ""}`}>
           {/* Background gradient on hover */}
           <div className="absolute inset-0 bg-gradient-to-br from-white/0 via-white/0 to-white/0 opacity-0 transition-opacity duration-300 group-hover:from-white/5 group-hover:via-white/2 group-hover:to-white/0 group-hover:opacity-100" />
+          {featured && (
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -inset-px rounded-xl bg-gradient-to-br from-yellow-400/10 via-transparent to-orange-500/10 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+            />
+          )}
           
           {thumbnail && (
             <div className="relative h-40 sm:h-48 w-full overflow-hidden bg-gradient-to-br from-white/10 to-white/5 md:h-56 lg:h-64">
