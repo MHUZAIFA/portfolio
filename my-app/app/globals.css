@@ -325,7 +325,17 @@ html[data-vt="forward"]::view-transition-image-pair(.project-hero) {
   animation: vt-corners-open var(--vt-hero) linear both;
 }
 html[data-vt="back"]::view-transition-image-pair(.project-hero) {
-  animation: vt-corners-close var(--vt-hero) linear both;
+  animation: vt-corners-close var(--vt-hero-back) linear both;
+}
+
+/* Going back is a little quicker than opening */
+:root {
+  --vt-hero-back: 0.6s;
+}
+html[data-vt="back"]::view-transition-group(.project-hero),
+html[data-vt="back"]::view-transition-old(.project-hero),
+html[data-vt="back"]::view-transition-new(.project-hero) {
+  animation-duration: var(--vt-hero-back);
 }
 /* Opening: stays rounded in flight, then slowly squares off only as it fills the screen */
 @keyframes vt-corners-open {

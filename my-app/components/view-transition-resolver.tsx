@@ -9,9 +9,10 @@ export function ViewTransitionResolver() {
   const pathname = usePathname();
 
   useEffect(() => {
-    // Wait one frame so the new page has painted, then wait for its hero image before animating
-    const frame = requestAnimationFrame(() => void resolveWhenHeroReady());
-    return () => cancelAnimationFrame(frame);
+    // A timer, not requestAnimationFrame: while a view transition waits for its update, the browser
+    // suspends rendering, so rAF wouldn't fire until the safety timeout (a ~1s freeze).
+    const t = setTimeout(() => void resolveWhenHeroReady(), 0);
+    return () => clearTimeout(t);
   }, [pathname]);
 
   return null;

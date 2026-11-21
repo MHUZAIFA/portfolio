@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useInView, useMotionValue, useTransform, animate, type Variants } from "framer-motion";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -19,7 +19,7 @@ import {
   Maximize2,
 } from "lucide-react";
 import { hapticManager } from "@/lib/haptic-manager";
-import { useEffect, use, useState } from "react";
+import { useCallback, useEffect, use, useRef, useState } from "react";
 
 interface Project {
   id: string;
@@ -64,12 +64,12 @@ const projects: Record<string, Project> = {
       "Private by Design: No calendar sync, no sign-in, and nothing leaves your machine.",
     ],
     additionalImages: [
+      "/imgs/projects/flightdeck-panel-dark.png",
       "/imgs/projects/flightdeck-panel-light.png",
       "/imgs/projects/flightdeck-hero.png",
       "/imgs/projects/flightdeck-workspace.png",
       "/imgs/projects/flightdeck-gate-card.png",
       "/imgs/projects/flightdeck-flight-plan.png",
-      "/imgs/projects/flightdeck-panel-dark.png",
     ],
   },
   "git101-hackdecouverte": {
@@ -422,13 +422,39 @@ const HUD_ITEM = {
     transition: { duration: 0.65, ease: HUD_EASE },
     transitionEnd: { filter: "none" },
   },
-};
+  // Leaving (reverse of arrival): sink and blur out
+  exit: {
+    opacity: 0,
+    y: 14,
+    filter: "blur(6px)",
+    transition: { duration: 0.22, ease: [0.4, 0, 1, 1] as const },
+  },
+} satisfies Variants;
+
+/*
+ * Leaving timeline (reverse of arrival), in seconds:
+ *   0.00  HUD pieces leave one after another, last one first
+ *   0.22  iris opens back out, gradients lift, brackets fly away
+ *   0.55  image collapses back into its bay (the view transition)
+ */
+const EXIT_HUD_STAGGER = 0.035;
+const EXIT_OVERLAY_AT = 0.22;
+const EXIT_NAVIGATE_AT = 0.55;
 
 /**
  * Iris vignette: a perfect circle of darkness that starts beyond the screen corners and closes in
  * towards the centre, settling as a vignette around the image.
  */
-function RadialOverlay({ delay, strength = 0.85 }: { delay: number; strength?: number }) {
+function RadialOverlay({
+  delay,
+  strength = 0.85,
+  leaving = false,
+}: {
+  delay: number;
+  strength?: number;
+  /** Reverse: the iris opens back out past the screen corners */
+  leaving?: boolean;
+}) {
   const ring = (clear: number, dark: number) =>
     `radial-gradient(circle at 50% 50%, rgba(0,0,0,0) ${clear}%, rgba(0,0,0,${strength}) ${dark}%)`;
   return (
@@ -436,11 +462,18 @@ function RadialOverlay({ delay, strength = 0.85 }: { delay: number; strength?: n
       aria-hidden="true"
       className="pointer-events-none absolute inset-0"
       initial={{ background: ring(105, 140), opacity: 0 }}
-      animate={{ background: ring(25, 80), opacity: 1 }}
-      transition={{
-        background: { duration: 1.1, delay, ease: HUD_EASE },
-        opacity: { duration: 0.3, delay },
-      }}
+      animate={leaving ? { background: ring(105, 140), opacity: 0 } : { background: ring(25, 80), opacity: 1 }}
+      transition={
+        leaving
+          ? {
+              background: { duration: 0.35, delay: EXIT_OVERLAY_AT, ease: [0.4, 0, 0.2, 1] },
+              opacity: { duration: 0.18, delay: EXIT_OVERLAY_AT + 0.15 },
+            }
+          : {
+              background: { duration: 1.1, delay, ease: HUD_EASE },
+              opacity: { duration: 0.3, delay },
+            }
+      }
     />
   );
 }
@@ -461,32 +494,64 @@ function arc(cx: number, cy: number, r: number, from: number, to: number) {
   return `M ${a.x} ${a.y} A ${r} ${r} 0 ${to - from > 180 ? 1 : 0} 1 ${b.x} ${b.y}`;
 }
 
-/** Round analogue gauge; the needle sweeps to `value` when it scrolls into view. */
+/** Arc fill and needle share one curve so the needle always sits on the arc's tip. */
+const GAUGE_FILL = { duration: 1.2, ease: [0.22, 1, 0.36, 1] as const };
+
+/**
+ * Round analogue gauge. When it's on screen (after `delay`), the arc fills from 0 to the value
+ */
 function Gauge({
   label,
   value,
   min = 0,
   max,
-  readout,
   unit,
   compact,
+  delay = 0,
 }: {
   label: string;
   value: number;
   min?: number;
   max: number;
-  readout: string;
   unit?: string;
   /** Smaller caption for tight rows (desktop HUD) */
   compact?: boolean;
+  /** Seconds to wait after the gauge is visible (lets the HUD fade in first) */
+  delay?: number;
 }) {
   const pct = Math.max(0, Math.min(1, (value - min) / (max - min)));
   const angle = START + pct * SWEEP;
   const ticks = Array.from({ length: 13 }, (_, i) => START + (i * SWEEP) / 12);
 
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-20px" });
+  const [started, setStarted] = useState(false);
+
+  // Start once visible + delay
+  useEffect(() => {
+    if (!inView) return;
+    const t = setTimeout(() => setStarted(true), delay * 1000);
+    return () => clearTimeout(t);
+  }, [inView, delay]);
+
+  // Needle: an animated angle; its tip and tail are computed around the dial centre (60, 60), so every
+  // gauge pivots exactly on the hub (a CSS rotate on SVG pivots on the element's own box instead)
+  const needleAngle = useMotionValue(START);
+  const tipX = useTransform(needleAngle, (a) => polar(60, 60, 38, a).x);
+  const tipY = useTransform(needleAngle, (a) => polar(60, 60, 38, a).y);
+  const tailX = useTransform(needleAngle, (a) => polar(60, 60, 6, a + 180).x);
+  const tailY = useTransform(needleAngle, (a) => polar(60, 60, 6, a + 180).y);
+
+  useEffect(() => {
+    if (!started) return;
+    const controls = animate(needleAngle, angle, GAUGE_FILL);
+    return () => controls.stop();
+  }, [started, angle, needleAngle]);
+
   return (
     <figure className="flex flex-col items-center">
       <div
+        ref={ref}
         className={`relative aspect-square w-full max-w-[150px] rounded-full p-1.5 ${
           compact
             ? GLASS_SURFACE
@@ -496,7 +561,9 @@ function Gauge({
         <svg
           viewBox="0 0 120 120"
           className={`h-full w-full rounded-full ${compact ? "bg-black/35" : "bg-[#050505]"}`}
-          role="img" aria-label={`${label}: ${readout}${unit ? ` ${unit}` : ""}`}>
+          role="img"
+          aria-label={`${label}: ${value}${unit ? ` ${unit}` : ""}`}
+        >
           {/* Track + value arc */}
           <path d={arc(60, 60, 46, START, START + SWEEP)} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="4" strokeLinecap="round" />
           {pct > 0 && (
@@ -507,9 +574,8 @@ function Gauge({
               strokeWidth="4"
               strokeLinecap="round"
               initial={{ pathLength: 0 }}
-              whileInView={{ pathLength: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+              animate={{ pathLength: started ? 1 : 0 }}
+              transition={GAUGE_FILL}
               style={{ filter: "drop-shadow(0 0 3px rgba(239,68,68,0.7))" }}
             />
           )}
@@ -529,20 +595,12 @@ function Gauge({
               />
             );
           })}
-          {/* Needle */}
-          <motion.g
-            initial={{ rotate: START }}
-            whileInView={{ rotate: angle }}
-            viewport={{ once: true }}
-            transition={{ type: "spring", stiffness: 60, damping: 12, delay: 0.15 }}
-            style={{ originX: "60px", originY: "60px" }}
-          >
-            <line x1="60" y1="66" x2="60" y2="22" stroke="white" strokeWidth="2" strokeLinecap="round" />
-          </motion.g>
+          {/* Needle follows the tip of the arc */}
+          <motion.line x1={tailX} y1={tailY} x2={tipX} y2={tipY} stroke="white" strokeWidth="2" strokeLinecap="round" />
           <circle cx="60" cy="60" r="5" fill="#1a1a1a" stroke="rgba(255,255,255,0.4)" strokeWidth="1" />
           {/* Digital readout */}
           <text x="60" y="92" textAnchor="middle" className="fill-white font-mono" fontSize="13" fontWeight="700">
-            {readout}
+            {value}
           </text>
           {unit && (
             <text x="60" y="103" textAnchor="middle" className="fill-white/40 font-mono" fontSize="6.5" letterSpacing="1">
@@ -636,7 +694,22 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
   const hudContainer = {
     initial: {},
     animate: { transition: { delayChildren: overlayDelay + 0.55, staggerChildren: 0.11 } },
+    // Leaving: pieces go in reverse order (last in, first out)
+    exit: { transition: { staggerChildren: EXIT_HUD_STAGGER, staggerDirection: -1 } },
   };
+
+  // Going back plays the arrival in reverse, then hands over to the collapse transition
+  const [leaving, setLeaving] = useState(false);
+  const leave = useCallback(() => {
+    if (leaving) return;
+    const back = () => navigateWithTransition(router, "/projects", "back", projectHeroName(id));
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      back();
+      return;
+    }
+    setLeaving(true);
+    window.setTimeout(back, EXIT_NAVIGATE_AT * 1000);
+  }, [leaving, router, id]);
 
   const imagesToShow =
     project?.additionalImages && project.additionalImages.length > 0
@@ -652,11 +725,16 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
     if (!project) router.push("/projects");
   }, [project, router]);
 
+  // Preload the list so going back can collapse straight away instead of waiting for it to load
+  useEffect(() => {
+    router.prefetch("/projects");
+  }, [router]);
+
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         if (lightboxOpen) setLightboxOpen(false);
-        else navigateWithTransition(router, "/projects", "back", projectHeroName(id));
+        else leave();
       } else if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
         const t = event.target as HTMLElement;
         if (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable) return;
@@ -671,7 +749,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [router, lightboxOpen, imagesToShow.length, id]);
+  }, [router, lightboxOpen, imagesToShow.length, id, leave]);
 
   const openImage = (src: string) => {
     const i = imagesToShow.indexOf(src);
@@ -699,12 +777,14 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
   const allFeaturesOpen = features.length > 0 && features.every((_, i) => openFeatures.has(i));
   const year = Number(project.date?.match(/\d{4}/)?.[0] ?? new Date().getFullYear());
 
+  // Gauges self-test once the HUD has faded in, one after another
+  const gaugeStart = overlayDelay + 1.1;
   const gaugesCompact = (
     <>
-      <Gauge compact label="Systems" value={features.length} max={10} readout={String(features.length)} unit="features" />
-      <Gauge compact label="Stack" value={project.technologies.length} max={8} readout={String(project.technologies.length)} unit="tools" />
-      <Gauge compact label="Feeds" value={imagesToShow.length} max={6} readout={String(imagesToShow.length)} unit="images" />
-      <Gauge compact label="Year" value={year} min={2020} max={2027} readout={String(year)} unit="delivered" />
+      <Gauge compact delay={gaugeStart} label="Systems" value={features.length} max={10} unit="features" />
+      <Gauge compact delay={gaugeStart + 0.15} label="Stack" value={project.technologies.length} max={8} unit="tools" />
+      <Gauge compact delay={gaugeStart + 0.3} label="Feeds" value={imagesToShow.length} max={6} unit="images" />
+      <Gauge compact delay={gaugeStart + 0.45} label="Year" value={year} min={2020} max={2027} unit="delivered" />
     </>
   );
 
@@ -722,7 +802,8 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
     // Let cmd/ctrl/shift/middle-click open a new tab as usual
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
     e.preventDefault();
-    navigateWithTransition(router, href, direction, projectHeroName(heroId));
+    if (direction === "back") leave();
+    else navigateWithTransition(router, href, direction, projectHeroName(heroId));
   };
 
   /* Shared between the desktop HUD and the mobile layout */
@@ -901,13 +982,13 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
         </AnimatePresence>
         </div>
         {/* Arrival, step 2: a radial iris of darkness closes in, then the readability gradients settle */}
-        <RadialOverlay delay={overlayDelay} />
+        <RadialOverlay delay={overlayDelay} leaving={leaving} />
         <motion.div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0"
           initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: overlayDelay + 0.2, ease: "easeOut" }}
+          animate={{ opacity: leaving ? 0 : 1 }}
+          transition={leaving ? { duration: 0.28, delay: EXIT_OVERLAY_AT } : { duration: 0.8, delay: overlayDelay + 0.2, ease: "easeOut" }}
         >
           <span className="absolute inset-0 bg-linear-to-t from-black via-black/40 to-black/60" />
           <span className="absolute inset-y-0 left-0 w-2/3 bg-linear-to-r from-black/85 via-black/40 to-transparent" />
@@ -920,8 +1001,8 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
           [
             ["left-8 top-24 border-l-2 border-t-2", -1, -1],
             ["right-8 top-24 border-r-2 border-t-2", 1, -1],
-            ["bottom-4 left-8 border-b-2 border-l-2", -1, 1],
-            ["bottom-4 right-8 border-b-2 border-r-2", 1, 1],
+            ["bottom-[6px] left-8 border-b-2 border-l-2", -1, 1],
+            ["bottom-[6px] right-8 border-b-2 border-r-2", 1, 1],
           ] as const
         ).map(([pos, dx, dy]) => (
           <motion.span
@@ -929,15 +1010,15 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
             aria-hidden="true"
             className={`${corner} ${pos}`}
             initial={{ opacity: 0, x: dx * 60, y: dy * 60 }}
-            animate={{ opacity: 1, x: 0, y: 0 }}
-            transition={{ duration: 0.8, delay: overlayDelay + 0.15, ease: HUD_EASE }}
+            animate={leaving ? { opacity: 0, x: dx * 60, y: dy * 60 } : { opacity: 1, x: 0, y: 0 }}
+            transition={leaving ? { duration: 0.32, delay: EXIT_OVERLAY_AT, ease: [0.4, 0, 1, 1] } : { duration: 0.8, delay: overlayDelay + 0.15, ease: HUD_EASE }}
           />
         ))}
 
         {/* Arrival, step 3: the interface comes in piece by piece */}
         <motion.div
           initial="initial"
-          animate="animate"
+          animate={leaving ? "exit" : "animate"}
           variants={hudContainer}
           className="relative mx-auto flex h-full max-w-[1600px] flex-col px-16 pb-14 pt-28"
         >
@@ -1075,12 +1156,12 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
             </motion.div>
           </AnimatePresence>
           </div>
-          <RadialOverlay delay={overlayDelay} strength={0.7} />
+          <RadialOverlay delay={overlayDelay} strength={0.7} leaving={leaving} />
           <motion.div
             className="absolute inset-0"
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: overlayDelay + 0.2, ease: "easeOut" }}
+            animate={{ opacity: leaving ? 0 : 1 }}
+            transition={leaving ? { duration: 0.28, delay: EXIT_OVERLAY_AT } : { duration: 0.8, delay: overlayDelay + 0.2, ease: "easeOut" }}
           >
             <span className="absolute inset-0 bg-black/55" />
             <span className="absolute inset-0 bg-linear-to-b from-black/50 via-black/20 to-black/80" />
@@ -1090,7 +1171,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
 
         <motion.div
           initial="initial"
-          animate="animate"
+          animate={leaving ? "exit" : "animate"}
           variants={hudContainer}
           className="relative z-10 mx-auto max-w-2xl px-4 pb-24 pt-24 sm:px-6"
         >

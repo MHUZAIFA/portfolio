@@ -353,6 +353,8 @@ function HangarBay({
             src={project.thumbnail}
             alt=""
             fill
+            // The bay an image is flying back into loads right away, so the collapse never waits on it
+            loading={named ? "eager" : undefined}
             sizes={wide ? "(min-width: 1024px) 40vw, 100vw" : "(min-width: 1024px) 30vw, (min-width: 768px) 50vw, 100vw"}
             className="object-cover"
           />

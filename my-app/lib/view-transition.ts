@@ -92,9 +92,10 @@ export async function resolveWhenHeroReady() {
   if (!pending) return;
   const name = pending.heroName;
   if (name) {
-    // The new route can commit a moment before its content renders: wait (up to ~300ms) for the hero
-    for (let i = 0; i < 18 && !document.querySelector(`[data-vt-name="${name}"]`); i++) {
-      await new Promise((r) => requestAnimationFrame(r));
+    // The new route can commit a moment before its content renders: wait (up to ~150ms) for the hero.
+    // Timers, not requestAnimationFrame: rendering (and rAF) is suspended while the transition waits.
+    for (let i = 0; i < 10 && !document.querySelector(`[data-vt-name="${name}"]`); i++) {
+      await new Promise((r) => setTimeout(r, 15));
     }
   }
   isolateHero(name);
@@ -103,7 +104,7 @@ export async function resolveWhenHeroReady() {
     if (imgs.length > 0) {
       await Promise.race([
         Promise.all(imgs.map((img) => img.decode().catch(() => undefined))),
-        new Promise((r) => setTimeout(r, 450)),
+        new Promise((r) => setTimeout(r, 200)),
       ]);
     }
   }
