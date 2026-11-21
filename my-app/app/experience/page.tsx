@@ -350,7 +350,7 @@ const experiences: Experience[] = [
   {
     id: "10",
     company: "HackConcordia",
-    role: "Assistant - ConUHacks VIII",
+    role: "Volunteer",
     duration: "Jan 2024 - Feb 2024 (1 mo)",
     location: "Montreal, Quebec, Canada",
     type: "volunteering",
