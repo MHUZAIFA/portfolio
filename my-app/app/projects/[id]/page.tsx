@@ -35,6 +35,8 @@ interface Project {
   otherLinks?: { label: string; url: string }[];
   features?: string[];
   additionalImages?: string[];
+  /** Hidden from the portfolio (kept here so it can be brought back) */
+  hidden?: boolean;
 }
 
 const projects: Record<string, Project> = {
@@ -167,6 +169,7 @@ const projects: Record<string, Project> = {
     ],
   },
   doable: {
+    hidden: true,
     id: "doable",
     name: "Doable",
     description: "AI-powered app that builds personalized activity itineraries",
@@ -324,6 +327,7 @@ const projects: Record<string, Project> = {
     ],
   },
   helpdesk: {
+    hidden: true,
     id: "helpdesk",
     name: "Helpdesk",
     description: "A web application for requesting for an asset or raising an issue",
@@ -362,7 +366,8 @@ const projects: Record<string, Project> = {
   },
 };
 
-const PROJECT_ORDER = Object.keys(projects);
+/** Visible projects in order, for previous / next (hidden ones are skipped). */
+const PROJECT_ORDER = Object.keys(projects).filter((key) => !projects[key].hidden);
 
 /** Placeholder URLs that should never be rendered as real links. */
 const isRealUrl = (url?: string) => !!url && !/example\.com/i.test(url);
@@ -567,7 +572,8 @@ function Annunciator({
 export default function ProjectDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const { id } = use(params);
-  const project = projects[id];
+  // Hidden projects behave like missing ones (redirect to the list)
+  const project = projects[id]?.hidden ? undefined : projects[id];
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   // Desktop HUD: which image fills the screen, and which feature is expanded

@@ -41,9 +41,11 @@ type ProjectEntry = {
   date: string;
   category: string;
   featured?: boolean;
+  /** Hidden from the portfolio (kept here so it can be brought back) */
+  hidden?: boolean;
 };
 
-const projects: ProjectEntry[] = [
+const ALL_PROJECTS: ProjectEntry[] = [
   {
     id: "flight-deck-theme",
     name: "Air Canada Flight Deck",
@@ -103,6 +105,7 @@ const projects: ProjectEntry[] = [
   },
   {
     id: "doable",
+    hidden: true,
     name: "Doable",
     description:
       "AI-powered app that builds personalized activity itineraries from your location, weather, schedule, budget and transport mode.",
@@ -182,6 +185,7 @@ const projects: ProjectEntry[] = [
   },
   {
     id: "helpdesk",
+    hidden: true,
     name: "Helpdesk",
     description:
       "A web application for requesting for an asset or raising an issue.",
@@ -192,6 +196,9 @@ const projects: ProjectEntry[] = [
     category: "Support",
   },
 ];
+
+/** Projects shown on the site (hidden ones are left out everywhere, including the terminal). */
+const projects = ALL_PROJECTS.filter((p) => !p.hidden);
 
 type Project = (typeof projects)[number];
 
