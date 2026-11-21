@@ -413,3 +413,66 @@ html[data-vt="back"]::view-transition-new(root) {
     animation: none !important;
   }
 }
+
+/* Runway edge lights on the projects hangar (app/projects/page.tsx → RunwayLights) */
+.runway-light {
+  --runway-color: 255, 255, 255;
+  background: rgba(var(--runway-color), 0.35);
+  animation: runway-chase 2.4s ease-in-out infinite;
+}
+.runway-light--red {
+  --runway-color: 248, 113, 113;
+}
+@keyframes runway-chase {
+  0%,
+  100% {
+    background: rgba(var(--runway-color), 0.35);
+    box-shadow: none;
+  }
+  8% {
+    background: rgba(var(--runway-color), 1);
+    box-shadow: 0 0 6px 2px rgba(var(--runway-color), 0.6);
+  }
+  24% {
+    background: rgba(var(--runway-color), 0.35);
+    box-shadow: none;
+  }
+}
+/* Taxi trail: dim white lights; one red streak runs along them (head position set from JS) */
+.taxi-light {
+  --runway-color: 248, 113, 113;
+  background: rgba(255, 255, 255, 0.2);
+  /* How far behind the streak's head this light is, in tail lengths */
+  --behind: calc((var(--trail-head, -99999) - var(--d)) / var(--trail-tail));
+}
+.taxi-light__glow {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgb(248, 113, 113);
+  box-shadow: 0 0 8px 2px rgba(248, 113, 113, 0.6);
+  /* Full at the head, fading to nothing a tail-length behind it, off ahead of it */
+  opacity: min(clamp(0, 1 - var(--behind), 1), clamp(0, 1 + var(--behind) * 100, 1));
+}
+/* Taxiway lights around a hovered bay: bright red, chasing round it */
+.runway-light--lead {
+  --runway-color: 248, 113, 113;
+  animation: runway-lead 1.2s linear infinite;
+}
+@keyframes runway-lead {
+  0%,
+  100% {
+    background: rgba(var(--runway-color), 0.45);
+    box-shadow: 0 0 4px 1px rgba(var(--runway-color), 0.3);
+  }
+  15% {
+    background: rgba(var(--runway-color), 1);
+    box-shadow: 0 0 10px 3px rgba(var(--runway-color), 0.75);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .runway-light {
+    animation: none;
+    background: rgba(var(--runway-color), 0.7);
+  }
+}

@@ -393,28 +393,247 @@ function HangarBay({
 }
 
 /* ─────────────────────────────────────────────────────────
-   Hangar shell: ceiling lamps, light cones, concrete floor, doors
+   Hangar shell: a red dotted taxi trail that winds from bay to bay
    ───────────────────────────────────────────────────────── */
 
-const LAMPS = 5;
+/** Distance between trail lights, in px. */
+const TRAIL_SPACING = 16;
+/** How far the trail runs out from a bay before turning (half the 64px gap between bays). */
+const TRAIL_OFFSET = 32;
+/** Speed of the red streak travelling along the trail, in px per second. */
+const TRAIL_SPEED = 420;
+/** Length of the streak's fading tail, in px. */
+const TRAIL_TAIL = 560;
 
-function HangarCeiling() {
+type Box = { left: number; top: number; right: number; bottom: number };
+/** A bay: its outer box (brackets, label) and the card inside it the trail actually touches. */
+type Bay = Box & { card: Box };
+type Side = "top" | "bottom" | "left" | "right";
+type TrailStep = [from: number, fromSide: Side, to: number, toSide: Side];
+type Point = { x: number; y: number };
+type TrailLight = Point & { d: number };
+
+/**
+ * The hand-drawn route for the full hangar on desktop (bay numbers, 1-based). Cards only connect
+ * through their top and bottom edges: 01 over the top to 02, straight down the right-hand column
+ * (02, 06, 09, 10, 11), under to 08, back up the left (08, 07, 05), then 05 to 04 and over to 03.
+ */
+const SIGNATURE_ROUTE: TrailStep[] = [
+  [1, "top", 2, "top"],
+  [2, "bottom", 6, "top"],
+  [6, "bottom", 9, "top"],
+  [9, "bottom", 10, "top"],
+  [10, "bottom", 11, "top"],
+  [11, "bottom", 8, "bottom"],
+  [8, "top", 7, "bottom"],
+  [7, "top", 5, "bottom"],
+  [5, "top", 4, "bottom"],
+  [4, "top", 3, "top"],
+];
+
+const OUTWARD: Record<Side, Point> = { top: { x: 0, y: -1 }, bottom: { x: 0, y: 1 }, left: { x: -1, y: 0 }, right: { x: 1, y: 0 } };
+
+function anchor(b: Box, side: Side): Point {
+  const cx = (b.left + b.right) / 2;
+  const cy = (b.top + b.bottom) / 2;
+  if (side === "top") return { x: cx, y: b.top };
+  if (side === "bottom") return { x: cx, y: b.bottom };
+  if (side === "left") return { x: b.left, y: cy };
+  return { x: b.right, y: cy };
+}
+
+/** Where the trail turns: out past the bay's edge into the middle of the gap, in line with the card. */
+function lane(bay: Bay, side: Side, from: Point): Point {
+  const edge = anchor(bay, side);
+  return side === "top" || side === "bottom"
+    ? { x: from.x, y: edge.y + OUTWARD[side].y * TRAIL_OFFSET }
+    : { x: edge.x + OUTWARD[side].x * TRAIL_OFFSET, y: from.y };
+}
+
+/** Orthogonal path from one card's side to another's, running down the gap between them. */
+function connector(a: Bay, aSide: Side, b: Bay, bSide: Side): Point[] {
+  const start = anchor(a.card, aSide);
+  const end = anchor(b.card, bSide);
+  const p1 = lane(a, aSide, start);
+  const p2 = lane(b, bSide, end);
+  const vertical = aSide === "top" || aSide === "bottom";
+  const middle: Point[] =
+    Math.abs(vertical ? p1.y - p2.y : p1.x - p2.x) < 1
+      ? []
+      : vertical
+        ? [{ x: p2.x, y: p1.y }]
+        : [{ x: p1.x, y: p2.y }];
+  // Lights start a little off the card edge so they never sit on its border
+  const inset = 8;
+  return [
+    { x: start.x + OUTWARD[aSide].x * inset, y: start.y + OUTWARD[aSide].y * inset },
+    p1,
+    ...middle,
+    p2,
+    { x: end.x + OUTWARD[bSide].x * inset, y: end.y + OUTWARD[bSide].y * inset },
+  ];
+}
+
+/** Any other layout (filtered, sorted, tablet, phone): snake row by row, alternating direction. */
+function snakeRoute(boxes: Box[]): TrailStep[] {
+  const rows: number[][] = [];
+  boxes
+    .map((b, i) => i)
+    .sort((i, j) => boxes[i].top - boxes[j].top || boxes[i].left - boxes[j].left)
+    .forEach((i) => {
+      const row = rows.find((r) => Math.abs(boxes[r[0]].top - boxes[i].top) < 4);
+      if (row) row.push(i);
+      else rows.push([i]);
+    });
+  const order = rows.flatMap((row, r) => (r % 2 === 0 ? row : [...row].reverse()));
+  const steps: TrailStep[] = [];
+  for (let k = 1; k < order.length; k++) {
+    const a = boxes[order[k - 1]];
+    const b = boxes[order[k]];
+    const sameRow = Math.abs(a.top - b.top) < 4;
+    // Only top and bottom edges: along a row the trail loops over the top, between rows it drops down
+    const [aSide, bSide]: [Side, Side] = sameRow ? ["top", "top"] : ["bottom", "top"];
+    steps.push([order[k - 1] + 1, aSide, order[k] + 1, bSide]);
+  }
+  return steps;
+}
+
+/** Corner radius where the trail turns, in px (shrinks on short legs). */
+const TRAIL_RADIUS = 28;
+
+/** The path as a dense line of points, with each turn swapped for a smooth rounded corner. */
+function roundCorners(path: Point[]): Point[] {
+  const out: Point[] = [path[0]];
+  for (let i = 1; i < path.length - 1; i++) {
+    const [a, c, b] = [path[i - 1], path[i], path[i + 1]];
+    const lenIn = Math.hypot(c.x - a.x, c.y - a.y);
+    const lenOut = Math.hypot(b.x - c.x, b.y - c.y);
+    // The short stubs out of a card can be used up entirely by the curve; shared legs are split in half
+    const r = Math.min(TRAIL_RADIUS, i === 1 ? lenIn : lenIn / 2, i === path.length - 2 ? lenOut : lenOut / 2);
+    if (r < 1) {
+      out.push(c);
+      continue;
+    }
+    const from = { x: c.x + ((a.x - c.x) / lenIn) * r, y: c.y + ((a.y - c.y) / lenIn) * r };
+    const to = { x: c.x + ((b.x - c.x) / lenOut) * r, y: c.y + ((b.y - c.y) / lenOut) * r };
+    // Quadratic curve with the corner as its control point: a smooth quarter turn
+    for (let k = 0; k <= 12; k++) {
+      const t = k / 12;
+      const u = 1 - t;
+      out.push({ x: u * u * from.x + 2 * u * t * c.x + t * t * to.x, y: u * u * from.y + 2 * u * t * c.y + t * t * to.y });
+    }
+  }
+  out.push(path[path.length - 1]);
+  return out;
+}
+
+/** Evenly spaced lights along each leg, each tagged with its distance along the whole trail. */
+function sampleTrail(paths: Point[][]): { lights: TrailLight[]; length: number } {
+  const lights: TrailLight[] = [];
+  let travelled = 0;
+  paths.forEach((raw) => {
+    const path = roundCorners(raw);
+    const lengths = path.slice(1).map((p, i) => Math.hypot(p.x - path[i].x, p.y - path[i].y));
+    const total = lengths.reduce((sum, l) => sum + l, 0);
+    const n = Math.max(1, Math.round(total / TRAIL_SPACING));
+    let seg = 0;
+    let segStart = 0;
+    for (let k = 0; k <= n; k++) {
+      const d = (k / n) * total;
+      while (seg < lengths.length - 1 && segStart + lengths[seg] < d) segStart += lengths[seg++];
+      const t = lengths[seg] ? (d - segStart) / lengths[seg] : 0;
+      const a = path[seg];
+      const b = path[seg + 1];
+      lights.push({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t, d: travelled + d });
+    }
+    travelled += total + TRAIL_SPACING * 4; // a beat between bays, as the pulse "passes through" a card
+  });
+  return { lights, length: travelled };
+}
+
+/**
+ * Taxi trail: a line of lights that winds through the gaps from bay to bay. Lights rest dim white;
+ * a single red streak travels the whole route.
+ */
+function RunwayLights({
+  floorRef,
+  listRef,
+  signature,
+}: {
+  floorRef: React.RefObject<HTMLElement | null>;
+  listRef: React.RefObject<HTMLElement | null>;
+  /** Full, unsorted, unfiltered list: use the hand-drawn route when the layout fits it */
+  signature: boolean;
+}) {
+  const [lights, setLights] = useState<TrailLight[]>([]);
+  const [trailLength, setTrailLength] = useState(0);
+  const layerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const floor = floorRef.current;
+    const list = listRef.current;
+    if (!floor || !list) return;
+
+    const measure = () => {
+      const f = floor.getBoundingClientRect();
+      const rel = (r: DOMRect): Box => ({ left: r.left - f.left, top: r.top - f.top, right: r.right - f.left, bottom: r.bottom - f.top });
+      const boxes: Bay[] = Array.from(list.children).map((child) => {
+        const card = child.querySelector("a") ?? child;
+        return { ...rel(child.getBoundingClientRect()), card: rel(card.getBoundingClientRect()) };
+      });
+      const columns = new Set(boxes.map((b) => Math.round(b.right))).size;
+      const useSignature =
+        signature && columns === 3 && boxes.length >= Math.max(...SIGNATURE_ROUTE.flatMap(([a, , b]) => [a, b]));
+      const steps = useSignature ? SIGNATURE_ROUTE : snakeRoute(boxes);
+      const trail = sampleTrail(steps.map(([a, aSide, b, bSide]) => connector(boxes[a - 1], aSide, boxes[b - 1], bSide)));
+      setLights(trail.lights);
+      setTrailLength(trail.length);
+    };
+
+    const observer = new ResizeObserver(measure);
+    observer.observe(list);
+    window.addEventListener("resize", measure);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, [floorRef, listRef, signature]);
+
+  // One red streak travels the whole route: move its head along the trail every frame
+  useEffect(() => {
+    const layer = layerRef.current;
+    if (!layer || trailLength <= 0 || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let frame = 0;
+    const startedAt = performance.now();
+    const tick = (now: number) => {
+      // Run past the end by a tail length so the streak fully leaves before starting again at bay 01
+      const head = (((now - startedAt) / 1000) * TRAIL_SPEED) % (trailLength + TRAIL_TAIL);
+      layer.style.setProperty("--trail-head", head.toFixed(1));
+      frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [trailLength]);
+
+
   return (
-    <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 z-0 h-full">
-      {/* Roof beam */}
-      <div className="absolute inset-x-0 top-0 h-3 border-b border-white/10 bg-[repeating-linear-gradient(90deg,rgba(255,255,255,0.06)_0_2px,transparent_2px_28px)]" />
-      <div className="absolute inset-x-0 top-3 flex justify-around">
-        {Array.from({ length: LAMPS }, (_, i) => (
-          <div key={i} className="relative flex flex-col items-center">
-            <span className="h-1.5 w-10 rounded-b-full bg-white/80 shadow-[0_0_18px_4px_rgba(255,255,255,0.35)]" />
-            {/* Light cone */}
-            <span
-              className="absolute top-1.5 h-152 w-88 bg-linear-to-b from-white/7 via-white/2.5 to-transparent blur-md"
-              style={{ clipPath: "polygon(46% 0, 54% 0, 100% 100%, 0 100%)" }}
-            />
-          </div>
-        ))}
-      </div>
+    <div
+      ref={layerRef}
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-0 z-0"
+      style={{ "--trail-tail": TRAIL_TAIL } as React.CSSProperties}
+    >
+      {lights.map((light, i) => {
+        return (
+          <span
+            key={i}
+            className="taxi-light absolute h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full"
+            style={{ left: light.x, top: light.y, "--d": light.d.toFixed(1) } as React.CSSProperties}
+          >
+            <span className="taxi-light__glow" />
+          </span>
+        );
+      })}
     </div>
   );
 }
@@ -458,6 +677,8 @@ export default function ProjectsPage() {
   // When we arrive mid-transition (back from a project), skip entry animations so the image has a solid target
   const [arrivedViaTransition] = useState(isViewTransitionActive);
   const sortMenuRef = useRef<HTMLDivElement>(null);
+  const floorRef = useRef<HTMLElement>(null);
+  const listRef = useRef<HTMLOListElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Global keyboard shortcuts
@@ -727,17 +948,13 @@ export default function ProjectsPage() {
 
         {/* Hangar floor */}
         <motion.section
+          ref={floorRef}
           variants={staggerItem}
           aria-label="Projects"
-          className="relative mb-24 overflow-hidden rounded-3xl border border-white/10 bg-[#060606] px-3 pb-6 pt-16 md:px-6 md:pb-8"
-          style={{
-            // Concrete floor: expansion joints + soft vignette
-            backgroundImage:
-              "linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px), radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.05), transparent 70%)",
-            backgroundSize: "160px 160px, 160px 160px, 100% 100%",
-          }}
+          // No container: the bays use the full width; top padding leaves room for the trail over bay 01
+          className="relative mb-24 pt-10"
         >
-          <HangarCeiling />
+          <RunwayLights floorRef={floorRef} listRef={listRef} signature={filtered.length === projects.length && sortBy === "newest"} />
           <div className="relative z-10">
           {filtered.length === 0 ? (
             <div className="relative px-6 py-16 text-center">
@@ -753,7 +970,7 @@ export default function ProjectsPage() {
               </button>
             </div>
           ) : (
-            <ol className="grid grid-flow-dense grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <ol ref={listRef} className="grid grid-flow-dense grid-cols-1 gap-16 md:grid-cols-2 lg:grid-cols-3">
               <AnimatePresence mode="popLayout" initial={!arrivedViaTransition}>
                 {filtered.map((p, i) => (
                   <HangarBay key={p.id} project={p} bay={i + 1} onBeforeOpen={rememberListState}
