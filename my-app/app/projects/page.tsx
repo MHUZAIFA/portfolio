@@ -551,6 +551,153 @@ function sampleTrail(paths: Point[][]): { lights: TrailLight[]; length: number }
   return { lights, length: travelled };
 }
 
+/* Ground marshallers: little crew members with light wands, waving the trail along */
+
+type Direction = "up" | "down" | "left" | "right";
+type Marshal = Point & { d: number; dir: Direction };
+
+/** A marshaller every this many px along long straight runs. */
+const MARSHAL_SPACING = 240;
+/** Keep straight-run marshallers this far from the turns (which get their own). */
+const MARSHAL_TURN_CLEARANCE = 70;
+
+function directionOf(a: Point, b: Point): Direction {
+  if (Math.abs(b.x - a.x) > Math.abs(b.y - a.y)) return b.x > a.x ? "right" : "left";
+  return b.y > a.y ? "down" : "up";
+}
+
+/**
+ * Where the marshallers stand, each signalling the way the trail goes from there:
+ * - at every turn, just outside the bend on the lane, pointing where the trail turns to
+ * - along long straight runs, standing in the gap below the trail, pointing along it
+ */
+function placeMarshals(paths: Point[][], lights: TrailLight[]): Marshal[] {
+  const out: Marshal[] = [];
+  const distanceAt = (p: Point) =>
+    lights.reduce((best, l) => (Math.hypot(l.x - p.x, l.y - p.y) < Math.hypot(best.x - p.x, best.y - p.y) ? l : best)).d;
+  const add = (p: Point, dir: Direction) => out.push({ ...p, d: distanceAt(p), dir });
+
+  paths.forEach((raw) => {
+    // Short straight drops between rows (no turns) get no marshaller
+    if (Math.abs(raw[0].x - raw[raw.length - 1].x) < 1) return;
+    // Drop repeated points (a leg with no middle bend has its two lane points on top of each other)
+    const path = raw.filter((p, i) => i === 0 || Math.hypot(p.x - raw[i - 1].x, p.y - raw[i - 1].y) > 0.5);
+
+    // Turns: the vertical stub meets the lane. Stand on the lane, just past the corner on the outside.
+    for (let i = 1; i < path.length - 1; i++) {
+      const [a, c, b] = [path[i - 1], path[i], path[i + 1]];
+      const inDir = directionOf(a, c);
+      const outDir = directionOf(c, b);
+      if (inDir === outDir) continue;
+      const horizontal = outDir === "left" || outDir === "right" ? outDir : inDir;
+      const leaving = horizontal === outDir; // stub → lane: stand behind the corner; lane → stub: beyond it
+      const sign = (horizontal === "right" ? 1 : -1) * (leaving ? -1 : 1);
+      add({ x: c.x + sign * 20, y: c.y }, outDir);
+    }
+
+    for (let i = 1; i < path.length; i++) {
+      const [a, b] = [path[i - 1], path[i]];
+      const dir = directionOf(a, b);
+      if (dir === "left" || dir === "right") {
+        // Long straight runs: evenly spaced, clear of the turns at either end
+        const len = Math.abs(b.x - a.x) - 2 * MARSHAL_TURN_CLEARANCE;
+        const count = Math.floor(len / MARSHAL_SPACING);
+        for (let k = 0; k < count; k++) {
+          const t = (k + 0.5) / count;
+          const x = Math.min(a.x, b.x) + MARSHAL_TURN_CLEARANCE + t * len;
+          add({ x, y: a.y + 17 }, dir);
+        }
+      }
+    }
+  });
+  return out;
+}
+
+/**
+ * Arm angles (degrees, 0 = straight up, clockwise) for each signal. One arm points the way,
+ * the other sweeps toward it, like a marshaller waving an aircraft on.
+ * [left arm from, left arm to, right arm from, right arm to] (as seen by the viewer)
+ */
+const SIGNAL: Record<Direction, [number, number, number, number]> = {
+  right: [-15, 75, 86, 94],
+  left: [-94, -86, 15, -75],
+  up: [-35, 5, -5, 35],
+  down: [-150, -115, 115, 150],
+};
+
+/**
+ * A small shaded marshaller (hard hat, hi-vis vest with reflective tape) holding two red light
+ * wands and signalling which way to go. The wands glow brighter as the red streak passes.
+ */
+function Marshaller({ marshal }: { marshal: Marshal }) {
+  const id = `m${Math.round(marshal.x)}-${Math.round(marshal.y)}`;
+  const [l1, l2, r1, r2] = SIGNAL[marshal.dir];
+  const arm = (from: number, to: number) =>
+    ({ "--arm-from": `${from}deg`, "--arm-to": `${to}deg` }) as React.CSSProperties;
+  return (
+    <div
+      className="marshal absolute -translate-x-1/2 -translate-y-1/2"
+      style={{ left: marshal.x, top: marshal.y, "--d": marshal.d.toFixed(1) } as React.CSSProperties}
+    >
+      <svg viewBox="0 0 24 30" width="22" height="28" overflow="visible">
+        <defs>
+          <linearGradient id={`${id}-vest`} x1="0" x2="1">
+            <stop offset="0" stopColor="#3a3a3e" />
+            <stop offset="0.45" stopColor="#1c1c1f" />
+            <stop offset="1" stopColor="#0b0b0c" />
+          </linearGradient>
+          <radialGradient id={`${id}-skin`} cx="0.35" cy="0.35" r="0.75">
+            <stop offset="0" stopColor="#e9c2a0" />
+            <stop offset="1" stopColor="#8a5a3c" />
+          </radialGradient>
+          <linearGradient id={`${id}-hat`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor="#ffffff" />
+            <stop offset="1" stopColor="#9a9aa0" />
+          </linearGradient>
+          <linearGradient id={`${id}-leg`} x1="0" x2="1">
+            <stop offset="0" stopColor="#2a2a2e" />
+            <stop offset="1" stopColor="#09090a" />
+          </linearGradient>
+        </defs>
+
+        {/* Ground shadow */}
+        <ellipse cx="12" cy="28.6" rx="6.5" ry="1.3" fill="rgba(0,0,0,0.6)" />
+
+        {/* Legs and boots */}
+        <rect x="8.8" y="19.5" width="2.7" height="8.5" rx="1.1" fill={`url(#${id}-leg)`} />
+        <rect x="12.5" y="19.5" width="2.7" height="8.5" rx="1.1" fill={`url(#${id}-leg)`} />
+        <rect x="8.3" y="27" width="3.4" height="1.6" rx="0.8" fill="#050505" />
+        <rect x="12.3" y="27" width="3.4" height="1.6" rx="0.8" fill="#050505" />
+
+        {/* Right arm (viewer's right) */}
+        <g className="marshal__arm marshal__arm--right" style={arm(r1, r2)}>
+          <rect x="15.2" y="5.5" width="2.2" height="7.5" rx="1.1" fill="#232326" />
+          <rect className="marshal__wand" x="15" y="-1.5" width="2.6" height="7.5" rx="1.3" />
+        </g>
+
+        {/* Body: vest with reflective tape */}
+        <rect x="7.4" y="10.6" width="9.2" height="10" rx="2.6" fill={`url(#${id}-vest)`} />
+        <rect x="7.4" y="14.2" width="9.2" height="1" fill="rgba(255,255,255,0.75)" />
+        <rect x="7.4" y="17.2" width="9.2" height="1" fill="rgba(255,255,255,0.75)" />
+        <rect x="11.5" y="10.6" width="1" height="10" fill="rgba(248,113,113,0.55)" />
+
+        {/* Head, ear defenders, hard hat */}
+        <circle cx="12" cy="7.4" r="3.1" fill={`url(#${id}-skin)`} />
+        <rect x="8.3" y="6.6" width="1.4" height="2.4" rx="0.6" fill="#f87171" />
+        <rect x="14.3" y="6.6" width="1.4" height="2.4" rx="0.6" fill="#f87171" />
+        <path d="M8.4 6.4 a3.6 3.6 0 0 1 7.2 0 z" fill={`url(#${id}-hat)`} />
+        <rect x="7.6" y="6" width="8.8" height="0.9" rx="0.45" fill="#d4d4d8" />
+
+        {/* Left arm (viewer's left) */}
+        <g className="marshal__arm marshal__arm--left" style={arm(l1, l2)}>
+          <rect x="6.6" y="5.5" width="2.2" height="7.5" rx="1.1" fill="#2c2c30" />
+          <rect className="marshal__wand" x="6.4" y="-1.5" width="2.6" height="7.5" rx="1.3" />
+        </g>
+      </svg>
+    </div>
+  );
+}
+
 /**
  * Taxi trail: a line of lights that winds through the gaps from bay to bay. Lights rest dim white;
  * a single red streak travels the whole route.
@@ -567,6 +714,7 @@ function RunwayLights({
 }) {
   const [lights, setLights] = useState<TrailLight[]>([]);
   const [trailLength, setTrailLength] = useState(0);
+  const [marshals, setMarshals] = useState<Marshal[]>([]);
   const layerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -585,8 +733,10 @@ function RunwayLights({
       const useSignature =
         signature && columns === 3 && boxes.length >= Math.max(...SIGNATURE_ROUTE.flatMap(([a, , b]) => [a, b]));
       const steps = useSignature ? SIGNATURE_ROUTE : snakeRoute(boxes);
-      const trail = sampleTrail(steps.map(([a, aSide, b, bSide]) => connector(boxes[a - 1], aSide, boxes[b - 1], bSide)));
+      const paths = steps.map(([a, aSide, b, bSide]) => connector(boxes[a - 1], aSide, boxes[b - 1], bSide));
+      const trail = sampleTrail(paths);
       setLights(trail.lights);
+      setMarshals(trail.lights.length ? placeMarshals(paths, trail.lights) : []);
       setTrailLength(trail.length);
     };
 
@@ -634,6 +784,9 @@ function RunwayLights({
           </span>
         );
       })}
+      {marshals.map((m) => (
+        <Marshaller key={`${Math.round(m.x)}-${Math.round(m.y)}`} marshal={m} />
+      ))}
     </div>
   );
 }
@@ -952,7 +1105,7 @@ export default function ProjectsPage() {
           variants={staggerItem}
           aria-label="Projects"
           // No container: the bays use the full width; top padding leaves room for the trail over bay 01
-          className="relative mb-24 pt-10"
+          className="relative mb-24 pt-12"
         >
           <RunwayLights floorRef={floorRef} listRef={listRef} signature={filtered.length === projects.length && sortBy === "newest"} />
           <div className="relative z-10">
