@@ -1,9 +1,19 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect, useMemo, useRef, type ReactNode } from "react";
+import { useState, useEffect, useLayoutEffect, useMemo, useRef, type ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import {
+  navigateWithTransition,
+  isViewTransitionActive,
+  projectHeroName,
+  heroTransitionProps,
+  saveListState,
+  readReturningListState,
+  clearReturningFlag,
+} from "@/lib/view-transition";
 import { Search, X, ArrowUpDown, Check, Star, ArrowUpRight, Warehouse, CalendarCheck, Rocket, Keyboard } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { hapticManager } from "@/lib/haptic-manager";
@@ -253,8 +263,19 @@ function BayCorners({ tone }: { tone: string }) {
 
 const HAZARD = "bg-[repeating-linear-gradient(-45deg,rgba(239,68,68,0.75)_0_6px,transparent_6px_12px)]";
 
-function HangarBay({ project, bay }: { project: Project; bay: number }) {
+function HangarBay({ project, bay, onBeforeOpen }: { project: Project; bay: number; onBeforeOpen: () => void }) {
   const wide = project.featured;
+  const router = useRouter();
+  const href = `/projects/${project.id}`;
+
+  // Cinematic hand-off to the details page (plain clicks only; cmd/ctrl/middle-click open a new tab as usual)
+  const onOpen = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    hapticManager.light();
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+    e.preventDefault();
+    onBeforeOpen();
+    navigateWithTransition(router, href, "forward", projectHeroName(project.id));
+  };
 
   // Spotlight follows the cursor across the card
   const onMove = (e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -292,9 +313,11 @@ function HangarBay({ project, bay }: { project: Project; bay: number }) {
       )}
 
       <Link
-        href={`/projects/${project.id}`}
-        onClick={() => hapticManager.light()}
+        href={href}
+        onClick={onOpen}
         onMouseMove={onMove}
+        // Load the project page ahead of the click so the transition starts instantly
+        onPointerEnter={() => router.prefetch(href)}
         className={`flex h-full flex-col ${TICKET} ${wide ? "md:flex-row" : ""}`}
       >
         <Edge />
@@ -311,6 +334,8 @@ function HangarBay({ project, bay }: { project: Project; bay: number }) {
           className={`relative aspect-video w-full shrink-0 overflow-hidden bg-white/[0.03] ${
             wide ? "md:aspect-auto md:w-1/2" : ""
           }`}
+          // Morphs into the full-screen image on the details page
+          {...heroTransitionProps(project.id)}
         >
           <Image
             src={project.thumbnail}
@@ -397,12 +422,25 @@ const SHORTCUTS: Shortcut[] = [
 ];
 
 export default function ProjectsPage() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState<SortOption>("newest");
+  // Coming back from a project: pick up the filters and scroll position we left with
+  const [returning] = useState(readReturningListState);
+  const [searchQuery, setSearchQuery] = useState(returning?.searchQuery ?? "");
+  const [activeCategory, setActiveCategory] = useState<string | null>(returning?.activeCategory ?? null);
+  const [sortBy, setSortBy] = useState<SortOption>((returning?.sortBy as SortOption) ?? "newest");
+
+  // Restore the scroll position before paint, so the transition's image lands on its own bay
+  useLayoutEffect(() => {
+    if (returning) window.scrollTo({ top: returning.scrollY, behavior: "instant" });
+    clearReturningFlag();
+  }, [returning]);
+
+  const rememberListState = () =>
+    saveListState({ scrollY: window.scrollY, searchQuery, activeCategory, sortBy });
   const [sortOpen, setSortOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [matrixOn, setMatrixOn] = useState(false);
+  // When we arrive mid-transition (back from a project), skip entry animations so the image has a solid target
+  const [arrivedViaTransition] = useState(isViewTransitionActive);
   const sortMenuRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -503,7 +541,7 @@ export default function ProjectsPage() {
       <ShortcutsOverlay open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} shortcuts={SHORTCUTS} />
 
       <motion.div
-        initial="initial"
+        initial={arrivedViaTransition ? false : "initial"}
         animate="animate"
         variants={staggerContainer}
         className="relative mx-auto mt-12 max-w-7xl px-4 py-24 md:px-8"
@@ -700,9 +738,9 @@ export default function ProjectsPage() {
             </div>
           ) : (
             <ol className="grid grid-flow-dense grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-              <AnimatePresence mode="popLayout">
+              <AnimatePresence mode="popLayout" initial={!arrivedViaTransition}>
                 {filtered.map((p, i) => (
-                  <HangarBay key={p.id} project={p} bay={i + 1} />
+                  <HangarBay key={p.id} project={p} bay={i + 1} onBeforeOpen={rememberListState} />
                 ))}
               </AnimatePresence>
             </ol>

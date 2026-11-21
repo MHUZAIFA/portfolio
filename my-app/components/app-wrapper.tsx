@@ -3,6 +3,7 @@
 import { useState, useEffect, lazy, Suspense } from "react";
 import { LoadingScreen } from "@/components/loading-screen";
 import { Navigation } from "@/components/navigation";
+import { ViewTransitionResolver } from "@/components/view-transition-resolver";
 import { MotionProvider } from "@/components/providers/motion-provider";
 import { AudioController } from "@/lib/audio-controller";
 
@@ -65,6 +66,7 @@ export function AppWrapper({ children }: { children: React.ReactNode }) {
         </Suspense>
       )}
       <div className="flex min-h-dvh flex-col bg-black text-white">
+        <ViewTransitionResolver />
         {!isLoading && <Navigation />}
         <main id="main-content" className="flex-1 w-full">
           {children}

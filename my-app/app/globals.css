@@ -273,3 +273,133 @@ html {
     );
   }
 }
+
+/* ─────────────────────────────────────────────────────────
+   Cinematic project transitions (View Transitions API)
+   Driven by lib/view-transition.ts; html[data-vt] holds the direction.
+   Only opacity + transform are animated (GPU-composited) so it stays at 60fps.
+   ───────────────────────────────────────────────────────── */
+
+:root {
+  /* iOS-like ease: quick start, long soft landing */
+  --vt-ease: cubic-bezier(0.32, 0.72, 0, 1);
+  --vt-hero: 0.75s;
+}
+
+::view-transition {
+  background: #000;
+}
+
+/* Both page snapshots stay underneath; the travelling image (z-index 100 below) is always on top,
+   whether it's expanding (forward) or collapsing back into its bay (back) */
+::view-transition-group(root) {
+  z-index: 0;
+}
+
+/* The shared project image glides between the bay and the full-screen display */
+::view-transition-group(.project-hero) {
+  animation-duration: var(--vt-hero);
+  animation-timing-function: var(--vt-ease);
+  /* Always on top of both pages (and anything else that animates) while it travels */
+  z-index: 100;
+}
+::view-transition-old(.project-hero),
+::view-transition-new(.project-hero) {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  animation-duration: var(--vt-hero);
+  animation-timing-function: var(--vt-ease);
+}
+
+/* Rounded corners while the image travels: from the card's radius to the full-screen display and back */
+::view-transition-image-pair(.project-hero) {
+  overflow: hidden;
+  border-radius: 16px;
+}
+/*
+ * Radius runs on its own linear clock (with per-step easing) so it can be timed against the
+ * movement: the glide is front-loaded, so the image is close to full screen by ~45% of the time.
+ */
+html[data-vt="forward"]::view-transition-image-pair(.project-hero) {
+  animation: vt-corners-open var(--vt-hero) linear both;
+}
+html[data-vt="back"]::view-transition-image-pair(.project-hero) {
+  animation: vt-corners-close var(--vt-hero) linear both;
+}
+/* Opening: stays rounded in flight, then slowly squares off only as it fills the screen */
+@keyframes vt-corners-open {
+  0% {
+    border-radius: 16px;
+    animation-timing-function: ease-out;
+  }
+  40% {
+    border-radius: 24px;
+    animation-timing-function: cubic-bezier(0.45, 0, 0.25, 1);
+  }
+  100% {
+    border-radius: 0;
+  }
+}
+/* Closing: leaves full screen square, slowly rounds as it starts to shrink, lands with the card's radius */
+@keyframes vt-corners-close {
+  0% {
+    border-radius: 0;
+    animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
+  }
+  55% {
+    border-radius: 24px;
+    animation-timing-function: ease-in-out;
+  }
+  100% {
+    border-radius: 16px;
+  }
+}
+
+/* Forward (list → details): the hangar recedes, the cockpit fades in behind the arriving image */
+html[data-vt="forward"]::view-transition-old(root) {
+  animation: vt-recede 0.4s cubic-bezier(0.4, 0, 1, 1) both;
+}
+html[data-vt="forward"]::view-transition-new(root) {
+  animation: vt-fade-in 0.45s 0.3s ease-out both;
+}
+
+/* Back (details → list): the cockpit lifts away, the hangar settles back */
+html[data-vt="back"]::view-transition-old(root) {
+  animation: vt-lift 0.35s cubic-bezier(0.4, 0, 1, 1) both;
+}
+html[data-vt="back"]::view-transition-new(root) {
+  animation: vt-settle 0.5s 0.2s var(--vt-ease) both;
+}
+
+@keyframes vt-recede {
+  to {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+@keyframes vt-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes vt-lift {
+  to {
+    opacity: 0;
+    transform: scale(1.02);
+  }
+}
+@keyframes vt-settle {
+  from {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}

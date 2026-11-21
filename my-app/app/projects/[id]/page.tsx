@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+import { navigateWithTransition, projectHeroName, heroTransitionProps, isViewTransitionActive } from "@/lib/view-transition";
 import {
   ExternalLink,
   Github,
@@ -18,7 +19,6 @@ import {
   Maximize2,
 } from "lucide-react";
 import { hapticManager } from "@/lib/haptic-manager";
-import { staggerContainer, staggerItem } from "@/components/providers/motion-provider";
 import { useEffect, use, useState } from "react";
 
 interface Project {
@@ -405,6 +405,46 @@ const ACCORDION_TRANSITION = {
   opacity: { duration: 0.25, ease: "easeOut" as const },
 };
 
+/* ── Arrival choreography ─────────────────────────────────────────────── */
+
+const HUD_EASE = [0.22, 1, 0.36, 1] as const;
+
+/**
+ * Each HUD piece rises in and comes into focus. The filter is cleared to `none` at the end: any
+ * leftover filter (even blur(0)) would stop the glass panels inside from blurring the image behind.
+ */
+const HUD_ITEM = {
+  initial: { opacity: 0, y: 18, filter: "blur(6px)" },
+  animate: {
+    opacity: 1,
+    y: 0,
+    filter: "blur(0px)",
+    transition: { duration: 0.65, ease: HUD_EASE },
+    transitionEnd: { filter: "none" },
+  },
+};
+
+/**
+ * Iris vignette: a perfect circle of darkness that starts beyond the screen corners and closes in
+ * towards the centre, settling as a vignette around the image.
+ */
+function RadialOverlay({ delay, strength = 0.85 }: { delay: number; strength?: number }) {
+  const ring = (clear: number, dark: number) =>
+    `radial-gradient(circle at 50% 50%, rgba(0,0,0,0) ${clear}%, rgba(0,0,0,${strength}) ${dark}%)`;
+  return (
+    <motion.span
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-0"
+      initial={{ background: ring(105, 140), opacity: 0 }}
+      animate={{ background: ring(25, 80), opacity: 1 }}
+      transition={{
+        background: { duration: 1.1, delay, ease: HUD_EASE },
+        opacity: { duration: 0.3, delay },
+      }}
+    />
+  );
+}
+
 const SCANLINES =
   "pointer-events-none absolute inset-0 bg-[repeating-linear-gradient(0deg,transparent_0_2px,rgba(0,0,0,0.28)_2px_3px)]";
 
@@ -589,6 +629,15 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
     });
   const [briefingOpen, setBriefingOpen] = useState(false);
 
+  // Arrival choreography: image (morph) → overlay from the corners → HUD pieces one after another.
+  // Arriving through the cinematic transition, wait for the image morph to finish first.
+  const [viaTransition] = useState(isViewTransitionActive);
+  const overlayDelay = viaTransition ? 0.7 : 0.1;
+  const hudContainer = {
+    initial: {},
+    animate: { transition: { delayChildren: overlayDelay + 0.55, staggerChildren: 0.11 } },
+  };
+
   const imagesToShow =
     project?.additionalImages && project.additionalImages.length > 0
       ? project.additionalImages
@@ -607,7 +656,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         if (lightboxOpen) setLightboxOpen(false);
-        else router.push("/projects");
+        else navigateWithTransition(router, "/projects", "back", projectHeroName(id));
       } else if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
         const t = event.target as HTMLElement;
         if (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable) return;
@@ -622,7 +671,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [router, lightboxOpen, imagesToShow.length]);
+  }, [router, lightboxOpen, imagesToShow.length, id]);
 
   const openImage = (src: string) => {
     const i = imagesToShow.indexOf(src);
@@ -663,6 +712,18 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
   const displaySrc = imagesToShow[displayIndex] ?? project.image;
 
   const corner = "pointer-events-none absolute h-8 w-8 border-white/40";
+
+  /**
+   * Cinematic navigation. The full-screen image shares a name with this project's bay on the list;
+   * `heroId` is the project whose image the destination shows (waited on before animating).
+   */
+  const go = (e: React.MouseEvent<HTMLAnchorElement>, href: string, direction: "forward" | "back", heroId: string) => {
+    hapticManager.light();
+    // Let cmd/ctrl/shift/middle-click open a new tab as usual
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+    e.preventDefault();
+    navigateWithTransition(router, href, direction, projectHeroName(heroId));
+  };
 
   /* Shared between the desktop HUD and the mobile layout */
   const toggleBriefing = () => {
@@ -824,7 +885,9 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
         }}
       >
         {/* Background: the selected camera feed */}
-        <AnimatePresence mode="sync">
+        {/* Shares a view-transition name with the project's bay image on the list, so it morphs between them */}
+        <div className="absolute inset-0" {...heroTransitionProps(project.id)}>
+        <AnimatePresence mode="sync" initial={false}>
           <motion.div
             key={displaySrc}
             initial={{ opacity: 0 }}
@@ -836,30 +899,54 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
             <Image src={displaySrc} alt="" fill priority sizes="100vw" className="object-cover" />
           </motion.div>
         </AnimatePresence>
-        {/* Readability: darken the edges where the HUD sits */}
-        <span aria-hidden="true" className="pointer-events-none absolute inset-0 bg-linear-to-t from-black via-black/40 to-black/60" />
-        <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-0 w-2/3 bg-linear-to-r from-black/85 via-black/40 to-transparent" />
-        <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 w-[560px] bg-linear-to-l from-black/85 via-black/50 to-transparent" />
-        <span aria-hidden="true" className={`${SCANLINES} opacity-60`} />
+        </div>
+        {/* Arrival, step 2: a radial iris of darkness closes in, then the readability gradients settle */}
+        <RadialOverlay delay={overlayDelay} />
+        <motion.div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: overlayDelay + 0.2, ease: "easeOut" }}
+        >
+          <span className="absolute inset-0 bg-linear-to-t from-black via-black/40 to-black/60" />
+          <span className="absolute inset-y-0 left-0 w-2/3 bg-linear-to-r from-black/85 via-black/40 to-transparent" />
+          <span className="absolute inset-y-0 right-0 w-[560px] bg-linear-to-l from-black/85 via-black/50 to-transparent" />
+          <span className={`${SCANLINES} opacity-60`} />
+        </motion.div>
 
-        {/* HUD frame */}
-        <span aria-hidden="true" className={`${corner} left-8 top-24 border-l-2 border-t-2`} />
-        <span aria-hidden="true" className={`${corner} right-8 top-24 border-r-2 border-t-2`} />
-        <span aria-hidden="true" className={`${corner} bottom-4 left-8 border-b-2 border-l-2`} />
-        <span aria-hidden="true" className={`${corner} bottom-4 right-8 border-b-2 border-r-2`} />
+        {/* HUD frame: brackets fly in from the screen corners */}
+        {(
+          [
+            ["left-8 top-24 border-l-2 border-t-2", -1, -1],
+            ["right-8 top-24 border-r-2 border-t-2", 1, -1],
+            ["bottom-4 left-8 border-b-2 border-l-2", -1, 1],
+            ["bottom-4 right-8 border-b-2 border-r-2", 1, 1],
+          ] as const
+        ).map(([pos, dx, dy]) => (
+          <motion.span
+            key={pos}
+            aria-hidden="true"
+            className={`${corner} ${pos}`}
+            initial={{ opacity: 0, x: dx * 60, y: dy * 60 }}
+            animate={{ opacity: 1, x: 0, y: 0 }}
+            transition={{ duration: 0.8, delay: overlayDelay + 0.15, ease: HUD_EASE }}
+          />
+        ))}
 
+        {/* Arrival, step 3: the interface comes in piece by piece */}
         <motion.div
           initial="initial"
           animate="animate"
-          variants={staggerContainer}
+          variants={hudContainer}
           className="relative mx-auto flex h-full max-w-[1600px] flex-col px-16 pb-14 pt-28"
         >
           {/* Top row */}
-          <motion.div data-hud-ui variants={staggerItem} className="flex items-start justify-between gap-6">
+          <motion.div data-hud-ui variants={HUD_ITEM} className="flex items-start justify-between gap-6">
             <div className="flex items-center gap-4">
               <Link
                 href="/projects"
-                onClick={() => hapticManager.light()}
+                onClick={(e) => go(e, "/projects", "back", project.id)}
                 className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm text-white/85 transition-colors hover:border-white/35 hover:text-white ${GLASS_SURFACE}`}
               >
                 <ArrowLeft className="h-3.5 w-3.5" /> All projects
@@ -882,7 +969,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
                   {prevProject && (
                     <Link
                       href={`/projects/${prevProject.id}`}
-                      onClick={() => hapticManager.light()}
+                      onClick={(e) => go(e, `/projects/${prevProject.id}`, "forward", prevProject.id)}
                       title={prevProject.name}
                       className={`inline-flex max-w-52 items-center gap-2 rounded-full px-3.5 py-1.5 text-sm text-white/80 transition-colors hover:border-white/30 hover:text-white ${GLASS_SURFACE}`}
                     >
@@ -893,7 +980,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
                   {nextProject && (
                     <Link
                       href={`/projects/${nextProject.id}`}
-                      onClick={() => hapticManager.light()}
+                      onClick={(e) => go(e, `/projects/${nextProject.id}`, "forward", nextProject.id)}
                       title={nextProject.name}
                       className={`inline-flex max-w-52 items-center gap-2 rounded-full px-3.5 py-1.5 text-sm text-white/80 transition-colors hover:border-white/30 hover:text-white ${GLASS_SURFACE}`}
                     >
@@ -910,10 +997,10 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
           <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_400px] gap-12 pt-6 xl:grid-cols-[minmax(0,1fr)_440px]">
             {/* Left: title, description, briefing, links */}
             <div className="flex min-h-0 flex-col justify-end">
-              <motion.h1 data-hud-ui variants={staggerItem} className="text-5xl font-bold leading-tight text-white xl:text-6xl">
+              <motion.h1 data-hud-ui variants={HUD_ITEM} className="text-5xl font-bold leading-tight text-white xl:text-6xl">
                 {project.name}
               </motion.h1>
-              <motion.div data-hud-ui variants={staggerItem} className={`mt-6 flex min-h-0 max-w-2xl flex-col p-5 ${GLASS}`}>
+              <motion.div data-hud-ui variants={HUD_ITEM} className={`mt-6 flex min-h-0 max-w-2xl flex-col p-5 ${GLASS}`}>
                 {/* Briefing accordion */}
                 <button
                   type="button"
@@ -930,7 +1017,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
               </motion.div>
 
               {links.length > 0 && (
-                <motion.div data-hud-ui variants={staggerItem} className="mt-5 flex flex-wrap gap-3">
+                <motion.div data-hud-ui variants={HUD_ITEM} className="mt-5 flex flex-wrap gap-3">
                   {links.map((l) => (
                     <Annunciator key={l.url} href={l.url} label={l.label} sub={l.sub} lit={l.lit} icon={l.icon} glass />
                   ))}
@@ -939,7 +1026,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
 
               {/* Camera feeds filmstrip switches the main display */}
               {imagesToShow.length > 1 && (
-            <motion.div data-hud-ui variants={staggerItem} className="mt-6 flex flex-col gap-2">
+            <motion.div data-hud-ui variants={HUD_ITEM} className="mt-6 flex flex-col gap-2">
               <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-white/40">Camera feeds</span>
               {renderFeeds(true)}
             </motion.div>
@@ -948,14 +1035,14 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
 
             {/* Right: gauges + systems (bottom padding clears the fixed ⌘K button) */}
             <div className="flex min-h-0 flex-col gap-4 pb-14">
-              <motion.div data-hud-ui variants={staggerItem} className="grid grid-cols-4 gap-3">
+              <motion.div data-hud-ui variants={HUD_ITEM} className="grid grid-cols-4 gap-3">
                 {gaugesCompact}
               </motion.div>
 
               {features.length > 0 && (
                 <motion.div
                   data-hud-ui
-                  variants={staggerItem}
+                  variants={HUD_ITEM}
                   className={`flex min-h-0 flex-1 flex-col overflow-hidden pl-5 pt-5 ${GLASS}`}
                 >
                   <div className="mb-3 flex items-center justify-between pr-5">
@@ -974,7 +1061,8 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
       {/* Mobile / tablet: the image stays fixed behind, iOS-style glass cards scroll over it */}
       <div className="lg:hidden">
         <div aria-hidden="true" className="fixed inset-0 z-0">
-          <AnimatePresence mode="sync">
+          <div className="absolute inset-0" {...heroTransitionProps(project.id)}>
+          <AnimatePresence mode="sync" initial={false}>
             <motion.div
               key={displaySrc}
               initial={{ opacity: 0 }}
@@ -986,22 +1074,31 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
               <Image src={displaySrc} alt="" fill priority sizes="100vw" className="object-cover" />
             </motion.div>
           </AnimatePresence>
-          <span className="absolute inset-0 bg-black/55" />
-          <span className="absolute inset-0 bg-linear-to-b from-black/50 via-black/20 to-black/80" />
-          <span className={`${SCANLINES} opacity-50`} />
+          </div>
+          <RadialOverlay delay={overlayDelay} strength={0.7} />
+          <motion.div
+            className="absolute inset-0"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8, delay: overlayDelay + 0.2, ease: "easeOut" }}
+          >
+            <span className="absolute inset-0 bg-black/55" />
+            <span className="absolute inset-0 bg-linear-to-b from-black/50 via-black/20 to-black/80" />
+            <span className={`${SCANLINES} opacity-50`} />
+          </motion.div>
         </div>
 
         <motion.div
           initial="initial"
           animate="animate"
-          variants={staggerContainer}
+          variants={hudContainer}
           className="relative z-10 mx-auto max-w-2xl px-4 pb-24 pt-24 sm:px-6"
         >
           {/* Top bar */}
-          <motion.div variants={staggerItem} className="flex items-center justify-between gap-3">
+          <motion.div variants={HUD_ITEM} className="flex items-center justify-between gap-3">
             <Link
               href="/projects"
-              onClick={() => hapticManager.light()}
+              onClick={(e) => go(e, "/projects", "back", project.id)}
               className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm text-white/85 ${GLASS_SURFACE}`}
             >
               <ArrowLeft className="h-3.5 w-3.5" /> All projects
@@ -1019,7 +1116,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
           </motion.div>
 
           {/* Title */}
-          <motion.div variants={staggerItem} className="mt-10">
+          <motion.div variants={HUD_ITEM} className="mt-10">
             <p className="flex flex-wrap items-center gap-2 font-mono text-[10px] uppercase tracking-[0.3em] text-red-400">
               <Gauge2 className="h-3.5 w-3.5" /> Flight deck
               {project.category && <span className="text-white/60">· {project.category}</span>}
@@ -1032,7 +1129,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
 
           {/* Camera feeds */}
           {imagesToShow.length > 1 && (
-            <motion.div variants={staggerItem} className="mt-8">
+            <motion.div variants={HUD_ITEM} className="mt-8">
               <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.3em] text-white/45">Camera feeds</p>
               {renderFeeds(false)}
             </motion.div>
@@ -1040,7 +1137,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
 
           <div className="mt-8 space-y-6">
             {/* Briefing */}
-            <motion.div variants={staggerItem} className={`p-5 ${GLASS}`}>
+            <motion.div variants={HUD_ITEM} className={`p-5 ${GLASS}`}>
               <button
                 type="button"
                 aria-expanded={briefingOpen}
@@ -1060,7 +1157,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
 
             {/* Links */}
             {links.length > 0 && (
-              <motion.div variants={staggerItem} className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap">
+              <motion.div variants={HUD_ITEM} className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap">
                 {links.map((l) => (
                   <Annunciator key={l.url} href={l.url} label={l.label} sub={l.sub} lit={l.lit} icon={l.icon} glass />
                 ))}
@@ -1068,13 +1165,13 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
             )}
 
             {/* Gauges */}
-            <motion.div variants={staggerItem} className="grid grid-cols-4 gap-4 px-1 sm:gap-6">
+            <motion.div variants={HUD_ITEM} className="grid grid-cols-4 gap-4 px-1 sm:gap-6">
               {gaugesCompact}
             </motion.div>
 
             {/* Systems */}
             {features.length > 0 && (
-              <motion.div variants={staggerItem} className={`px-5 pb-2 pt-5 ${GLASS}`}>
+              <motion.div variants={HUD_ITEM} className={`px-5 pb-2 pt-5 ${GLASS}`}>
                 <div className="mb-2 flex items-center justify-between gap-3">
                   <Placard>Systems · {features.length}</Placard>
                   {expandAllButton}
@@ -1085,11 +1182,11 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
 
             {/* Previous / next */}
             {(prevProject || nextProject) && (
-              <motion.nav variants={staggerItem} aria-label="More projects" className="grid grid-cols-2 gap-3 pt-4">
+              <motion.nav variants={HUD_ITEM} aria-label="More projects" className="grid grid-cols-2 gap-3 pt-4">
                 {prevProject ? (
                   <Link
                     href={`/projects/${prevProject.id}`}
-                    onClick={() => hapticManager.light()}
+                    onClick={(e) => go(e, `/projects/${prevProject.id}`, "forward", prevProject.id)}
                     className={`flex min-w-0 flex-col gap-1 p-4 ${nextProject ? "" : "col-span-2"} ${GLASS}`}
                   >
                     <span className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.25em] text-white/45">
@@ -1101,7 +1198,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
                 {nextProject && (
                   <Link
                     href={`/projects/${nextProject.id}`}
-                    onClick={() => hapticManager.light()}
+                    onClick={(e) => go(e, `/projects/${nextProject.id}`, "forward", nextProject.id)}
                     className={`flex min-w-0 flex-col items-end gap-1 p-4 text-right ${prevProject ? "" : "col-span-2"} ${GLASS}`}
                   >
                     <span className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.25em] text-white/45">
