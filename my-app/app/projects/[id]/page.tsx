@@ -1,10 +1,22 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
-import { ExternalLink, Github, ArrowLeft, ChevronLeft, ChevronRight, X } from "lucide-react";
+import Link from "next/link";
+import {
+  ExternalLink,
+  Github,
+  ArrowLeft,
+  ArrowRight,
+  ArrowUpRight,
+  ChevronLeft,
+  ChevronRight,
+  X,
+  Gauge as Gauge2,
+  ChevronDown,
+  Maximize2,
+} from "lucide-react";
 import { hapticManager } from "@/lib/haptic-manager";
 import { staggerContainer, staggerItem } from "@/components/providers/motion-provider";
 import { useEffect, use, useState } from "react";
@@ -50,10 +62,12 @@ const projects: Record<string, Project> = {
       "Private by Design: No calendar sync, no sign-in, and nothing leaves your machine.",
     ],
     additionalImages: [
+      "/imgs/projects/flightdeck-panel-light.png",
       "/imgs/projects/flightdeck-hero.png",
       "/imgs/projects/flightdeck-workspace.png",
       "/imgs/projects/flightdeck-gate-card.png",
       "/imgs/projects/flightdeck-flight-plan.png",
+      "/imgs/projects/flightdeck-panel-dark.png",
     ],
   },
   "git101-hackdecouverte": {
@@ -348,436 +362,753 @@ const projects: Record<string, Project> = {
   },
 };
 
-export default function ProjectDetailsPage({
-  params,
+const PROJECT_ORDER = Object.keys(projects);
+
+/** Placeholder URLs that should never be rendered as real links. */
+const isRealUrl = (url?: string) => !!url && !/example\.com/i.test(url);
+
+/** "Title: description" → { title, description } */
+function splitFeature(feature: string) {
+  const i = feature.indexOf(": ");
+  return i === -1 ? { title: "", description: feature } : { title: feature.slice(0, i), description: feature.slice(i + 2) };
+}
+
+/* ─────────────────────────────────────────────────────────
+   Cockpit primitives
+   ───────────────────────────────────────────────────────── */
+
+/** Engraved label plate. */
+function Placard({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return (
+    <p
+      className={`inline-block rounded-sm border border-white/10 bg-black/40 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.3em] text-white/50 ${className}`}
+    >
+      {children}
+    </p>
+  );
+}
+
+/** iOS-style dark material: smoky translucent black, heavy blur, boosted saturation, hairline edge. */
+const GLASS_SURFACE =
+  "border border-white/10 bg-[rgba(22,22,24,0.55)] backdrop-blur-2xl backdrop-saturate-[1.8] shadow-[inset_0_0.5px_0_rgba(255,255,255,0.12),0_24px_48px_-24px_rgba(0,0,0,0.9)]";
+const GLASS = `rounded-2xl ${GLASS_SURFACE}`;
+const THIN_SCROLL = "[scrollbar-width:thin] [scrollbar-color:rgba(255,255,255,0.2)_transparent]";
+
+/** Smooth open/close for accordions: height eases out, opacity follows slightly faster. */
+const ACCORDION_TRANSITION = {
+  height: { duration: 0.4, ease: [0.25, 1, 0.5, 1] as const },
+  opacity: { duration: 0.25, ease: "easeOut" as const },
+};
+
+const SCANLINES =
+  "pointer-events-none absolute inset-0 bg-[repeating-linear-gradient(0deg,transparent_0_2px,rgba(0,0,0,0.28)_2px_3px)]";
+
+/* Gauge geometry: 240° sweep from -120° (min) to +120° (max), 0° = straight up */
+const SWEEP = 240;
+const START = -120;
+function polar(cx: number, cy: number, r: number, deg: number) {
+  const rad = (deg * Math.PI) / 180;
+  return { x: cx + r * Math.sin(rad), y: cy - r * Math.cos(rad) };
+}
+function arc(cx: number, cy: number, r: number, from: number, to: number) {
+  const a = polar(cx, cy, r, from);
+  const b = polar(cx, cy, r, to);
+  return `M ${a.x} ${a.y} A ${r} ${r} 0 ${to - from > 180 ? 1 : 0} 1 ${b.x} ${b.y}`;
+}
+
+/** Round analogue gauge; the needle sweeps to `value` when it scrolls into view. */
+function Gauge({
+  label,
+  value,
+  min = 0,
+  max,
+  readout,
+  unit,
+  compact,
 }: {
-  params: Promise<{ id: string }>;
+  label: string;
+  value: number;
+  min?: number;
+  max: number;
+  readout: string;
+  unit?: string;
+  /** Smaller caption for tight rows (desktop HUD) */
+  compact?: boolean;
 }) {
+  const pct = Math.max(0, Math.min(1, (value - min) / (max - min)));
+  const angle = START + pct * SWEEP;
+  const ticks = Array.from({ length: 13 }, (_, i) => START + (i * SWEEP) / 12);
+
+  return (
+    <figure className="flex flex-col items-center">
+      <div
+        className={`relative aspect-square w-full max-w-[150px] rounded-full p-1.5 ${
+          compact
+            ? GLASS_SURFACE
+            : "bg-linear-to-b from-[#1c1c1c] to-[#0a0a0a] shadow-[0_8px_20px_-8px_rgba(0,0,0,0.9)] ring-1 ring-white/10"
+        }`}
+      >
+        <svg
+          viewBox="0 0 120 120"
+          className={`h-full w-full rounded-full ${compact ? "bg-black/35" : "bg-[#050505]"}`}
+          role="img" aria-label={`${label}: ${readout}${unit ? ` ${unit}` : ""}`}>
+          {/* Track + value arc */}
+          <path d={arc(60, 60, 46, START, START + SWEEP)} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="4" strokeLinecap="round" />
+          {pct > 0 && (
+            <motion.path
+              d={arc(60, 60, 46, START, angle)}
+              fill="none"
+              stroke="rgb(248,113,113)"
+              strokeWidth="4"
+              strokeLinecap="round"
+              initial={{ pathLength: 0 }}
+              whileInView={{ pathLength: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+              style={{ filter: "drop-shadow(0 0 3px rgba(239,68,68,0.7))" }}
+            />
+          )}
+          {/* Ticks */}
+          {ticks.map((t, i) => {
+            const a = polar(60, 60, 38, t);
+            const b = polar(60, 60, i % 3 === 0 ? 32 : 35, t);
+            return (
+              <line
+                key={i}
+                x1={a.x}
+                y1={a.y}
+                x2={b.x}
+                y2={b.y}
+                stroke={i % 3 === 0 ? "rgba(255,255,255,0.55)" : "rgba(255,255,255,0.22)"}
+                strokeWidth={i % 3 === 0 ? 1.5 : 1}
+              />
+            );
+          })}
+          {/* Needle */}
+          <motion.g
+            initial={{ rotate: START }}
+            whileInView={{ rotate: angle }}
+            viewport={{ once: true }}
+            transition={{ type: "spring", stiffness: 60, damping: 12, delay: 0.15 }}
+            style={{ originX: "60px", originY: "60px" }}
+          >
+            <line x1="60" y1="66" x2="60" y2="22" stroke="white" strokeWidth="2" strokeLinecap="round" />
+          </motion.g>
+          <circle cx="60" cy="60" r="5" fill="#1a1a1a" stroke="rgba(255,255,255,0.4)" strokeWidth="1" />
+          {/* Digital readout */}
+          <text x="60" y="92" textAnchor="middle" className="fill-white font-mono" fontSize="13" fontWeight="700">
+            {readout}
+          </text>
+          {unit && (
+            <text x="60" y="103" textAnchor="middle" className="fill-white/40 font-mono" fontSize="6.5" letterSpacing="1">
+              {unit.toUpperCase()}
+            </text>
+          )}
+        </svg>
+      </div>
+      <figcaption className={compact ? "mt-1.5" : "mt-3"}>
+        {compact ? (
+          <span className="font-mono text-[9px] font-semibold uppercase tracking-[0.2em] text-white/55">{label}</span>
+        ) : (
+          <Placard>{label}</Placard>
+        )}
+      </figcaption>
+    </figure>
+  );
+}
+
+/** Lit annunciator push-button used for external links. */
+function Annunciator({
+  href,
+  label,
+  sub,
+  lit,
+  icon: Icon,
+  glass,
+}: {
+  href: string;
+  label: string;
+  sub: string;
+  lit?: boolean;
+  icon: typeof ExternalLink;
+  /** Frosted-glass variant for use over the full-screen image */
+  glass?: boolean;
+}) {
+  const look = glass
+    ? lit
+      ? "border border-red-400/30 bg-[rgba(60,16,16,0.55)] text-red-100 backdrop-blur-2xl backdrop-saturate-[1.8] shadow-[inset_0_0.5px_0_rgba(255,255,255,0.12),0_0_18px_-4px_rgba(239,68,68,0.55)] hover:bg-[rgba(80,20,20,0.6)]"
+      : `${GLASS_SURFACE} text-white/75 hover:border-white/30 hover:text-white`
+    : lit
+      ? "border-2 border-red-500/50 bg-red-500/15 text-red-200 shadow-[inset_0_0_18px_rgba(239,68,68,0.35),0_0_18px_-4px_rgba(239,68,68,0.6)]"
+      : "border-2 border-white/10 bg-black/50 text-white/60 shadow-[inset_0_2px_6px_rgba(0,0,0,0.8)] hover:border-white/25 hover:text-white";
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={() => hapticManager.medium()}
+      className={`group flex min-w-36 flex-1 flex-col items-center justify-center gap-0.5 px-4 py-3 text-center font-mono uppercase transition-colors sm:flex-none ${
+        glass ? "rounded-xl" : "rounded-lg"
+      } ${look}`}
+    >
+      <span className="inline-flex items-center gap-1.5 text-xs font-bold tracking-[0.25em]">
+        <Icon className="h-3.5 w-3.5" /> {label}
+      </span>
+      <span className={`text-[9px] tracking-[0.25em] ${lit ? "text-red-200/60" : "text-white/30"}`}>{sub}</span>
+    </a>
+  );
+}
+
+
+/* ─────────────────────────────────────────────────────────
+   Page
+   ───────────────────────────────────────────────────────── */
+
+export default function ProjectDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const { id } = use(params);
   const project = projects[id];
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  // Desktop HUD: which image fills the screen, and which feature is expanded
+  const [displayIndex, setDisplayIndex] = useState(0);
+  // Indices of expanded features in the Systems panel (all collapsed by default)
+  const [openFeatures, setOpenFeatures] = useState<Set<number>>(() => new Set());
+  const toggleFeature = (i: number) =>
+    setOpenFeatures((prev) => {
+      const next = new Set(prev);
+      if (next.has(i)) next.delete(i);
+      else next.add(i);
+      return next;
+    });
+  const [briefingOpen, setBriefingOpen] = useState(false);
 
-  const imagesToShow = project?.additionalImages && project.additionalImages.length > 0
-    ? project.additionalImages
-    : project?.image ? [project.image] : [];
+  const imagesToShow =
+    project?.additionalImages && project.additionalImages.length > 0
+      ? project.additionalImages
+      : project?.image
+        ? [project.image]
+        : [];
+  const index = PROJECT_ORDER.indexOf(id);
+  const prevProject = index > 0 ? projects[PROJECT_ORDER[index - 1]] : null;
+  const nextProject = index >= 0 && index < PROJECT_ORDER.length - 1 ? projects[PROJECT_ORDER[index + 1]] : null;
 
   useEffect(() => {
-    if (!project) {
-      router.push("/projects");
-    }
+    if (!project) router.push("/projects");
   }, [project, router]);
 
   useEffect(() => {
-    const handleEscape = (event: KeyboardEvent) => {
+    const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        if (lightboxOpen) {
-          setLightboxOpen(false);
-        } else {
-          router.push("/projects");
-        }
+        if (lightboxOpen) setLightboxOpen(false);
+        else router.push("/projects");
+      } else if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+        const t = event.target as HTMLElement;
+        if (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable) return;
+        if (imagesToShow.length < 2) return;
+        event.preventDefault();
+        const step = event.key === "ArrowLeft" ? -1 : 1;
+        const wrap = (i: number) => (i + step + imagesToShow.length) % imagesToShow.length;
+        // In the viewer, arrows page through it; otherwise they switch the full-screen camera feed
+        if (lightboxOpen) setCurrentImageIndex(wrap);
+        else setDisplayIndex(wrap);
       }
     };
-
-    const handleArrowKeys = (event: KeyboardEvent) => {
-      if (lightboxOpen) {
-        if (event.key === "ArrowLeft") {
-          setCurrentImageIndex((prev) => 
-            prev > 0 ? prev - 1 : imagesToShow.length - 1
-          );
-        } else if (event.key === "ArrowRight") {
-          setCurrentImageIndex((prev) => 
-            prev < imagesToShow.length - 1 ? prev + 1 : 0
-          );
-        }
-      }
-    };
-
-    window.addEventListener("keydown", handleEscape);
-    window.addEventListener("keydown", handleArrowKeys);
-
-    return () => {
-      window.removeEventListener("keydown", handleEscape);
-      window.removeEventListener("keydown", handleArrowKeys);
-    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, [router, lightboxOpen, imagesToShow.length]);
 
-  const openLightbox = (index: number) => {
-    setCurrentImageIndex(index);
+  const openImage = (src: string) => {
+    const i = imagesToShow.indexOf(src);
+    setCurrentImageIndex(i === -1 ? 0 : i);
     setLightboxOpen(true);
+    hapticManager.light();
+  };
+  const closeLightbox = () => setLightboxOpen(false);
+  const goToPrevious = () => setCurrentImageIndex((prev) => (prev > 0 ? prev - 1 : imagesToShow.length - 1));
+  const goToNext = () => setCurrentImageIndex((prev) => (prev < imagesToShow.length - 1 ? prev + 1 : 0));
+
+  if (!project) return null;
+
+  const links = [
+    isRealUrl(project.liveUrl) && { label: "Live", sub: "Open demo", url: project.liveUrl!, icon: ExternalLink, lit: true },
+    isRealUrl(project.githubUrl) && { label: "Source", sub: "GitHub", url: project.githubUrl!, icon: Github },
+    ...(project.otherLinks ?? [])
+      .filter((l) => isRealUrl(l.url))
+      .map((l) => ({ label: l.label.split(" ").slice(-1)[0], sub: l.label, url: l.url, icon: ArrowUpRight })),
+  ].filter(Boolean) as { label: string; sub: string; url: string; icon: typeof ExternalLink; lit?: boolean }[];
+  // With no live demo, light the first available link instead
+  if (links.length > 0 && !links.some((l) => l.lit)) links[0].lit = true;
+
+  const features = (project.features ?? []).map(splitFeature);
+  const allFeaturesOpen = features.length > 0 && features.every((_, i) => openFeatures.has(i));
+  const year = Number(project.date?.match(/\d{4}/)?.[0] ?? new Date().getFullYear());
+
+  const gaugesCompact = (
+    <>
+      <Gauge compact label="Systems" value={features.length} max={10} readout={String(features.length)} unit="features" />
+      <Gauge compact label="Stack" value={project.technologies.length} max={8} readout={String(project.technologies.length)} unit="tools" />
+      <Gauge compact label="Feeds" value={imagesToShow.length} max={6} readout={String(imagesToShow.length)} unit="images" />
+      <Gauge compact label="Year" value={year} min={2020} max={2027} readout={String(year)} unit="delivered" />
+    </>
+  );
+
+  // Start the full-screen display on the hero image
+  const displaySrc = imagesToShow[displayIndex] ?? project.image;
+
+  const corner = "pointer-events-none absolute h-8 w-8 border-white/40";
+
+  /* Shared between the desktop HUD and the mobile layout */
+  const toggleBriefing = () => {
+    setBriefingOpen((v) => !v);
+    hapticManager.light();
   };
 
-  const closeLightbox = () => {
-    setLightboxOpen(false);
-  };
+  const briefingPill = (
+    <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-white/15 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.2em] text-white/60 transition-colors hover:border-white/35 hover:text-white">
+      Briefing
+      <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-300 ${briefingOpen ? "rotate-180" : ""}`} />
+    </span>
+  );
 
-  const goToPrevious = () => {
-    setCurrentImageIndex((prev) => 
-      prev > 0 ? prev - 1 : imagesToShow.length - 1
+  /** Full description that slides open under the briefing header; `scroll` caps its height (desktop). */
+  const renderBriefingBody = (id: string, scroll: boolean) => (
+    <AnimatePresence initial={false}>
+      {briefingOpen && (
+        <motion.div
+          id={id}
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: "auto", opacity: 1 }}
+          exit={{ height: 0, opacity: 0 }}
+          transition={ACCORDION_TRANSITION}
+          className="overflow-hidden"
+        >
+          <div
+            className={scroll ? `mt-3 min-h-0 overflow-y-auto pr-2 ${THIN_SCROLL}` : "mt-3"}
+            style={scroll ? { maxHeight: "24vh" } : undefined}
+          >
+            <p className="text-justify text-sm leading-relaxed text-white/80 hyphens-auto">{project.fullDescription}</p>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+
+  const stackChips = (
+    <ul className="mt-4 flex flex-wrap gap-1.5 border-t border-white/10 pt-4">
+      {project.technologies.map((t) => (
+        <li
+          key={t}
+          className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-white/70"
+        >
+          <span className="h-1 w-1 rounded-full bg-red-400 shadow-[0_0_4px_rgba(239,68,68,0.8)]" />
+          {t}
+        </li>
+      ))}
+    </ul>
+  );
+
+  const expandAllButton = features.some((f) => f.title) && (
+    <button
+      type="button"
+      onClick={() => {
+        setOpenFeatures(allFeaturesOpen ? new Set() : new Set(features.map((_, i) => i)));
+        hapticManager.light();
+      }}
+      className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-white/15 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.2em] text-white/60 transition-colors hover:border-white/35 hover:text-white"
+    >
+      {allFeaturesOpen ? "Collapse all" : "Expand all"}
+      <ChevronDown className={`h-3 w-3 transition-transform ${allFeaturesOpen ? "rotate-180" : ""}`} />
+    </button>
+  );
+
+  const featureItems = features.map(({ title, description }, i) => {
+    const open = openFeatures.has(i);
+    return (
+      <li key={i} className="border-b border-white/10 last:border-b-0">
+        <button
+          type="button"
+          aria-expanded={open}
+          onClick={() => toggleFeature(i)}
+          className="flex min-h-14 w-full items-center gap-3 py-4 text-left"
+        >
+          <span
+            className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border font-mono text-[9px] font-bold transition-colors ${
+              open ? "border-red-300 bg-red-500 text-white" : "border-red-400/60 text-red-200"
+            }`}
+          >
+            {i + 1}
+          </span>
+          <span className={`flex-1 text-sm font-medium transition-colors ${open ? "text-white" : "text-white/75"}`}>
+            {title || description}
+          </span>
+          {title && (
+            <ChevronDown
+              className={`h-3.5 w-3.5 shrink-0 text-white/40 transition-transform duration-300 ease-out ${open ? "rotate-180" : ""}`}
+            />
+          )}
+        </button>
+        <AnimatePresence initial={false}>
+          {title && open && (
+            <motion.div
+              key="desc"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={ACCORDION_TRANSITION}
+              className="overflow-hidden"
+            >
+              <p className="pb-4 pl-8 text-xs leading-relaxed text-white/60">{description}</p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </li>
     );
-  };
+  });
 
-  const goToNext = () => {
-    setCurrentImageIndex((prev) => 
-      prev < imagesToShow.length - 1 ? prev + 1 : 0
+  /** Thumbnail strip; selecting one swaps the full-screen background. */
+  const renderFeeds = (desktop: boolean) =>
+    imagesToShow.length > 1 && (
+      <ul className={`flex gap-2 overflow-x-auto [scrollbar-width:none] ${desktop ? "" : "-mx-4 px-4 sm:mx-0 sm:px-0"}`}>
+        {imagesToShow.map((src, i) => {
+          const active = i === displayIndex;
+          return (
+            <li key={src} className="shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  setDisplayIndex(i);
+                  hapticManager.light();
+                }}
+                onDoubleClick={desktop ? () => openImage(src) : undefined}
+                title={desktop ? "Double-click to view full size" : undefined}
+                aria-label={`Show image ${i + 1} of ${imagesToShow.length}`}
+                aria-pressed={active}
+                className={`relative block h-14 w-24 overflow-hidden rounded-md border-2 transition-colors ${
+                  active ? "border-red-400 shadow-[0_0_12px_-2px_rgba(239,68,68,0.8)]" : "border-white/15 hover:border-white/40"
+                }`}
+              >
+                <Image
+                  src={src}
+                  alt=""
+                  fill
+                  sizes="96px"
+                  className={`object-cover transition-[filter] ${active ? "" : "brightness-50 hover:brightness-90"}`}
+                />
+                <span className="absolute bottom-0.5 left-1 font-mono text-[8px] font-bold text-white/80">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
     );
-  };
-
-  if (!project) {
-    return null;
-  }
 
   return (
-    <motion.div
-      initial="initial"
-      animate="animate"
-      variants={staggerContainer}
-      className="min-h-screen relative"
-    >
-      {/* Background Image */}
-      <motion.div
-        variants={staggerItem}
-        className="fixed inset-0 z-0 overflow-hidden"
+    <div className="relative bg-black">
+      {/* Desktop: full-screen main display with the whole project spread across it as a HUD */}
+      <section
+        aria-label={project.name}
+        className="relative hidden h-dvh w-full overflow-hidden lg:block"
+        onDoubleClick={(e) => {
+          // Double-click on the open image (not on HUD text/panels) opens it in the viewer
+          if ((e.target as HTMLElement).closest("[data-hud-ui]")) return;
+          openImage(displaySrc);
+        }}
       >
-        <motion.img
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6 }}
-          src={project.image}
-          alt={project.name}
-          className="absolute inset-0 h-full w-full object-cover object-center"
-          style={{ minHeight: '100vh', minWidth: '100vw' }}
-        />
-        {/* Smooth gradient overlay for better text readability */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/75 to-black/90" />
-      </motion.div>
-
-      {/* Content Overlay */}
-        <motion.div
-          variants={staggerItem}
-        className="relative z-10 flex min-h-screen overflow-y-auto project-overlay-mask"
-        style={{ isolation: 'isolate', backgroundColor: "black", willChange: "opacity", }}
-      >
-        <div className="w-full md:w-1/2 flex flex-col justify-center px-4 sm:px-6 md:px-8 py-12 sm:py-16 md:py-24 lg:px-16">
+        {/* Background: the selected camera feed */}
+        <AnimatePresence mode="sync">
           <motion.div
-            initial={{ opacity: 0, x: -15 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-            className="mt-24 mb-8 sm:mb-8 md:mb-12 sm:mt-8 md:mt-16"
+            key={displaySrc}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.6 }}
+            className="absolute inset-0"
           >
-            <Button
-              onClick={() => {
-                hapticManager.light();
-                router.push("/projects");
-              }}
-              variant="outline"
-              className="border-white/20 text-white hover:bg-white/10 text-sm sm:text-base"
-            >
-              <ArrowLeft className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              Back to Projects
-            </Button>
+            <Image src={displaySrc} alt="" fill priority sizes="100vw" className="object-cover" />
           </motion.div>
+        </AnimatePresence>
+        {/* Readability: darken the edges where the HUD sits */}
+        <span aria-hidden="true" className="pointer-events-none absolute inset-0 bg-linear-to-t from-black via-black/40 to-black/60" />
+        <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-0 w-2/3 bg-linear-to-r from-black/85 via-black/40 to-transparent" />
+        <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 w-[560px] bg-linear-to-l from-black/85 via-black/50 to-transparent" />
+        <span aria-hidden="true" className={`${SCANLINES} opacity-60`} />
 
-          {project.date && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-              className="mb-3 sm:mb-4 flex flex-wrap gap-3 sm:gap-4 text-xs sm:text-sm text-white/60"
-            >
-              {project.date && <span>{project.date}</span>}
-            </motion.div>
-          )}
+        {/* HUD frame */}
+        <span aria-hidden="true" className={`${corner} left-8 top-24 border-l-2 border-t-2`} />
+        <span aria-hidden="true" className={`${corner} right-8 top-24 border-r-2 border-t-2`} />
+        <span aria-hidden="true" className={`${corner} bottom-4 left-8 border-b-2 border-l-2`} />
+        <span aria-hidden="true" className={`${corner} bottom-4 right-8 border-b-2 border-r-2`} />
 
-          {project.category && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-              className="mb-3 sm:mb-4 flex flex-wrap gap-3 sm:gap-4"
-            >
-              {project.category && (
-                <motion.span
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true, margin: "-50px" }}
-                  transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                  className="rounded-full bg-white/10 px-2.5 py-1 sm:px-3 sm:py-1 text-xs sm:text-sm text-white/80"
-                >
-                  {project.category}
-                </motion.span>
+        <motion.div
+          initial="initial"
+          animate="animate"
+          variants={staggerContainer}
+          className="relative mx-auto flex h-full max-w-[1600px] flex-col px-16 pb-14 pt-28"
+        >
+          {/* Top row */}
+          <motion.div data-hud-ui variants={staggerItem} className="flex items-start justify-between gap-6">
+            <div className="flex items-center gap-4">
+              <Link
+                href="/projects"
+                onClick={() => hapticManager.light()}
+                className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm text-white/85 transition-colors hover:border-white/35 hover:text-white ${GLASS_SURFACE}`}
+              >
+                <ArrowLeft className="h-3.5 w-3.5" /> All projects
+              </Link>
+              <p className="flex items-center gap-2 font-mono text-xs uppercase tracking-[0.3em] text-red-400">
+                <Gauge2 className="h-3.5 w-3.5" /> Flight deck
+                {project.category && <span className="text-white/50">· {project.category}</span>}
+              </p>
+            </div>
+            <div className="flex items-start gap-6">
+              <div className="text-right font-mono text-[10px] uppercase tracking-[0.3em]">
+                <p className="font-semibold text-red-300/90 [text-shadow:0_0_8px_rgba(239,68,68,0.6)]">
+                  Main display{imagesToShow.length > 1 && ` · Cam ${String(displayIndex + 1).padStart(2, "0")}`}
+                </p>
+                {project.date && <p className="mt-1 text-white/60">{project.date}</p>}
+              </div>
+              {/* Previous / next flight */}
+              {(prevProject || nextProject) && (
+                <nav aria-label="More projects" className="flex items-center gap-2">
+                  {prevProject && (
+                    <Link
+                      href={`/projects/${prevProject.id}`}
+                      onClick={() => hapticManager.light()}
+                      title={prevProject.name}
+                      className={`inline-flex max-w-52 items-center gap-2 rounded-full px-3.5 py-1.5 text-sm text-white/80 transition-colors hover:border-white/30 hover:text-white ${GLASS_SURFACE}`}
+                    >
+                      <ArrowLeft className="h-3.5 w-3.5 shrink-0" />
+                      <span className="truncate">{prevProject.name}</span>
+                    </Link>
+                  )}
+                  {nextProject && (
+                    <Link
+                      href={`/projects/${nextProject.id}`}
+                      onClick={() => hapticManager.light()}
+                      title={nextProject.name}
+                      className={`inline-flex max-w-52 items-center gap-2 rounded-full px-3.5 py-1.5 text-sm text-white/80 transition-colors hover:border-white/30 hover:text-white ${GLASS_SURFACE}`}
+                    >
+                      <span className="truncate">{nextProject.name}</span>
+                      <ArrowRight className="h-3.5 w-3.5 shrink-0" />
+                    </Link>
+                  )}
+                </nav>
               )}
-            </motion.div>
-          )}
-
-          <motion.h1
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-50px" }}
-            transition={{ duration: 0.9, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-            className="mb-4 sm:mb-6 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-tight"
-          >
-            {project.name}
-          </motion.h1>
-
-          <motion.p
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-50px" }}
-            transition={{ duration: 0.9, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
-            className="mb-6 sm:mb-8 text-sm sm:text-base md:text-lg text-white/80 text-justify leading-relaxed"
-          >
-            {project.fullDescription}
-          </motion.p>
-
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-50px" }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            className="mb-6 sm:mb-8"
-          >
-            <h3 className="mb-3 sm:mb-4 text-lg sm:text-xl font-semibold text-white">
-              Technologies
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              {project.technologies.map((tech, index) => (
-                <motion.span
-                  key={tech}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true, margin: "-50px" }}
-                  transition={{ duration: 0.6, delay: index * 0.08, ease: [0.16, 1, 0.3, 1] }}
-                  className="rounded-full bg-white/10 px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm text-white"
-                >
-                  {tech}
-                </motion.span>
-              ))}
             </div>
           </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-50px" }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            className="flex flex-wrap gap-3 sm:gap-4 mb-6 sm:mb-8"
-          >
-            {project.liveUrl && (
-              <motion.div
-                initial={{ opacity: 0, x: -15 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true, margin: "-50px" }}
-                transition={{ duration: 0.7, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-              >
-              <Button
-                onClick={() => hapticManager.medium()}
-                className="bg-white text-black hover:bg-white/90 text-sm sm:text-base"
-                asChild
-              >
-                <a href={project.liveUrl} target="_blank" rel="noopener noreferrer">
-                  <ExternalLink className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                  Live Demo
-                </a>
-              </Button>
+          {/* Middle: story on the left, instruments + systems on the right */}
+          <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_400px] gap-12 pt-6 xl:grid-cols-[minmax(0,1fr)_440px]">
+            {/* Left: title, description, briefing, links */}
+            <div className="flex min-h-0 flex-col justify-end">
+              <motion.h1 data-hud-ui variants={staggerItem} className="text-5xl font-bold leading-tight text-white xl:text-6xl">
+                {project.name}
+              </motion.h1>
+              <motion.div data-hud-ui variants={staggerItem} className={`mt-6 flex min-h-0 max-w-2xl flex-col p-5 ${GLASS}`}>
+                {/* Briefing accordion */}
+                <button
+                  type="button"
+                  aria-expanded={briefingOpen}
+                  aria-controls="briefing-body"
+                  onClick={toggleBriefing}
+                  className="flex w-full items-center justify-between gap-4 text-left"
+                >
+                  <span className="text-sm text-white/85">{project.description}</span>
+                  {briefingPill}
+                </button>
+                {renderBriefingBody("briefing-body", true)}
+                {stackChips}
               </motion.div>
-            )}
-            {project.githubUrl && (
-              <motion.div
-                initial={{ opacity: 0, x: -15 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true, margin: "-50px" }}
-                transition={{ duration: 0.7, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-              >
-              <Button
-                onClick={() => hapticManager.medium()}
-                variant="outline"
-                className="border-white/20 text-white hover:bg-white/10 text-sm sm:text-base"
-                asChild
-              >
-                <a href={project.githubUrl} target="_blank" rel="noopener noreferrer">
-                  <Github className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                  GitHub
-                </a>
-              </Button>
+
+              {links.length > 0 && (
+                <motion.div data-hud-ui variants={staggerItem} className="mt-5 flex flex-wrap gap-3">
+                  {links.map((l) => (
+                    <Annunciator key={l.url} href={l.url} label={l.label} sub={l.sub} lit={l.lit} icon={l.icon} glass />
+                  ))}
+                </motion.div>
+              )}
+
+              {/* Camera feeds filmstrip switches the main display */}
+              {imagesToShow.length > 1 && (
+            <motion.div data-hud-ui variants={staggerItem} className="mt-6 flex flex-col gap-2">
+              <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-white/40">Camera feeds</span>
+              {renderFeeds(true)}
+            </motion.div>
+          )}
+            </div>
+
+            {/* Right: gauges + systems (bottom padding clears the fixed ⌘K button) */}
+            <div className="flex min-h-0 flex-col gap-4 pb-14">
+              <motion.div data-hud-ui variants={staggerItem} className="grid grid-cols-4 gap-3">
+                {gaugesCompact}
               </motion.div>
-            )}
-            {project.otherLinks?.map((link, index) => (
-              <motion.div
-                key={link.url}
-                initial={{ opacity: 0, x: -15 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true, margin: "-50px" }}
-                transition={{ duration: 0.7, delay: 0.3 + index * 0.1, ease: [0.16, 1, 0.3, 1] }}
-              >
-                <Button
-                onClick={() => hapticManager.medium()}
-                variant="outline"
-                className="border-white/20 text-white hover:bg-white/10 text-sm sm:text-base"
-                asChild
-              >
-                <a href={link.url} target="_blank" rel="noopener noreferrer">
-                  {link.label}
-                </a>
-              </Button>
-              </motion.div>
-            ))}
+
+              {features.length > 0 && (
+                <motion.div
+                  data-hud-ui
+                  variants={staggerItem}
+                  className={`flex min-h-0 flex-1 flex-col overflow-hidden pl-5 pt-5 ${GLASS}`}
+                >
+                  <div className="mb-3 flex items-center justify-between pr-5">
+                    <Placard>Systems · {features.length}</Placard>
+                    {expandAllButton}
+                  </div>
+                  {/* Scroll area runs to the card's right and bottom edges so the scrollbar sits in the corner */}
+                  <ol className={`min-h-0 flex-1 overflow-y-auto pb-2 pr-5 ${THIN_SCROLL}`}>{featureItems}</ol>
+                </motion.div>
+              )}
+            </div>
+          </div>
+        </motion.div>
+      </section>
+
+      {/* Mobile / tablet: the image stays fixed behind, iOS-style glass cards scroll over it */}
+      <div className="lg:hidden">
+        <div aria-hidden="true" className="fixed inset-0 z-0">
+          <AnimatePresence mode="sync">
+            <motion.div
+              key={displaySrc}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.6 }}
+              className="absolute inset-0"
+            >
+              <Image src={displaySrc} alt="" fill priority sizes="100vw" className="object-cover" />
+            </motion.div>
+          </AnimatePresence>
+          <span className="absolute inset-0 bg-black/55" />
+          <span className="absolute inset-0 bg-linear-to-b from-black/50 via-black/20 to-black/80" />
+          <span className={`${SCANLINES} opacity-50`} />
+        </div>
+
+        <motion.div
+          initial="initial"
+          animate="animate"
+          variants={staggerContainer}
+          className="relative z-10 mx-auto max-w-2xl px-4 pb-24 pt-24 sm:px-6"
+        >
+          {/* Top bar */}
+          <motion.div variants={staggerItem} className="flex items-center justify-between gap-3">
+            <Link
+              href="/projects"
+              onClick={() => hapticManager.light()}
+              className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm text-white/85 ${GLASS_SURFACE}`}
+            >
+              <ArrowLeft className="h-3.5 w-3.5" /> All projects
+            </Link>
+            {/* Opens the current background image full size */}
+            <button
+              type="button"
+              onClick={() => openImage(displaySrc)}
+              aria-label={`View ${project.name} image full size`}
+              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.25em] text-red-300/90 ${GLASS_SURFACE}`}
+            >
+              <Maximize2 className="h-3 w-3" />
+              {imagesToShow.length > 1 ? `Cam ${String(displayIndex + 1).padStart(2, "0")}` : "View"}
+            </button>
           </motion.div>
 
-          {project.features && project.features.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-              className="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-white/10"
-            >
-              <h3 className="mb-4 sm:mb-6 text-xl sm:text-2xl font-semibold text-white">
-                Features
-              </h3>
-              <ul className="space-y-3 list-none">
-                {project.features.map((feature, index) => {
-                  // Split feature into title and description
-                  const colonIndex = feature.indexOf(": ");
-                  const title = colonIndex !== -1 ? feature.substring(0, colonIndex) : "";
-                  const description = colonIndex !== -1 ? feature.substring(colonIndex + 2) : feature;
-                  
-                  // Key phrases to highlight
-                  const keyPhrases = [
-                    "visual cues", "user confidence", "engagement", "waste-sorting",
-                    "emotional satisfaction", "emotional response",
-                    "gamification", "habitual", "engaging", "fun",
-                    "environmental awareness", "tracks", "insights", "contribution",
-                    "image recognition", "classify", "accuracy", "effectively", "correctly"
-                  ];
-                  
-                  // Function to render text with highlights
-                  const renderWithHighlights = (text: string) => {
-                    const parts: (string | React.ReactElement)[] = [];
-                    let lastIndex = 0;
-                    let key = 0;
-                    
-                    // Find all matches
-                    const matches: Array<{ start: number; end: number; text: string }> = [];
-                    keyPhrases.forEach(phrase => {
-                      const regex = new RegExp(`\\b${phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, "gi");
-                      let match;
-                      while ((match = regex.exec(text)) !== null) {
-                        matches.push({
-                          start: match.index,
-                          end: match.index + match[0].length,
-                          text: match[0]
-                        });
-                      }
-                    });
-                    
-                    // Sort matches by position
-                    matches.sort((a, b) => a.start - b.start);
-                    
-                    // Remove overlapping matches
-                    const nonOverlapping: typeof matches = [];
-                    for (const match of matches) {
-                      if (nonOverlapping.length === 0 || match.start >= nonOverlapping[nonOverlapping.length - 1].end) {
-                        nonOverlapping.push(match);
-                      }
-                    }
-                    
-                    // Build parts array
-                    nonOverlapping.forEach(match => {
-                      if (match.start > lastIndex) {
-                        parts.push(text.substring(lastIndex, match.start));
-                      }
-                      parts.push(
-                        <span key={key++} className="font-semibold text-white">
-                          {match.text}
-                        </span>
-                      );
-                      lastIndex = match.end;
-                    });
-                    
-                    if (lastIndex < text.length) {
-                      parts.push(text.substring(lastIndex));
-                    }
-                    
-                    return parts.length > 0 ? parts : text;
-                  };
-                  
-                  return (
-                    <motion.li
-                      key={index}
-                      initial={{ opacity: 0, x: -15 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true, margin: "-50px" }}
-                      transition={{ duration: 0.7, delay: index * 0.08, ease: [0.16, 1, 0.3, 1] }}
-                      className="text-white/90 leading-relaxed text-justify pl-0 flex items-start text-sm sm:text-base"
-                    >
-                      <span className="mr-3 sm:mr-4 h-2 w-2 rotate-45 bg-white/50 shrink-0 mt-2.5"></span>
-                      <span className="flex-1 min-w-0">
-                        {title && (
-                          <>
-                            <span className="font-semibold text-white">{title}:</span>{" "}
-                          </>
-                        )}
-                        {renderWithHighlights(description)}
-                      </span>
-                    </motion.li>
-                  );
-                })}
-              </ul>
+          {/* Title */}
+          <motion.div variants={staggerItem} className="mt-10">
+            <p className="flex flex-wrap items-center gap-2 font-mono text-[10px] uppercase tracking-[0.3em] text-red-400">
+              <Gauge2 className="h-3.5 w-3.5" /> Flight deck
+              {project.category && <span className="text-white/60">· {project.category}</span>}
+            </p>
+            <h1 className="mt-3 text-3xl font-bold leading-tight text-white sm:text-4xl">{project.name}</h1>
+            {project.date && (
+              <p className="mt-2 font-mono text-[11px] uppercase tracking-[0.25em] text-white/55">{project.date}</p>
+            )}
+          </motion.div>
+
+          {/* Camera feeds */}
+          {imagesToShow.length > 1 && (
+            <motion.div variants={staggerItem} className="mt-8">
+              <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.3em] text-white/45">Camera feeds</p>
+              {renderFeeds(false)}
             </motion.div>
           )}
 
-          {imagesToShow.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-              className="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-white/10"
-            >
-              <h3 className="mb-4 sm:mb-6 text-xl sm:text-2xl font-semibold text-white">
-                Gallery
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                {imagesToShow.map((imageUrl, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                    whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                    viewport={{ once: true, margin: "-50px" }}
-                    transition={{ 
-                      duration: 0.5, 
-                      delay: index * 0.08,
-                      ease: [0.16, 1, 0.3, 1]
-                    }}
-                    whileHover={{ scale: 1.02, y: -4 }}
-                    className="group relative aspect-[4/3] overflow-hidden rounded-lg bg-white/5 cursor-pointer border border-white/10 hover:border-white/20 transition-all duration-300"
-                    onClick={() => openLightbox(index)}
-                  >
-                    <Image
-                      src={imageUrl}
-                      alt={`${project.name} - Image ${index + 1}`}
-                      fill
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                      className="object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
-                    {/* Overlay on hover */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    {/* Image number indicator */}
-                    <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-sm text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      {index + 1}/{imagesToShow.length}
-                    </div>
-                  </motion.div>
+          <div className="mt-8 space-y-6">
+            {/* Briefing */}
+            <motion.div variants={staggerItem} className={`p-5 ${GLASS}`}>
+              <button
+                type="button"
+                aria-expanded={briefingOpen}
+                aria-controls="briefing-body-mobile"
+                onClick={toggleBriefing}
+                className="flex w-full items-start justify-between gap-4 text-left"
+              >
+                <span className="text-sm text-white/85">{project.description}</span>
+                {/* Icon-only toggle on mobile */}
+                <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/15 text-white/60">
+                  <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-300 ${briefingOpen ? "rotate-180" : ""}`} />
+                </span>
+              </button>
+              {renderBriefingBody("briefing-body-mobile", false)}
+              {stackChips}
+            </motion.div>
+
+            {/* Links */}
+            {links.length > 0 && (
+              <motion.div variants={staggerItem} className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap">
+                {links.map((l) => (
+                  <Annunciator key={l.url} href={l.url} label={l.label} sub={l.sub} lit={l.lit} icon={l.icon} glass />
                 ))}
-              </div>
+              </motion.div>
+            )}
+
+            {/* Gauges */}
+            <motion.div variants={staggerItem} className="grid grid-cols-4 gap-4 px-1 sm:gap-6">
+              {gaugesCompact}
+            </motion.div>
+
+            {/* Systems */}
+            {features.length > 0 && (
+              <motion.div variants={staggerItem} className={`px-5 pb-2 pt-5 ${GLASS}`}>
+                <div className="mb-2 flex items-center justify-between gap-3">
+                  <Placard>Systems · {features.length}</Placard>
+                  {expandAllButton}
+                </div>
+                <ol>{featureItems}</ol>
+              </motion.div>
+            )}
+
+            {/* Previous / next */}
+            {(prevProject || nextProject) && (
+              <motion.nav variants={staggerItem} aria-label="More projects" className="grid grid-cols-2 gap-3 pt-4">
+                {prevProject ? (
+                  <Link
+                    href={`/projects/${prevProject.id}`}
+                    onClick={() => hapticManager.light()}
+                    className={`flex min-w-0 flex-col gap-1 p-4 ${nextProject ? "" : "col-span-2"} ${GLASS}`}
+                  >
+                    <span className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.25em] text-white/45">
+                      <ArrowLeft className="h-3 w-3" /> Previous
+                    </span>
+                    <span className="truncate text-sm font-semibold text-white">{prevProject.name}</span>
+                  </Link>
+                ) : null}
+                {nextProject && (
+                  <Link
+                    href={`/projects/${nextProject.id}`}
+                    onClick={() => hapticManager.light()}
+                    className={`flex min-w-0 flex-col items-end gap-1 p-4 text-right ${prevProject ? "" : "col-span-2"} ${GLASS}`}
+                  >
+                    <span className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.25em] text-white/45">
+                      Next <ArrowRight className="h-3 w-3" />
+                    </span>
+                    <span className="max-w-full truncate text-sm font-semibold text-white">{nextProject.name}</span>
+                  </Link>
+                )}
+              </motion.nav>
+            )}
+          </div>
         </motion.div>
-          )}
-        </div>
-      </motion.div>
+      </div>
 
       {/* Lightbox Modal */}
       {lightboxOpen && (
@@ -857,7 +1188,6 @@ export default function ProjectDetailsPage({
           </div>
         </motion.div>
       )}
-    </motion.div>
+    </div>
   );
 }
-

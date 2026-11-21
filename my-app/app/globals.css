@@ -184,6 +184,30 @@ select:focus-visible {
   body {
     @apply bg-black text-white;
   }
+
+  /* Tailwind v4 resets buttons to the default cursor; show a pointer on everything clickable */
+  button,
+  [role="button"],
+  [role="tab"],
+  [role="link"],
+  summary,
+  label[for],
+  select,
+  input[type="checkbox"],
+  input[type="radio"],
+  input[type="button"],
+  input[type="submit"],
+  input[type="reset"],
+  input[type="file"] {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [role="button"][aria-disabled="true"],
+  input:disabled,
+  select:disabled {
+    cursor: not-allowed;
+  }
 }
 
 /* Smooth scrolling */
