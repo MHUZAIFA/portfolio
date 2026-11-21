@@ -823,7 +823,7 @@ export default function AboutPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-40px" }}
                 transition={{ duration: 0.4, delay: (i % 4) * 0.06, ease: "easeOut" }}
-                className={`flex flex-col transition-transform duration-300 hover:-translate-y-1 ${TICKET}`}
+                className={`flex flex-col ${TICKET}`}
               >
                 <Edge className="group-hover:border-red-500/30!" />
                 {/* Scan sweep on hover */}
@@ -838,7 +838,7 @@ export default function AboutPage() {
                     </p>
                     <h3 className="mt-2 text-base font-semibold text-white">{name}</h3>
                   </div>
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/5 ring-1 ring-white/10 transition-all duration-300 group-hover:rotate-6 group-hover:bg-red-500/15 group-hover:shadow-[0_0_20px_rgba(239,68,68,0.35)] group-hover:ring-red-500/40">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/5 ring-1 ring-white/10 transition-all duration-300 group-hover:bg-red-500/15 group-hover:shadow-[0_0_20px_rgba(239,68,68,0.35)] group-hover:ring-red-500/40">
                     <Icon className="h-4.5 w-4.5 text-red-300" />
                   </span>
                 </div>
