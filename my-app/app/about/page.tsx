@@ -570,7 +570,7 @@ export default function AboutPage() {
           </article>
 
           <div className="flex flex-col gap-8">
-            <div className="space-y-5 text-sm leading-relaxed text-white/75 md:text-base">
+            <div className="space-y-5 text-justify hyphens-auto text-sm leading-relaxed text-white/75 md:text-base">
               <p className="text-lg text-white md:text-xl">
                 I&apos;m a Full Stack Developer at <span className="text-red-300">Air Canada</span> in Montréal. I like turning
                 messy requirements into software that is dependable, observable, and pleasant to use.
@@ -602,10 +602,9 @@ export default function AboutPage() {
             <Link
               href="/experience"
               onClick={() => hapticManager.light()}
-              className={`mt-auto block p-5 md:p-6 ${TICKET}`}
+              className="group mt-auto block pt-2"
               aria-label="Route so far: view full flight log"
             >
-              <Edge />
               <div className="mb-5 flex items-center justify-between">
                 <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/40">
                   Route so far · {ROUTE.length} stops
@@ -614,21 +613,27 @@ export default function AboutPage() {
                   Flight log <ArrowRight className="h-3 w-3" />
                 </span>
               </div>
-              <ol className="relative grid" style={{ gridTemplateColumns: `repeat(${ROUTE.length}, minmax(0, 1fr))` }}>
+              {/* Half-width end columns put the first/last stops on the edges with even spacing between all stops */}
+              <ol
+                className="relative grid"
+                style={{ gridTemplateColumns: `minmax(0,1fr) repeat(${ROUTE.length - 2}, minmax(0,2fr)) minmax(0,1fr)` }}
+              >
                 {/* Track: dashed for the journey, solid red into the current stop */}
                 <span
-                  className="absolute left-[10%] right-[10%] top-[5px] border-t-2 border-dashed border-white/15"
+                  className="absolute inset-x-0 top-[5px] border-t-2 border-dashed border-white/15"
                   aria-hidden="true"
                 />
                 <span
-                  className="absolute right-[10%] top-[5px] h-0.5 bg-linear-to-r from-red-500/0 to-red-400"
-                  style={{ width: `${80 / (ROUTE.length - 1)}%` }}
+                  className="absolute right-0 top-[5px] h-0.5 bg-linear-to-r from-red-500/0 to-red-400"
+                  style={{ width: `${100 / (ROUTE.length - 1)}%` }}
                   aria-hidden="true"
                 />
                 {ROUTE.map((stop, i) => {
                   const current = i === ROUTE.length - 1;
+                  const align =
+                    i === 0 ? "items-start text-left" : current ? "items-end text-right" : "items-center text-center";
                   return (
-                    <li key={stop.name} className="relative flex flex-col items-center text-center">
+                    <li key={stop.name} className={`relative flex flex-col ${align}`}>
                       {current ? (
                         <span className="relative z-10 flex h-3 w-3">
                           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
