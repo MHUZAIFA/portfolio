@@ -77,6 +77,74 @@ function parseDate(dateString: string): Date {
 
 const projects = [
   {
+    id: "flight-deck-theme",
+    name: "Air Canada Flight Deck",
+    description:
+      "A fan-made VS Code extension with three livery colour themes, aviation file icons, a flying focus timer, per-workspace task list and meeting reminders that arrive by plane.",
+    thumbnail: "/imgs/projects/flightdeck-hero.png",
+    technologies: ["VS Code Extension", "TypeScript", "Webviews", "Theming"],
+    sortDate: "Nov 15, 2026 - Nov 20, 2026",
+    date: "November 2026",
+    category: "Developer Tools",
+    featured: true,
+  },
+  {
+    id: "git101-hackdecouverte",
+    name: "Git 101 · HackDécouverte 2026",
+    description:
+      "A bilingual (EN/FR) 20-slide workshop deck taking beginners from installing VS Code to their first merged pull request.",
+    thumbnail: "/imgs/projects/git101-og.jpg",
+    technologies: ["HTML", "CSS", "JavaScript", "Git", "Workshop"],
+    sortDate: "Nov 14, 2026",
+    date: "November 2026",
+    category: "Education & Workshops",
+  },
+  {
+    id: "nlmeans-denoising",
+    name: "Non-Local Means Denoising",
+    description:
+      "Python implementation of the NL-means image denoising algorithm (Buades et al., CVPR 2005), benchmarked against Gaussian, anisotropic, TV and neighborhood filters.",
+    thumbnail: "/imgs/projects/nlmeans-high-noise.jpg",
+    technologies: ["Python", "NumPy", "Image Processing", "Computer Vision"],
+    sortDate: "Apr 11, 2026 - Apr 13, 2026",
+    date: "April 2026",
+    category: "Image Processing",
+  },
+  {
+    id: "pure-black-theme",
+    name: "Pure Black Theme",
+    description:
+      "A borderless, pure black VS Code colour theme published on the Visual Studio Marketplace.",
+    thumbnail: "/imgs/projects/pureblack.png",
+    technologies: ["VS Code Extension", "Theming", "JSON"],
+    sortDate: "Apr 8, 2026",
+    date: "April 2026",
+    category: "Developer Tools",
+  },
+  {
+    id: "bpmn-studio",
+    name: "BPMN Studio",
+    description:
+      "AI-powered tool that turns natural language prompts into BPMN 2.0 diagrams, with git-like branching, version diffs, RBAC and one-click Flowable deployment.",
+    thumbnail: "/imgs/projects/bpmn-studio.jpg",
+    technologies: ["Next.js", "TypeScript", "MongoDB", "Groq / LLaMA", "bpmn-js", "Flowable"],
+    sortDate: "Mar 2, 2026",
+    date: "March 2026",
+    category: "AI & Automation",
+    featured: true,
+  },
+  {
+    id: "doable",
+    name: "Doable",
+    description:
+      "AI-powered app that builds personalized activity itineraries from your location, weather, schedule, budget and transport mode.",
+    thumbnail: "/imgs/projects/doable-banner.jpg",
+    technologies: ["Next.js", "TypeScript", "AI", "Tailwind CSS", "Radix UI"],
+    sortDate: "Apr 26, 2025 - Apr 29, 2025",
+    date: "April 2025",
+    category: "Lifestyle & Discovery",
+  },
+  {
     id: "ai-bots",
     name: "AI_Bots",
     description:
@@ -179,6 +247,11 @@ const categoryMeta: Record<
   "Productivity & Tracking": { ext: ".ts", lang: "TypeScript", color: "#3178c6", icon: Code2 },
   "E-Commerce": { ext: ".tsx", lang: "TypeScript", color: "#3178c6", icon: Code2 },
   Support: { ext: ".html", lang: "HTML", color: "#e34c26", icon: Code2 },
+  "Developer Tools": { ext: ".ts", lang: "TypeScript", color: "#3178c6", icon: Terminal },
+  "Education & Workshops": { ext: ".html", lang: "HTML", color: "#e34c26", icon: Code2 },
+  "Image Processing": { ext: ".py", lang: "Python", color: "#3572A5", icon: Cpu },
+  "AI & Automation": { ext: ".tsx", lang: "TypeScript", color: "#3178c6", icon: Cpu },
+  "Lifestyle & Discovery": { ext: ".tsx", lang: "TypeScript", color: "#3178c6", icon: Code2 },
 };
 
 function getCategoryMeta(category?: string) {

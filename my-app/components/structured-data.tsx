@@ -63,7 +63,7 @@ export function StructuredData() {
           "@type": "EducationalOrganization",
           "name": "University of Mumbai"
         },
-        "jobTitle": "Graduate Student & Developer",
+        "jobTitle": "Full Stack Developer",
         "address": {
           "@type": "PostalAddress",
           "addressLocality": "Mumbai",

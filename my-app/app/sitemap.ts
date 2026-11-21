@@ -69,12 +69,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   // Add dynamic project pages (you can expand this with actual project data)
   const projectPages = [
-    'todo-app',
-    'snkrs-ecommerce',
-    'crm-system',
-    'ril-pms',
-    'recycle-vision',
-    'ai-powered-analytics'
+    'flight-deck-theme',
+    'git101-hackdecouverte',
+    'nlmeans-denoising',
+    'pure-black-theme',
+    'bpmn-studio',
+    'doable',
+    'ai-bots',
+    'recyclevision',
+    'ai-report-workflow',
+    'metricstics',
+    'mytasks',
+    'snkrs',
+    'helpdesk',
   ].map(projectId => ({
     url: `${baseUrl}/projects/${projectId}`,
     lastModified: new Date(),

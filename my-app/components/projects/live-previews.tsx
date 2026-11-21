@@ -1103,6 +1103,12 @@ const PROJECT_TO_PREVIEW: Record<string, PreviewKind> = {
   mytasks: "todo",
   snkrs: "ecommerce",
   helpdesk: "ai-chat",
+  "flight-deck-theme": "code",
+  "git101-hackdecouverte": "terminal",
+  "nlmeans-denoising": "scan",
+  "pure-black-theme": "code",
+  "bpmn-studio": "workflow",
+  doable: "ai-chat",
 };
 
 const CATEGORY_TO_PREVIEW: Record<string, PreviewKind> = {

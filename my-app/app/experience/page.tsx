@@ -54,16 +54,34 @@ interface Experience {
 
 const experiences: Experience[] = [
   {
+    id: "ac",
+    company: "Air Canada",
+    role: "Full Stack Developer",
+    duration: "Aug 2026 - Present",
+    location: "Montreal, Quebec, Canada",
+    type: "full-time",
+    description:
+      "Full Stack Developer at Air Canada, building and maintaining web applications across the front end and back end.",
+    fullDescription:
+      "Full Stack Developer at Air Canada in Montreal, Quebec, Canada, building and maintaining web applications across the full stack.",
+    links: [
+      {
+        label: "Air Canada",
+        href: "https://www.aircanada.com",
+      },
+    ],
+  },
+  {
     id: "0",
     company: "Flexspring",
     role: "Full-stack Development Intern",
-    duration: "Sep 2024 - Present",
+    duration: "Sep 2024 - Aug 2026",
     location: "Montreal, Quebec, Canada",
     type: "internship",
     description:
-      "Full-stack Development Intern at Flexspring, Montreal, Quebec, Canada. Working with React.js, Java and other modern technologies.",
+      "Full-stack Development Intern at Flexspring, Montreal, Quebec, Canada. Worked with React.js, Java and other modern technologies.",
     fullDescription:
-      "Currently working as a Full-stack Development Intern at Flexspring, contributing to the development of modern web applications using React.js, Java, and other cutting-edge technologies. Based in Montreal, Quebec, Canada.",
+      "Worked as a Full-stack Development Intern at Flexspring, contributing to the development of modern web applications using React.js, Java, and other cutting-edge technologies. Based in Montreal, Quebec, Canada.",
     logo: "/imgs/logos/flexspring.jpeg",
     technologies: ["React.js", "Java", "TypeScript", "Node.js"],
     links: [
@@ -240,16 +258,34 @@ const experiences: Experience[] = [
     ],
   },
   {
+    id: "7a",
+    company: "HackConcordia",
+    role: "Tech Advisor",
+    duration: "Apr 2026 - Present",
+    location: "Montreal, Quebec, Canada",
+    type: "volunteering",
+    description:
+      "Tech Advisor at HackConcordia, guiding the technology team behind Concordia's hackathons.",
+    fullDescription:
+      "Tech Advisor at HackConcordia, guiding the technology team behind Concordia's hackathons and supporting new tech leads. Also teaches beginner workshops, such as the bilingual Git 101 session for HackDécouverte 2026.",
+    links: [
+      {
+        label: "HackConcordia",
+        href: "https://hackconcordia.com",
+      },
+    ],
+  },
+  {
     id: "7",
     company: "HackConcordia",
     role: "Vice President of Technology",
-    duration: "Apr 2025 - Present",
+    duration: "Apr 2025 - Mar 2026 (1 yr)",
     location: "Montreal, Quebec, Canada",
     type: "volunteering",
     description:
       "Vice President of Technology at HackConcordia.",
     fullDescription:
-      "Vice President of Technology at HackConcordia, leading the technology initiatives and overseeing technical operations for the organization.",
+      "Vice President of Technology at HackConcordia, led the technology initiatives and oversaw technical operations for the organization.",
     links: [
       {
         label: "HackConcordia",
