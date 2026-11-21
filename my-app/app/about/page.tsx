@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { staggerContainer, staggerItem } from "@/components/providers/motion-provider";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { 
   MessageCircle,
   Users,
@@ -110,12 +110,12 @@ const categories: Array<{
   {
     name: "Tools",
     color: "#8b5cf6", // violet
-    skillNames: ["Dynamics 365", "PowerPoint", "Word", "Excel", "Overleaf - LaTeX"],
+    skillNames: ["Dynamics 365", "PowerPoint", "Microsoft Word", "Excel", "Overleaf - LaTeX"],
   },
   {
     name: "Coding Languages",
     color: "#ef4444", // red
-    skillNames: ["Java", "TypeScript", "C#", "Python 3", "C++", "C"],
+    skillNames: ["Java", "TypeScript", "C Sharp", "Python 3", "C++", "C"],
   },
   {
     name: "DevOps",
@@ -179,13 +179,13 @@ const technicalSkillsData: Array<{ name: string; icon: IconType | LucideIcon; ur
   // Tools
   { name: "Dynamics 365", icon: FaMicrosoft, url: "https://dynamics.microsoft.com" },
   { name: "PowerPoint", icon: FaFilePowerpoint, url: "https://www.microsoft.com/microsoft-365/powerpoint" },
-  { name: "Word", icon: FaFileWord, url: "https://www.microsoft.com/microsoft-365/word" },
+  { name: "Microsoft Word", icon: FaFileWord, url: "https://www.microsoft.com/microsoft-365/word" },
   { name: "Excel", icon: FaFileExcel, url: "https://www.microsoft.com/microsoft-365/excel" },
   { name: "Overleaf - LaTeX", icon: SiOverleaf, url: "https://www.overleaf.com" },
   // Coding Languages
   { name: "Java", icon: FaJava, url: "https://www.java.com" },
   { name: "TypeScript", icon: SiTypescript, url: "https://www.typescriptlang.org" },
-  { name: "C#", icon: SiSharp, url: "https://dotnet.microsoft.com/languages/csharp" },
+  { name: "C Sharp", icon: SiSharp, url: "https://dotnet.microsoft.com/languages/csharp" },
   { name: "Python 3", icon: SiPython, url: "https://www.python.org" },
   { name: "C++", icon: SiCplusplus, url: "https://isocpp.org" },
   { name: "C", icon: SiC, url: "https://en.wikipedia.org/wiki/C_(programming_language)" },
@@ -355,6 +355,7 @@ function DonutChart({
       </svg>
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <div className="text-center">
+          <Plane className="mx-auto mb-1 h-4 w-4 -rotate-45 text-amber-300" aria-hidden />
           <div className="font-mono text-3xl font-bold text-white">{total}</div>
           <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/50">Skills</div>
         </div>
@@ -398,7 +399,14 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 }
 
 /** Diameter of the skills pie chart on wide screens (px). */
-const CHART_SIZE = 300;
+const CHART_SIZE = 260;
+/** Radius of the invisible circle the wing bars curve around (badge radius + gap to the wings). */
+const OUTER_RING = CHART_SIZE / 2 + 28;
+/** Extra length at the outer tip of a bar (and its mirrored partner), keyed by the bar's last skill (px). */
+const OUTER_TIP_PADDING: Record<string, number> = { "Microsoft Word": 25, "C Sharp": 50 };
+
+/** How far each wing bar reaches inside the outer circle before being cut (px). */
+const BAR_OVERLAP = 30;
 
 /** Work history as stops on a route (oldest → current). */
 const ROUTE = [
@@ -417,6 +425,52 @@ export default function AboutPage() {
   const chartData = categories.map((cat) => ({ name: cat.name, value: cat.skillNames.length, color: cat.color }));
   const getCategoryForSkill = (skillName: string): CategoryName | null =>
     categories.find((c) => c.skillNames.includes(skillName))?.name ?? null;
+
+  // Pilot-pin symmetry: each wing bar is stretched to match its partner on the other side,
+  // so both wings reach the same distance from the badge.
+  useEffect(() => {
+    const bars = () => Array.from(document.querySelectorAll<HTMLElement>("[data-wing-bar]"));
+    const sync = () => {
+      const all = bars();
+      all.forEach((b) => {
+        b.style.minWidth = "";
+        b.style.maskImage = "";
+        b.style.webkitMaskImage = "";
+      });
+      if (window.innerWidth < 1280) return; // wings stack on smaller screens
+      const byKey = new Map(all.map((b) => [b.dataset.wingBar!, b]));
+      for (let k = 0; byKey.has(`L${k}`) || byKey.has(`R${k}`); k++) {
+        const l = byKey.get(`L${k}`);
+        const r = byKey.get(`R${k}`);
+        if (!l || !r) continue;
+        // match partners, then add any hand-tuned tip length to both so the pin stays symmetric
+        const extra = Math.max(Number(l.dataset.tipExtra) || 0, Number(r.dataset.tipExtra) || 0);
+        const w = Math.max(l.offsetWidth, r.offsetWidth) + extra;
+        l.style.minWidth = `${w}px`;
+        r.style.minWidth = `${w}px`;
+      }
+      // Cut the inner end of every bar along the outer circle centred on the badge
+      const badge = document.querySelector<HTMLElement>("[data-pin-badge]");
+      if (!badge) return;
+      const br = badge.getBoundingClientRect();
+      const cx = br.left + br.width / 2;
+      const cy = br.top + br.height / 2;
+      for (const b of bars()) {
+        const r = b.getBoundingClientRect();
+        const k = b.offsetWidth / r.width; // undo the wing's CSS scale
+        const x = (cx - r.left) * k;
+        const y = (cy - r.top) * k;
+        // Hide everything inside the circle so the inner end curves around the badge
+        const mask = `radial-gradient(circle at ${x}px ${y}px, transparent ${OUTER_RING - 1.5}px, #000 ${OUTER_RING - 0.5}px)`;
+        b.style.maskImage = mask;
+        b.style.webkitMaskImage = mask;
+
+      }
+    };
+    sync();
+    window.addEventListener("resize", sync);
+    return () => window.removeEventListener("resize", sync);
+  }, []);
 
 
   return (
@@ -602,8 +656,132 @@ export default function AboutPage() {
           <SectionLabel>Toolkit</SectionLabel>
           <h2 className="mb-8 text-2xl font-semibold tracking-tight text-white md:text-3xl">Technical skills</h2>
 
+
+          {(() => {
+            const chip = ({ name, icon: Icon, url }: (typeof technicalSkillsData)[number], gold = false) => {
+              const skillCategory = getCategoryForSkill(name);
+              const isHighlighted = hoveredCategory === null || hoveredCategory === skillCategory;
+              const color = skillCategory ? categories.find((c) => c.name === skillCategory)?.color : undefined;
+              const active = hoveredCategory !== null && hoveredCategory === skillCategory;
+              const body = (
+                <span
+                  className={`inline-flex items-center gap-1.5 rounded-md border font-medium transition-[opacity,border-color,box-shadow] duration-200 ${
+                    gold ? "px-2 py-1 text-xs" : "gap-2 px-3 py-2 text-xs lg:text-sm"
+                  } ${
+                    gold
+                      ? "whitespace-nowrap text-white/90"
+                      : "bg-linear-to-br from-white/5 to-white/[0.02] text-white/90"
+                  } ${
+                    isHighlighted
+                      ? gold
+                        ? "border-white/15 hover:border-white/40 hover:text-white"
+                        : "border-white/10 hover:border-white/25 hover:bg-white/10"
+                      : "border-white/5 opacity-25"
+                  }`}
+                  style={active && color ? { borderColor: color, boxShadow: `0 0 12px ${color}40` } : undefined}
+                >
+                  <Icon className="h-3.5 w-3.5 shrink-0 lg:h-4 lg:w-4" />
+                  {name}
+                </span>
+              );
+              return url ? (
+                <Link key={name} href={url} target="_blank" rel="noopener noreferrer">
+                  {body}
+                </Link>
+              ) : (
+                <span key={name}>{body}</span>
+              );
+            };
+            // Every skill sits on a wing bar, grouped by category. The split is chosen so both
+            // wings carry about the same total chip width, keeping the pin visually centred.
+            const byCategory = (names: CategoryName[]) =>
+              categories
+                .filter((c) => names.includes(c.name))
+                .flatMap((c) => c.skillNames)
+                .map((n) => technicalSkillsData.find((t) => t.name === n))
+                .filter((t): t is (typeof technicalSkillsData)[number] => Boolean(t));
+            const left = byCategory(["Frontend", "Database", "DevOps"]);
+            const right = byCategory(["Middleware", "Coding Languages", "Cloud", "ML/AI", "Tools"]);
+            type Skill = (typeof left)[number];
+
+            // Wing bars (like a pilot's pin): straight gold bars stacked on each side, the top
+            // bar longest and each lower bar shorter. Inner ends meet the badge's circle.
+            const ROW_H = 36; // bar height (32) + gap (4)
+            const R = OUTER_RING; // inner ends of the bars sit on this circle
+            const toBars = (items: Skill[]) => {
+              // Split by estimated width (not count) so each bar is shorter than the one above.
+              const est = (n: string) => 34 + n.length * 6.6; // icon + padding + text at text-xs
+              const widths = items.map((it) => est(it.name) + 6);
+              const total = widths.reduce((a, b) => a + b, 0);
+              const taper = [1, 0.92, 0.84, 0.76, 0.66, 0.56, 0.46, 0.36];
+              const tsum = taper.reduce((a, b) => a + b, 0);
+              const bars: Skill[][] = taper.map(() => []);
+              let k = 0;
+              let filled = 0;
+              let target = (taper[0] / tsum) * total;
+              items.forEach((it, idx) => {
+                // move to the next bar once this one would overshoot its share
+                if (k < taper.length - 1 && bars[k].length > 0 && filled + widths[idx] / 2 > target) {
+                  k++;
+                  target += (taper[k] / tsum) * total;
+                }
+                bars[k].push(it);
+                filled += widths[idx];
+              });
+              return bars.filter((b) => b.length > 0);
+            };
+            const tuck = (row: number, rows: number) => {
+              const y = (row - (rows - 1) / 2) * ROW_H;
+              return Math.min(R * 0.6, R - Math.sqrt(Math.max(R * R - y * y, 0)));
+            };
+            const side = (items: Skill[], dir: 1 | -1) => {
+              const bars = toBars(items);
+              return (
+                <div className={`flex flex-col gap-1 ${dir === 1 ? "xl:items-end" : "xl:items-start"} items-center`}>
+                  {bars.map((row, k) => (
+                    <div
+                      key={k}
+                      data-wing-bar={`${dir === 1 ? "L" : "R"}${k}`}
+                      className={`relative flex flex-wrap justify-center gap-1.5 overflow-hidden xl:justify-start p-1 xl:flex-nowrap xl:[transform:translateX(var(--tuck))] ${
+                        dir === 1
+                          ? "rounded-l-full pl-3 xl:flex-row-reverse xl:rounded-r-none xl:pr-[38px]"
+                          : "rounded-r-full pr-3 xl:rounded-l-none xl:pl-[38px]"
+                      }`}
+                      // Reach BAR_OVERLAP px past the circle; the mask then cuts that end into an arc
+                      // hand-tuned extra length at the outer tip of some bars (applied by the effect)
+                      data-tip-extra={OUTER_TIP_PADDING[row[row.length - 1]?.name] ?? 0}
+                      style={{ ["--tuck" as string]: `${dir * (tuck(k, bars.length) + BAR_OVERLAP)}px` }}
+                    >
+                      {row.map((it) => chip(it, true))}
+                    </div>
+                  ))}
+                </div>
+              );
+            };
+
+            return (
+              <div className="grid origin-top gap-x-7 gap-y-6 xl:mt-4 xl:mb-8 xl:scale-[0.88] xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] xl:items-center min-[1400px]:scale-100">
+                {side(left, 1)}
+                <div data-pin-badge className="relative z-10 order-first mx-auto w-full max-w-[240px] xl:order-none xl:max-w-none">
+                  <div
+                    className="mx-auto rounded-full bg-black p-2 ring-2 ring-amber-300/60 shadow-[0_0_48px_-12px_rgba(252,211,77,0.55),inset_0_0_24px_-12px_rgba(252,211,77,0.5)]"
+                    style={{ width: "100%", maxWidth: CHART_SIZE }}
+                  >
+                    <DonutChart
+                      data={chartData}
+                      hoveredCategory={hoveredCategory}
+                      onCategoryHover={(name) => setHoveredCategory(name as CategoryName)}
+                      onCategoryLeave={() => setHoveredCategory(null)}
+                    />
+                  </div>
+                </div>
+                {side(right, -1)}
+              </div>
+            );
+          })()}
+
           {/* Legend: also a filter */}
-          <ul className="mb-10 flex flex-wrap justify-center gap-x-5 gap-y-2">
+          <ul className="mt-8 flex flex-wrap justify-center gap-x-5 gap-y-2 xl:mt-0">
             {categories.map((category) => {
               const isHovered = hoveredCategory === category.name;
               return (
@@ -625,96 +803,6 @@ export default function AboutPage() {
               );
             })}
           </ul>
-
-          {(() => {
-            const chip = ({ name, icon: Icon, url }: (typeof technicalSkillsData)[number]) => {
-              const skillCategory = getCategoryForSkill(name);
-              const isHighlighted = hoveredCategory === null || hoveredCategory === skillCategory;
-              const color = skillCategory ? categories.find((c) => c.name === skillCategory)?.color : undefined;
-              const active = hoveredCategory !== null && hoveredCategory === skillCategory;
-              const body = (
-                <span
-                  className={`inline-flex items-center gap-2 rounded-md border bg-linear-to-br from-white/5 to-white/[0.02] px-3 py-2 text-xs font-medium text-white/90 transition-[opacity,border-color,box-shadow] duration-200 lg:text-sm ${
-                    isHighlighted ? "border-white/10 hover:border-white/25 hover:bg-white/10" : "border-white/5 opacity-25"
-                  }`}
-                  style={active && color ? { borderColor: color, boxShadow: `0 0 12px ${color}40` } : undefined}
-                >
-                  <Icon className="h-3.5 w-3.5 shrink-0 lg:h-4 lg:w-4" />
-                  {name}
-                </span>
-              );
-              return url ? (
-                <Link key={name} href={url} target="_blank" rel="noopener noreferrer">
-                  {body}
-                </Link>
-              ) : (
-                <span key={name}>{body}</span>
-              );
-            };
-            // Bands around the chart: top, left, right, bottom (as before)
-            const all = technicalSkillsData;
-            // Frontend: short row on top, the fuller row next to the chart
-            const topOuter = all.slice(0, 5);
-            const topInner = all.slice(5, 14);
-            const left = all.slice(14, 29);
-            const right = all.slice(29, 44);
-            const bottom = all.slice(44);
-
-            // Side columns are split into rows; each row is nudged toward the chart so the
-            // inner edge follows the circle (rows near the top/bottom of the chart tuck in).
-            const ROWS = 6;
-            const ROW_H = 50; // chip height (40) + row gap (10)
-            const R = CHART_SIZE / 2 + 32; // chart radius + the column gap
-            const toRows = (items: typeof all) => {
-              const base = Math.floor(items.length / ROWS);
-              let extra = items.length % ROWS;
-              // give the extra chips to the middle rows (furthest from the curve)
-              const counts = Array.from({ length: ROWS }, () => base);
-              const middleOut = [2, 3, 1, 4, 0, 5];
-              for (const k of middleOut) if (extra > 0) { counts[k]++; extra--; }
-              let at = 0;
-              return counts.map((c) => items.slice(at, (at += c)));
-            };
-            const tuck = (row: number) => {
-              const y = (row - (ROWS - 1) / 2) * ROW_H;
-              return Math.min(R * 0.45, R - Math.sqrt(Math.max(R * R - y * y, 0)));
-            };
-            const side = (items: typeof all, dir: 1 | -1) => (
-              <div className={`flex flex-col gap-2.5 ${dir === 1 ? "xl:items-end" : "xl:items-start"} items-center`}>
-                {toRows(items).map((row, k) => (
-                  <div
-                    key={k}
-                    className="flex flex-wrap justify-center gap-2.5 transition-transform xl:flex-nowrap xl:[transform:translateX(var(--tuck))]"
-                    style={{ ["--tuck" as string]: `${dir * tuck(k)}px` }}
-                  >
-                    {row.map(chip)}
-                  </div>
-                ))}
-              </div>
-            );
-
-            return (
-              <div className="grid gap-x-8 gap-y-2.5 xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] xl:items-center xl:gap-y-6">
-                <div className="flex flex-col gap-2.5 xl:col-span-3">
-                  <div className="flex flex-wrap justify-center gap-2.5">{topOuter.map(chip)}</div>
-                  <div className="flex flex-wrap justify-center gap-2.5">{topInner.map(chip)}</div>
-                </div>
-                {side(left, 1)}
-                <div className="order-first mx-auto w-full max-w-[240px] xl:order-none xl:max-w-none" style={{ width: undefined }}>
-                  <div className="mx-auto xl:w-[300px]">
-                    <DonutChart
-                      data={chartData}
-                      hoveredCategory={hoveredCategory}
-                      onCategoryHover={(name) => setHoveredCategory(name as CategoryName)}
-                      onCategoryLeave={() => setHoveredCategory(null)}
-                    />
-                  </div>
-                </div>
-                {side(right, -1)}
-                <div className="flex flex-wrap justify-center gap-2.5 xl:col-span-3">{bottom.map(chip)}</div>
-              </div>
-            );
-          })()}
         </motion.section>
 
         {/* Soft skills */}
