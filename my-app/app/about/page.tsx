@@ -219,15 +219,16 @@ const technicalSkillsData: Array<{ name: string; icon: IconType | LucideIcon; ur
   { name: "PyTorch", icon: SiPytorch, url: "https://pytorch.org" },
 ];
 
-const softSkillsData: Array<{ name: string; icon: LucideIcon }> = [
-  { name: "Communication", icon: MessageCircle },
-  { name: "Teamwork", icon: Users },
-  { name: "Problem Solving", icon: Lightbulb },
-  { name: "Time Management", icon: Clock },
-  { name: "Leadership", icon: Crown },
-  { name: "Adaptability", icon: RefreshCw },
-  { name: "Critical Thinking", icon: Brain },
-  { name: "Attention to Detail", icon: Eye },
+/** Soft skills as crew badges; `proof` is a one-line receipt for the claim. */
+const softSkillsData: Array<{ name: string; icon: LucideIcon; code: string; proof: string }> = [
+  { name: "Communication", icon: MessageCircle, code: "COM", proof: "Spec and acceptance criteria agreed before code." },
+  { name: "Teamwork", icon: Users, code: "TMW", proof: "Direct talk, shared ownership, honest trade-offs." },
+  { name: "Problem Solving", icon: Lightbulb, code: "PRB", proof: "Messy requirements into dependable software." },
+  { name: "Time Management", icon: Clock, code: "TIM", proof: "Owns features from idea through deploy." },
+  { name: "Leadership", icon: Crown, code: "LDR", proof: "Led tech as VP and Director for ConUHacks." },
+  { name: "Adaptability", icon: RefreshCw, code: "ADP", proof: "Angular, .NET, React, and agentic AI stacks." },
+  { name: "Critical Thinking", icon: Brain, code: "CRT", proof: "AI speeds me up; I still review what ships." },
+  { name: "Attention to Detail", icon: Eye, code: "DTL", proof: "Interfaces that feel fast and intentional." },
 ];
 
 // Donut Chart Component
@@ -814,17 +815,52 @@ export default function AboutPage() {
         <motion.section variants={staggerItem}>
           <SectionLabel>On the crew</SectionLabel>
           <h2 className="mb-8 text-2xl font-semibold tracking-tight text-white md:text-3xl">Soft skills</h2>
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-            {softSkillsData.map(({ name, icon: Icon }) => (
-              <div key={name} className={`flex items-center gap-3 p-4 ${TICKET}`}>
-                <Edge />
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-white/5 ring-1 ring-white/10 transition-colors group-hover:bg-red-500/10 group-hover:ring-red-500/30">
-                  <Icon className="h-4 w-4 text-red-300" />
-                </span>
-                <span className="text-xs font-medium text-white lg:text-sm">{name}</span>
-              </div>
+          <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {softSkillsData.map(({ name, icon: Icon, code, proof }, i) => (
+              <motion.li
+                key={name}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-40px" }}
+                transition={{ duration: 0.4, delay: (i % 4) * 0.06, ease: "easeOut" }}
+                className={`flex flex-col transition-transform duration-300 hover:-translate-y-1 ${TICKET}`}
+              >
+                <Edge className="group-hover:border-red-500/30!" />
+                {/* Scan sweep on hover */}
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-y-0 -left-1/2 w-1/2 -skew-x-12 bg-linear-to-r from-transparent via-red-500/10 to-transparent opacity-0 transition-all duration-700 group-hover:left-full group-hover:opacity-100"
+                />
+                <div className="relative flex items-start justify-between gap-3 p-5 pb-4">
+                  <div className="min-w-0">
+                    <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/40">
+                      Crew · {String(i + 1).padStart(2, "0")}
+                    </p>
+                    <h3 className="mt-2 text-base font-semibold text-white">{name}</h3>
+                  </div>
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/5 ring-1 ring-white/10 transition-all duration-300 group-hover:rotate-6 group-hover:bg-red-500/15 group-hover:shadow-[0_0_20px_rgba(239,68,68,0.35)] group-hover:ring-red-500/40">
+                    <Icon className="h-4.5 w-4.5 text-red-300" />
+                  </span>
+                </div>
+                <p className="relative px-5 pb-5 text-sm leading-snug text-white/60 transition-colors group-hover:text-white/80">
+                  {proof}
+                </p>
+                <Perforation />
+                <div className="relative mt-auto flex items-center justify-between px-5 py-3">
+                  <span className="font-mono text-sm font-semibold tracking-[0.2em] text-red-300">{code}</span>
+                  {/* Faux barcode */}
+                  <span
+                    aria-hidden="true"
+                    className="h-5 w-20 opacity-30 transition-opacity group-hover:opacity-60"
+                    style={{
+                      backgroundImage:
+                        "repeating-linear-gradient(90deg, #fff 0 1px, transparent 1px 3px, #fff 3px 5px, transparent 5px 6px, #fff 6px 7px, transparent 7px 10px)",
+                    }}
+                  />
+                </div>
+              </motion.li>
             ))}
-          </div>
+          </ul>
         </motion.section>
       </motion.div>
     </div>
