@@ -13,6 +13,7 @@ import {
   saveListState,
   readReturningListState,
   clearReturningFlag,
+  transitionHero,
 } from "@/lib/view-transition";
 import { Search, X, ArrowUpDown, Check, Star, ArrowUpRight, Warehouse, CalendarCheck, Rocket, Keyboard } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -263,7 +264,18 @@ function BayCorners({ tone }: { tone: string }) {
 
 const HAZARD = "bg-[repeating-linear-gradient(-45deg,rgba(239,68,68,0.75)_0_6px,transparent_6px_12px)]";
 
-function HangarBay({ project, bay, onBeforeOpen }: { project: Project; bay: number; onBeforeOpen: () => void }) {
+function HangarBay({
+  project,
+  bay,
+  onBeforeOpen,
+  named,
+}: {
+  project: Project;
+  bay: number;
+  onBeforeOpen: () => void;
+  /** Carries the transition name now (only the bay an image is returning to) */
+  named: boolean;
+}) {
   const wide = project.featured;
   const router = useRouter();
   const href = `/projects/${project.id}`;
@@ -335,7 +347,7 @@ function HangarBay({ project, bay, onBeforeOpen }: { project: Project; bay: numb
             wide ? "md:aspect-auto md:w-1/2" : ""
           }`}
           // Morphs into the full-screen image on the details page
-          {...heroTransitionProps(project.id)}
+          {...heroTransitionProps(project.id, named)}
         >
           <Image
             src={project.thumbnail}
@@ -424,6 +436,8 @@ const SHORTCUTS: Shortcut[] = [
 export default function ProjectsPage() {
   // Coming back from a project: pick up the filters and scroll position we left with
   const [returning] = useState(readReturningListState);
+  // The bay an image is flying back into (only that one is named, so no other bay can cover it)
+  const [returningHero] = useState(transitionHero);
   const [searchQuery, setSearchQuery] = useState(returning?.searchQuery ?? "");
   const [activeCategory, setActiveCategory] = useState<string | null>(returning?.activeCategory ?? null);
   const [sortBy, setSortBy] = useState<SortOption>((returning?.sortBy as SortOption) ?? "newest");
@@ -740,7 +754,9 @@ export default function ProjectsPage() {
             <ol className="grid grid-flow-dense grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
               <AnimatePresence mode="popLayout" initial={!arrivedViaTransition}>
                 {filtered.map((p, i) => (
-                  <HangarBay key={p.id} project={p} bay={i + 1} onBeforeOpen={rememberListState} />
+                  <HangarBay key={p.id} project={p} bay={i + 1} onBeforeOpen={rememberListState}
+                    named={returningHero === projectHeroName(p.id)}
+                  />
                 ))}
               </AnimatePresence>
             </ol>

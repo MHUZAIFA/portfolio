@@ -44,6 +44,8 @@ export function navigateWithTransition(
 
   const root = doc.documentElement;
   root.dataset.vt = direction;
+  // Lets the destination page name only the matching image while it renders (see `transitionHero`)
+  root.dataset.vtHero = heroName ?? "";
   // Only the image that morphs should be its own layer; every other bay stays part of the page
   isolateHero(heroName);
 
@@ -59,6 +61,7 @@ export function navigateWithTransition(
 
   transition.finished.finally(() => {
     delete root.dataset.vt;
+    delete root.dataset.vtHero;
   });
 }
 
@@ -88,6 +91,12 @@ export function resolvePendingTransition() {
 export async function resolveWhenHeroReady() {
   if (!pending) return;
   const name = pending.heroName;
+  if (name) {
+    // The new route can commit a moment before its content renders: wait (up to ~300ms) for the hero
+    for (let i = 0; i < 18 && !document.querySelector(`[data-vt-name="${name}"]`); i++) {
+      await new Promise((r) => requestAnimationFrame(r));
+    }
+  }
   isolateHero(name);
   if (name) {
     const imgs = Array.from(document.querySelectorAll<HTMLImageElement>(`[data-vt-name="${name}"] img`));
@@ -159,8 +168,21 @@ export function isViewTransitionActive() {
 /** Unique view-transition name for a project's image, shared by the list bay and the details hero. */
 export const projectHeroName = (id: string) => `project-hero-${id}`;
 
-/** Props for the element whose image morphs between pages. */
-export const heroTransitionProps = (id: string) => ({
+/** The view-transition name of the image currently being morphed, if a transition is running. */
+export function transitionHero() {
+  return typeof document !== "undefined" ? document.documentElement.dataset.vtHero || null : null;
+}
+
+/**
+ * Props for an element whose image can morph between pages. With `named: false` the element only
+ * carries the marker; it gets its name imperatively (from `isolateHero`) when it's the one opened.
+ * Pages that render many candidates (the list) name only the one a transition is returning to, so
+ * the others can never become separate layers drawn over the travelling image.
+ */
+export const heroTransitionProps = (id: string, named = true) => ({
   "data-vt-name": projectHeroName(id),
-  style: { viewTransitionName: projectHeroName(id), viewTransitionClass: "project-hero" } as React.CSSProperties,
+  style: {
+    viewTransitionName: named ? projectHeroName(id) : "none",
+    viewTransitionClass: "project-hero",
+  } as React.CSSProperties,
 });
