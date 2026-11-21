@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     type: "profile",
     images: [
       {
-        url: "/imgs/huzaifa.jpg",
+        url: "/imgs/huzaifa-profile.jpg",
         width: 1200,
         height: 630,
         alt: "Mohammed Huzaifa - Full Stack AI Developer",
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     title: "About Me - Mohammed Huzaifa",
     description:
       "Full-stack AI developer and D365 specialist — React, Next.js, .NET, Azure, and applied ML in production-minded software.",
-    images: ["/imgs/huzaifa.jpg"],
+    images: ["/imgs/huzaifa-profile.jpg"],
   },
   alternates: {
     canonical: "/about",

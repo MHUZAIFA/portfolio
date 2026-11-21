@@ -1,7 +1,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Card } from "@/components/ui/card";
 import { staggerContainer, staggerItem } from "@/components/providers/motion-provider";
 import { useState } from "react";
 import { 
@@ -20,6 +19,8 @@ import {
   Database,
   Cloud,
   Plug,
+  Plane,
+  ArrowRight,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { 
@@ -80,7 +81,8 @@ import {
 } from "react-icons/fa";
 import type { IconType } from "react-icons";
 import Link from "next/link";
-import { ProfilePhotoSpotlight } from "@/components/profile-photo-spotlight";
+import { ProfilePhoto } from "@/components/profile-photo";
+import { hapticManager } from "@/lib/haptic-manager";
 
 // Category definitions
 type CategoryName = "Frontend" | "Middleware" | "Database" | "Tools" | "Coding Languages" | "DevOps" | "Cloud" | "ML/AI";
@@ -122,8 +124,8 @@ const categories: Array<{
   },
   {
     name: "Cloud",
-    color: "#06b6d4", // cyan
-    skillNames: ["Azure", "AWS", "GCP", "Docker", "Kubernetes", "Git", "GitHub", "GitLab", "Bitbucket"],
+    color: "#14b8a6", // teal
+    skillNames: ["AWS", "Azure", "GCP"],
   },
   {
     name: "ML/AI",
@@ -335,7 +337,7 @@ function DonutChart({
 
   return (
     <div className="relative flex justify-center">
-      <svg width={size} height={size} className="transform -rotate-90">
+      <svg viewBox={`0 0 ${size} ${size}`} className="h-auto w-full max-w-[280px] -rotate-90">
         {paths.map((segment) => (
           <path
             key={segment.name}
@@ -353,226 +355,385 @@ function DonutChart({
       </svg>
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <div className="text-center">
-          <div className="text-2xl font-bold text-white">{data.reduce((sum, item) => sum + item.value, 0) - 5}+</div>
-          <div className="text-sm text-white/60">Skills</div>
+          <div className="font-mono text-3xl font-bold text-white">{total}</div>
+          <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/50">Skills</div>
         </div>
       </div>
     </div>
   );
 }
 
-export default function AboutPage() {
-  const [hoveredCategory, setHoveredCategory] = useState<CategoryName | null>(null);
 
-  // Create category data for chart
-  const chartData = categories.map((cat) => ({
-    name: cat.name,
-    value: cat.skillNames.length,
-    color: cat.color,
-  }));
-
-  // Get skills for a category
-  const getCategoryForSkill = (skillName: string): CategoryName | null => {
-    for (const category of categories) {
-      if (category.skillNames.includes(skillName)) {
-        return category.name;
-      }
-    }
-    return null;
-  };
-
+/** Ticket edge drawn as an overlay so the notches can cut through it (same as the experience/recognitions tickets). */
+function Edge({ className = "" }: { className?: string }) {
   return (
-    <motion.div
-      initial="initial"
-      animate="animate"
-      variants={staggerContainer}
-      className="mx-auto max-w-7xl px-4 md:px-6 py-24 mt-12"
-    >
-      <motion.h1
-        variants={staggerItem}
-        className="mb-12 text-4xl font-bold text-white md:text-5xl"
-      >
-        About Me
-      </motion.h1>
-
-      <motion.section
-        variants={staggerItem}
-        className="mb-16 lg:mb-28"
-      >
-        <div className="flex flex-col md:flex-row gap-8 md:gap-12 items-center md:items-start">
-          {/* Image on the left */}
-          <div className="flex w-full shrink-0 justify-center md:w-auto md:justify-start">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6 }}
-              className="relative"
-            >
-              <ProfilePhotoSpotlight alt="Mohammed Huzaifa" />
-            </motion.div>
-          </div>
-
-          {/* Text content on the right */}
-          <div className="flex-1 space-y-4 text-lg text-white/80">
-            <p className="text-justify text-sm lg:text-base">
-              I am a graduate student and full-stack AI developer who likes turning
-              messy requirements into software that is dependable, observable, and
-              pleasant to use. Whether it is an internal tool or a customer-facing
-              experience, I aim for interfaces that feel fast and intentional, with
-              architecture that teammates can extend without guesswork.
-            </p>
-            <p className="text-justify text-sm lg:text-base">
-              My background spans modern frontends with React and Next.js, enterprise
-              applications with Angular and .NET, and data on SQL, Cosmos DB, and
-              Azure. I also focus on Microsoft Dynamics 365—designing and shipping
-              customizations and extensions that help organizations tighten processes,
-              reduce manual work, and get more from their CRM and line-of-business
-              systems.
-            </p>
-            <p className="text-justify text-sm lg:text-base">
-              I work spec-driven: agree on the spec and acceptance criteria first, then
-              build. Claude Code and similar tools help me move faster, but I still
-              review what ships. I wire automations in n8n, and I have built MCP
-              servers so assistants and editors can use real tools in a controlled
-              way. I care about security and privacy, and I like owning a feature from
-              idea through deploy and follow-up.
-            </p>
-            <p className="text-justify text-sm lg:text-base">
-              I work best in teams that value direct communication, shared ownership,
-              and honest trade-offs. I keep growing through coursework, certifications,
-              and side projects that push me toward cleaner design, sharper
-              performance, and experiences that respect the user&apos;s time.
-            </p>
-          </div>
-        </div>
-      </motion.section>
-
-      <motion.section variants={staggerItem} className="mb-16">
-        <div className="flex flex-col lg:flex-row gap-8 lg:gap-8 items-start">
-          {/* Skills on the Left */}
-          <div className="flex-1 w-full">
-            <h2 className="mb-8 text-3xl font-bold text-white">
-          Technical Skills
-        </h2>
-        <div className="flex flex-wrap gap-3">
-              {technicalSkillsData.map(({ name, icon: Icon, url }, index) => {
-                const skillCategory = getCategoryForSkill(name);
-                const isHighlighted = hoveredCategory === null || hoveredCategory === skillCategory;
-                const categoryColor = skillCategory
-                  ? categories.find((c) => c.name === skillCategory)?.color
-                  : undefined;
-
-                const content = (
-                  <Card
-                    className={`cursor-pointer border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] px-2 py-2 lg:px-4 lg:py-2.5 text-xs lg:text-sm font-medium text-white/90 shadow-sm transition-all duration-200 ${
-                      isHighlighted
-                        ? "hover:border-white/20 hover:bg-white/10 hover:shadow-md hover:shadow-white/5"
-                        : "opacity-30"
-                    }`}
-                    style={{
-                      borderColor: isHighlighted && categoryColor && hoveredCategory === skillCategory
-                        ? categoryColor
-                        : undefined,
-                      boxShadow:
-                        isHighlighted && categoryColor && hoveredCategory === skillCategory
-                          ? `0 0 12px ${categoryColor}40`
-                          : undefined,
-                    }}
-                  >
-                    <div className="flex items-center gap-1 lg:gap-2">
-                      <Icon className="h-3 w-3 lg:h-4 lg:w-4 shrink-0" />
-                      <span>{name}</span>
-                    </div>
-                  </Card>
-                );
-
-                return (
-            <motion.div
-                    key={name}
-              initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{
-                      opacity: isHighlighted ? 1 : 0.3,
-                      scale: 1,
-                    }}
-                    transition={{ delay: index * 0.03 }}
-                    whileHover={{ scale: isHighlighted ? 1.05 : 1, y: isHighlighted ? -2 : 0 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    {url ? (
-                      <Link href={url} target="_blank" rel="noopener noreferrer" className="block">
-                        {content}
-                      </Link>
-                    ) : (
-                      content
-                    )}
-            </motion.div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Chart and Legend on the Right */}
-          <div className="flex flex-col gap-3 justify-center">
-                <div className="flex justify-center mt-16">
-                <DonutChart
-                  data={chartData}
-                  hoveredCategory={hoveredCategory}
-                  onCategoryHover={(name) => setHoveredCategory(name as CategoryName)}
-                  onCategoryLeave={() => setHoveredCategory(null)}
-                />
-                </div>
-                {/* Category Legend */}
-              <div className="flex flex-wrap justify-center lg:justify-end gap-x-2 gap-y-3 max-w-sm mt-4">
-                {categories.map((category) => {
-                  const isHovered = hoveredCategory === category.name;
-                  return (
-                    <div
-                      key={category.name}
-                      className="flex items-center gap-2 px-2 py-1.5 rounded-sm border transition-all duration-200 cursor-pointer"
-                      style={{
-                        borderColor: category.color,
-                        backgroundColor: isHovered ? `${category.color}20` : "transparent",
-                        opacity: hoveredCategory === null || isHovered ? 1 : 0.4,
-                      }}
-                      onMouseEnter={() => setHoveredCategory(category.name)}
-                      onMouseLeave={() => setHoveredCategory(null)}
-                    >
-                      <div
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: category.color }}
-                      />
-                      <span className="text-xs font-medium text-white">{category.name}</span>
-                      <span className="text-xs text-white/60">({category.skillNames.length})</span>
-                    </div>
-                  );
-                })}
-              </div>
-              </div>
-        </div>
-      </motion.section>
-
-      <motion.section variants={staggerItem}>
-        <h2 className="mb-6 text-2xl font-semibold text-white">Soft Skills</h2>
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-          {softSkillsData.map(({ name, icon: Icon }, index) => (
-            <motion.div
-              key={name}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
-              whileHover={{ scale: 1.05 }}
-            >
-              <Card className="border-white/10 bg-white/5 p-4 text-center text-white transition-colors hover:bg-white/10">
-                <div className="flex items-center lg:justify-center gap-2 text-xs lg:text-sm">
-                  <Icon className="h-4 w-4 lg:h-5 lg:w-5" />
-                  <span>{name}</span>
-                </div>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
-      </motion.section>
-    </motion.div>
+    <span
+      aria-hidden="true"
+      className={`pointer-events-none absolute inset-0 ${className} rounded-2xl border-2 border-white/10 transition-colors duration-300 group-hover:border-white/20`}
+    />
   );
 }
 
+function Perforation() {
+  return (
+    <div className="relative z-40 h-0" aria-hidden="true">
+      <span className="absolute inset-x-5 -top-px h-0.5 bg-[radial-gradient(circle,rgba(255,255,255,0.22)_1px,transparent_1.5px)] bg-size-[8px_2px]" />
+      <span className="absolute left-0 -top-3 h-6 w-3 rounded-tr-full rounded-br-full border-2 border-l-0 border-white/10 bg-black transition-colors duration-300 group-hover:border-white/20" />
+      <span className="absolute right-0 -top-3 h-6 w-3 rounded-tl-full rounded-bl-full border-2 border-r-0 border-white/10 bg-black transition-colors duration-300 group-hover:border-white/20" />
+    </div>
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="min-w-0">
+      <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">{label}</p>
+      <p className="mt-0.5 truncate text-sm font-medium text-white">{children}</p>
+    </div>
+  );
+}
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return <p className="mb-2 font-mono text-xs uppercase tracking-[0.3em] text-red-400">{children}</p>;
+}
+
+/** Diameter of the skills pie chart on wide screens (px). */
+const CHART_SIZE = 300;
+
+/** Work history as stops on a route (oldest → current). */
+const ROUTE = [
+  { code: "BOM", year: "18", name: "Reliance" },
+  { code: "BOM", year: "19", name: "WTW" },
+  { code: "BOM", year: "21", name: "CitiusTech" },
+  { code: "YUL", year: "24", name: "Flexspring" },
+  { code: "YUL", year: "26", name: "Air Canada" },
+];
+
+const TICKET =
+  "group relative overflow-hidden rounded-2xl bg-linear-to-br from-[#121212] to-[#050505] shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_24px_48px_-24px_rgba(0,0,0,0.9),0_12px_40px_-16px_rgba(255,255,255,0.06)]";
+
+export default function AboutPage() {
+  const [hoveredCategory, setHoveredCategory] = useState<CategoryName | null>(null);
+  const chartData = categories.map((cat) => ({ name: cat.name, value: cat.skillNames.length, color: cat.color }));
+  const getCategoryForSkill = (skillName: string): CategoryName | null =>
+    categories.find((c) => c.skillNames.includes(skillName))?.name ?? null;
+
+
+  return (
+    <div className="relative min-h-screen overflow-hidden">
+      {/* Background: faint grid + red horizon glow (matches the other pages) */}
+      <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden="true">
+        <div
+          className="absolute -right-40 -top-40 h-[520px] w-[520px] rounded-full opacity-25"
+          style={{ background: "radial-gradient(circle, rgba(239,68,68,0.35) 0%, transparent 70%)", filter: "blur(90px)" }}
+        />
+        <div className="absolute inset-0 opacity-[0.04]">
+          <svg className="h-full w-full" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="about-grid" width="48" height="48" patternUnits="userSpaceOnUse">
+                <path d="M 48 0 L 0 0 0 48" fill="none" stroke="white" strokeWidth="1" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#about-grid)" />
+          </svg>
+        </div>
+      </div>
+
+      <motion.div
+        initial="initial"
+        animate="animate"
+        variants={staggerContainer}
+        className="relative mx-auto mt-12 max-w-7xl px-4 py-24 md:px-8"
+      >
+        {/* Header */}
+        <motion.p variants={staggerItem} className="mb-3 flex items-center gap-2 font-mono text-xs tracking-[0.3em] text-red-400">
+          <Plane className="h-3.5 w-3.5" /> CREW PROFILE
+        </motion.p>
+        <motion.h1 variants={staggerItem} className="mb-10 text-3xl font-bold text-white md:text-4xl lg:text-5xl">
+          About Me
+        </motion.h1>
+
+        {/* Crew card + bio */}
+        <motion.section variants={staggerItem} className="mb-20 grid gap-8 lg:grid-cols-[22rem_minmax(0,1fr)] lg:gap-12">
+          <article className={`mx-auto flex w-full max-w-sm flex-col lg:max-w-none ${TICKET}`}>
+            {/* Outline above the photo (z-30) but below the notches (z-40), so it curves round them */}
+            <Edge className="z-30" />
+            {/* Full-bleed photo with the name over a fade; on desktop it grows to match the text column */}
+            <div className="relative lg:min-h-0 lg:flex-1">
+              <ProfilePhoto
+                alt="Mohammed Huzaifa"
+                className="w-full lg:absolute lg:inset-0 lg:h-full"
+                imageClassName="lg:h-full lg:object-cover lg:object-top"
+                sizes="(max-width: 1024px) 384px, 352px"
+              />
+              <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-center justify-between p-4">
+                <span className="rounded-full bg-black/60 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.25em] text-white/80 backdrop-blur-sm">
+                  Crew ID
+                </span>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-black/60 px-2.5 py-1 font-mono text-[10px] font-semibold tracking-widest text-red-300 backdrop-blur-sm">
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
+                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-red-400" />
+                  </span>
+                  ON DUTY
+                </span>
+              </div>
+              <div
+                className="pointer-events-none absolute inset-x-0 bottom-0 z-20 px-5 pb-4 pt-36"
+                style={{
+                  // Eased multi-stop fade (same RGB throughout) so there's no visible edge on the white photo background
+                  background:
+                    "linear-gradient(to top, rgb(17 17 17) 0%, rgb(17 17 17 / 0.92) 18%, rgb(17 17 17 / 0.72) 36%, rgb(17 17 17 / 0.45) 54%, rgb(17 17 17 / 0.22) 72%, rgb(17 17 17 / 0.07) 88%, rgb(17 17 17 / 0) 100%)",
+                }}
+              >
+                <h2 className="text-xl font-semibold text-white">Mohammed Huzaifa</h2>
+                <p className="text-sm text-white/70">Full Stack Developer</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4 p-5">
+              <Field label="Carrier">Air Canada</Field>
+              <Field label="Base">YUL · Montréal</Field>
+              <Field label="Advisor at">HackConcordia</Field>
+              <Field label="Education">MACS · Concordia</Field>
+            </div>
+            <Perforation />
+            <div className="grid grid-cols-2 gap-2 p-4">
+              <Link
+                href="/experience"
+                onClick={() => hapticManager.light()}
+                className="inline-flex items-center justify-center gap-1.5 rounded-md border border-white/15 px-3 py-2 font-mono text-[11px] uppercase tracking-widest text-white/80 transition-colors hover:border-white/40 hover:text-white"
+              >
+                Flight log <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+              <Link
+                href="/contact"
+                onClick={() => hapticManager.light()}
+                className="inline-flex items-center justify-center gap-1.5 rounded-md bg-white px-3 py-2 font-mono text-[11px] font-semibold uppercase tracking-widest text-black transition-colors hover:bg-white/85"
+              >
+                Contact <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+          </article>
+
+          <div className="flex flex-col gap-8">
+            <div className="space-y-5 text-sm leading-relaxed text-white/75 md:text-base">
+              <p className="text-lg text-white md:text-xl">
+                I&apos;m a Full Stack Developer at <span className="text-red-300">Air Canada</span> in Montréal. I like turning
+                messy requirements into software that is dependable, observable, and pleasant to use.
+              </p>
+              <p>
+                Whether it is an internal tool or a customer-facing experience, I aim for interfaces that feel fast and
+                intentional, with architecture that teammates can extend without guesswork.
+              </p>
+              <p>
+                Before Air Canada I spent two years at Flexspring, growing from intern to full-time and working on the
+                company&apos;s AI initiatives, including multi-turn agentic infrastructure. Earlier I built enterprise
+                healthcare software at CitiusTech and Microsoft Dynamics 365 solutions at Willis Towers Watson, working across
+                React and Next.js, Angular and .NET, and data on SQL, Cosmos DB, and Azure.
+              </p>
+              <p>
+                I work spec-driven: agree on the spec and acceptance criteria first, then build. Claude Code and similar tools
+                help me move faster, but I still review what ships. I wire automations in n8n, and I have built MCP servers so
+                assistants and editors can use real tools in a controlled way. I care about security and privacy, and I like
+                owning a feature from idea through deploy and follow-up.
+              </p>
+              <p>
+                Outside work I&apos;m an Advisor at HackConcordia, where I previously led technology as VP and Director for
+                ConUHacks, Quebec&apos;s largest hackathon. I work best in teams that value direct communication, shared
+                ownership, and honest trade-offs.
+              </p>
+            </div>
+
+            {/* Career as a flight path; sits at the bottom so it lines up with the card */}
+            <Link
+              href="/experience"
+              onClick={() => hapticManager.light()}
+              className={`mt-auto block p-5 md:p-6 ${TICKET}`}
+              aria-label="Route so far: view full flight log"
+            >
+              <Edge />
+              <div className="mb-5 flex items-center justify-between">
+                <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/40">
+                  Route so far · {ROUTE.length} stops
+                </p>
+                <span className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.2em] text-white/50 transition-colors group-hover:text-white">
+                  Flight log <ArrowRight className="h-3 w-3" />
+                </span>
+              </div>
+              <ol className="relative grid" style={{ gridTemplateColumns: `repeat(${ROUTE.length}, minmax(0, 1fr))` }}>
+                {/* Track: dashed for the journey, solid red into the current stop */}
+                <span
+                  className="absolute left-[10%] right-[10%] top-[5px] border-t-2 border-dashed border-white/15"
+                  aria-hidden="true"
+                />
+                <span
+                  className="absolute right-[10%] top-[5px] h-0.5 bg-linear-to-r from-red-500/0 to-red-400"
+                  style={{ width: `${80 / (ROUTE.length - 1)}%` }}
+                  aria-hidden="true"
+                />
+                {ROUTE.map((stop, i) => {
+                  const current = i === ROUTE.length - 1;
+                  return (
+                    <li key={stop.name} className="relative flex flex-col items-center text-center">
+                      {current ? (
+                        <span className="relative z-10 flex h-3 w-3">
+                          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
+                          <span className="relative inline-flex h-3 w-3 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.7)]" />
+                        </span>
+                      ) : (
+                        <span className="relative z-10 h-3 w-3 rounded-full border-2 border-white/60 bg-black" />
+                      )}
+                      <span className={`mt-3 font-mono text-xs font-semibold ${current ? "text-red-300" : "text-white"}`}>
+                        {stop.code} &apos;{stop.year}
+                      </span>
+                      <span className={`mt-0.5 text-[11px] leading-tight md:text-xs ${current ? "text-white" : "text-white/55"}`}>
+                        {stop.name}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ol>
+            </Link>
+          </div>
+        </motion.section>
+
+        {/* Technical skills: pie chart in the centre, chips around it (hover a category to filter) */}
+        <motion.section variants={staggerItem} className="mb-24">
+          <SectionLabel>Toolkit</SectionLabel>
+          <h2 className="mb-8 text-2xl font-semibold tracking-tight text-white md:text-3xl">Technical skills</h2>
+
+          {/* Legend: also a filter */}
+          <ul className="mb-10 flex flex-wrap justify-center gap-x-5 gap-y-2">
+            {categories.map((category) => {
+              const isHovered = hoveredCategory === category.name;
+              return (
+                <li key={category.name}>
+                  <button
+                    type="button"
+                    onMouseEnter={() => setHoveredCategory(category.name)}
+                    onMouseLeave={() => setHoveredCategory(null)}
+                    onFocus={() => setHoveredCategory(category.name)}
+                    onBlur={() => setHoveredCategory(null)}
+                    className="flex items-center gap-2 py-0.5 text-sm transition-opacity duration-200"
+                    style={{ opacity: hoveredCategory === null || isHovered ? 1 : 0.35 }}
+                  >
+                    <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: category.color }} />
+                    <span className={isHovered ? "text-white" : "text-white/75"}>{category.name}</span>
+                    <span className="font-mono text-xs text-white/40">{category.skillNames.length}</span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+
+          {(() => {
+            const chip = ({ name, icon: Icon, url }: (typeof technicalSkillsData)[number]) => {
+              const skillCategory = getCategoryForSkill(name);
+              const isHighlighted = hoveredCategory === null || hoveredCategory === skillCategory;
+              const color = skillCategory ? categories.find((c) => c.name === skillCategory)?.color : undefined;
+              const active = hoveredCategory !== null && hoveredCategory === skillCategory;
+              const body = (
+                <span
+                  className={`inline-flex items-center gap-2 rounded-md border bg-linear-to-br from-white/5 to-white/[0.02] px-3 py-2 text-xs font-medium text-white/90 transition-[opacity,border-color,box-shadow] duration-200 lg:text-sm ${
+                    isHighlighted ? "border-white/10 hover:border-white/25 hover:bg-white/10" : "border-white/5 opacity-25"
+                  }`}
+                  style={active && color ? { borderColor: color, boxShadow: `0 0 12px ${color}40` } : undefined}
+                >
+                  <Icon className="h-3.5 w-3.5 shrink-0 lg:h-4 lg:w-4" />
+                  {name}
+                </span>
+              );
+              return url ? (
+                <Link key={name} href={url} target="_blank" rel="noopener noreferrer">
+                  {body}
+                </Link>
+              ) : (
+                <span key={name}>{body}</span>
+              );
+            };
+            // Bands around the chart: top, left, right, bottom (as before)
+            const all = technicalSkillsData;
+            // Frontend: short row on top, the fuller row next to the chart
+            const topOuter = all.slice(0, 5);
+            const topInner = all.slice(5, 14);
+            const left = all.slice(14, 29);
+            const right = all.slice(29, 44);
+            const bottom = all.slice(44);
+
+            // Side columns are split into rows; each row is nudged toward the chart so the
+            // inner edge follows the circle (rows near the top/bottom of the chart tuck in).
+            const ROWS = 6;
+            const ROW_H = 50; // chip height (40) + row gap (10)
+            const R = CHART_SIZE / 2 + 32; // chart radius + the column gap
+            const toRows = (items: typeof all) => {
+              const base = Math.floor(items.length / ROWS);
+              let extra = items.length % ROWS;
+              // give the extra chips to the middle rows (furthest from the curve)
+              const counts = Array.from({ length: ROWS }, () => base);
+              const middleOut = [2, 3, 1, 4, 0, 5];
+              for (const k of middleOut) if (extra > 0) { counts[k]++; extra--; }
+              let at = 0;
+              return counts.map((c) => items.slice(at, (at += c)));
+            };
+            const tuck = (row: number) => {
+              const y = (row - (ROWS - 1) / 2) * ROW_H;
+              return Math.min(R * 0.45, R - Math.sqrt(Math.max(R * R - y * y, 0)));
+            };
+            const side = (items: typeof all, dir: 1 | -1) => (
+              <div className={`flex flex-col gap-2.5 ${dir === 1 ? "xl:items-end" : "xl:items-start"} items-center`}>
+                {toRows(items).map((row, k) => (
+                  <div
+                    key={k}
+                    className="flex flex-wrap justify-center gap-2.5 transition-transform xl:flex-nowrap xl:[transform:translateX(var(--tuck))]"
+                    style={{ ["--tuck" as string]: `${dir * tuck(k)}px` }}
+                  >
+                    {row.map(chip)}
+                  </div>
+                ))}
+              </div>
+            );
+
+            return (
+              <div className="grid gap-x-8 gap-y-2.5 xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] xl:items-center xl:gap-y-6">
+                <div className="flex flex-col gap-2.5 xl:col-span-3">
+                  <div className="flex flex-wrap justify-center gap-2.5">{topOuter.map(chip)}</div>
+                  <div className="flex flex-wrap justify-center gap-2.5">{topInner.map(chip)}</div>
+                </div>
+                {side(left, 1)}
+                <div className="order-first mx-auto w-full max-w-[240px] xl:order-none xl:max-w-none" style={{ width: undefined }}>
+                  <div className="mx-auto xl:w-[300px]">
+                    <DonutChart
+                      data={chartData}
+                      hoveredCategory={hoveredCategory}
+                      onCategoryHover={(name) => setHoveredCategory(name as CategoryName)}
+                      onCategoryLeave={() => setHoveredCategory(null)}
+                    />
+                  </div>
+                </div>
+                {side(right, -1)}
+                <div className="flex flex-wrap justify-center gap-2.5 xl:col-span-3">{bottom.map(chip)}</div>
+              </div>
+            );
+          })()}
+        </motion.section>
+
+        {/* Soft skills */}
+        <motion.section variants={staggerItem}>
+          <SectionLabel>On the crew</SectionLabel>
+          <h2 className="mb-8 text-2xl font-semibold tracking-tight text-white md:text-3xl">Soft skills</h2>
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+            {softSkillsData.map(({ name, icon: Icon }) => (
+              <div key={name} className={`flex items-center gap-3 p-4 ${TICKET}`}>
+                <Edge />
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-white/5 ring-1 ring-white/10 transition-colors group-hover:bg-red-500/10 group-hover:ring-red-500/30">
+                  <Icon className="h-4 w-4 text-red-300" />
+                </span>
+                <span className="text-xs font-medium text-white lg:text-sm">{name}</span>
+              </div>
+            ))}
+          </div>
+        </motion.section>
+      </motion.div>
+    </div>
+  );
+}

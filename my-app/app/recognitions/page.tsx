@@ -1,18 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { motion, AnimatePresence } from "framer-motion";
-import { useState, useRef, useEffect } from "react";
-import { 
-  Calendar,
-  Award,
-  ExternalLink,
-  Quote,
-  User,
-  Trophy,
-  X,
-  ZoomIn
-} from "lucide-react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { useState, useEffect } from "react";
+import { Award, ExternalLink, Plane, Quote, User, Trophy, X, ZoomIn } from "lucide-react";
 import { hapticManager } from "@/lib/haptic-manager";
 import { staggerContainer, staggerItem } from "@/components/providers/motion-provider";
 
@@ -43,6 +34,24 @@ interface Testimonial {
 }
 
 const honors: Honor[] = [
+  {
+    id: "concordia-president",
+    title: "Letter of Appreciation",
+    issuer: "Concordia University",
+    date: "Mar 2025",
+    description:
+      "Personal letter from Concordia's President, Graham Carr, thanking me for helping make ConUHacks IX a record-breaking success.",
+    fullDescription:
+      "A letter from Graham Carr, President and Vice-Chancellor of Concordia University (c.c. Mourad Debbabi, Dean of the Gina Cody School of Engineering and Computer Science), thanking me on behalf of Concordia for my work on the organizing committee of the ninth edition of ConUHacks.\n\nThe 24-hour hackathon — the largest of its kind — drew a record-breaking 800 participants tackling general challenges and ones brought by industry sponsors. In his words: \u201cIt couldn\u2019t happen without you.\u201d",
+    logo: "/imgs/logos/concordia-c.png",
+    image: "/imgs/certificates/awards/Concordia_President_ConUHacks_Letter.jpg",
+    links: [
+      {
+        label: "ConUHacks",
+        href: "https://conuhacks.io",
+      },
+    ],
+  },
   {
     id: "0",
     title: "Reward and Recognition",
@@ -101,6 +110,46 @@ const honors: Honor[] = [
 
 const testimonials: Testimonial[] = [
   {
+    id: "alexei",
+    name: "Alexei Prosvirine",
+    title: "Chief Technology Officer",
+    company: "Flexspring",
+    connection: "1st degree connection",
+    date: "September 14, 2026",
+    relationship: "Alexei was Mohammed's mentor",
+    text: "Watching Huzaifa grow at Flexspring has been one of the real pleasures of leading my team. He joined us as an intern, and I'd like to claim he was shipping meaningful work before most people finish figuring out where the good coffee is. Within a remarkably short time he was contributing directly to the products our clients depend on, helping us build the next generation of tools that keep Flexspring ahead of the curve in a challenging AI era.\n\nHis technical skills grew fast, and that alone would have made him a great hire. What makes him a rare one is everything around it: real drive, an almost suspicious eye for detail (he finds the solution in areas nobody else sometime to look for, and a positive attitude that holds steady even on deployment day, which is the engineering equivalent of staying cheerful in a thunderstorm.\n\nIf you're looking for someone who takes ownership, sweats the small things, and quietly makes the whole team better just by being on it, Huzaifa is that person. I recommend him without hesitation.",
+  },
+  {
+    id: "evandro",
+    name: "Evandro Franca",
+    title: "Software Engineer · Architect · Tech Lead",
+    company: "Flexspring",
+    connection: "1st degree connection",
+    date: "September 1, 2026",
+    relationship: "Evandro managed Mohammed directly",
+    text: "I had the chance to work alongside Huzaifa at Flexspring and follow his whole journey across several very different projects.\n\nHe started as a Software Developer Intern and ended up central to our AI initiatives, helping reshape our products in a space that was new to all of us. Huzaifa moved toward the hardest and least-defined problems available, and delivered on them.\n\nTwo things made that possible. First, his genuine curiosity: he learns quickly because he actually wants to understand how things work, not just how to make them work for now. Second, his reliability: he did what he said he'd do.\n\nI'd work with him again without hesitation.",
+  },
+  {
+    id: "shafiq",
+    name: "Shafiq Imtiaz",
+    title: "Senior Software Engineer - Principal",
+    company: "Flexspring",
+    connection: "1st degree connection",
+    date: "August 12, 2026",
+    relationship: "Shafiq was senior to Mohammed but didn't manage Mohammed directly",
+    text: "I've had the opportunity to work with Huzaifa on multiple projects, both at work and at university. He is an exceptional developer with deep knowledge of the SDLC and a disciplined approach to applying it. He is also a talented designer, pairing strong frontend skills with a knack for crafting excellent user experiences. With the rise of AI, he has shown great promise developing multi-turn agentic infrastructure at work, laying the foundation for what's ahead. Beyond that, he is a pleasure to work with, always curious, always pushing the boundaries of software engineering.",
+  },
+  {
+    id: "wei",
+    name: "Wei He",
+    title: "AI Solutions Architect",
+    company: "Major League Hacking",
+    connection: "1st degree connection",
+    date: "January 27, 2026",
+    relationship: "Wei worked with Mohammed but they were at different companies",
+    text: "At ConUHacks, I had the opportunity to work with Huzaifa on behalf of Major League Hacking, and he was a cornerstone of the event's success. As VP of Technology, Huzaifa created an environment where people can do their best work and made sure critical work stayed on track from start to finish.\n\nConUHacks X operated at significant scale, with 1000+ participants, 260+ projects, and many mentors and sponsors. Huzaifa's planning, problem-solving, and ability to coordinate effectively under pressure helped the event run smoothly. I would highly recommend him for technical leadership, event coordination, and team mentorship.",
+  },
+  {
     id: "0",
     name: "Jithin Jain",
     title: "Solutions Architect",
@@ -122,631 +171,372 @@ const testimonials: Testimonial[] = [
   },
 ];
 
-// Generate particle positions once - optimized for performance
-const generateParticles = (isMobile: boolean) => {
-  const particleCount = isMobile ? 8 : 20; // Reduce particles on mobile
-  return Array.from({ length: particleCount }, () => ({
-    left: Math.random() * 100,
-    top: Math.random() * 100,
-    duration: isMobile ? 4 + Math.random() * 2 : 3 + Math.random() * 2, // Slightly longer on mobile
-    delay: Math.random() * 2,
-  }));
-};
-
 type TabType = "all" | "awards" | "recommendations";
 
-export default function RecognitionPage() {
-  const [mounted, setMounted] = useState(false);
-  const [particles, setParticles] = useState<Array<{ left: number; top: number; duration: number; delay: number }>>([]);
-  const [activeTab, setActiveTab] = useState<TabType>("all");
-  const [selectedHonor, setSelectedHonor] = useState<Honor | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+const MONTHS: Record<string, number> = { Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5, Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11 };
+const monthValue = (d: string) => {
+  const m = d.match(/(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\w*\s+(?:\d{1,2},\s+)?(\d{4})/);
+  return m ? +m[2] * 12 + MONTHS[m[1]] : 0;
+};
+/** "Sep 2021" / "February 18, 2024" → "SEP '21" */
+const shortDate = (d: string) => {
+  const m = d.match(/(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\w*\s+(?:\d{1,2},\s+)?(\d{4})/);
+  return m ? `${m[1].toUpperCase()} '${m[2].slice(2)}` : d.toUpperCase();
+};
 
-  // Performance optimizations - only computed after hydration to avoid SSR mismatches
-  const [isMobile, setIsMobile] = useState(false);
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+const sortedHonors = [...honors].sort((a, b) => monthValue(b.date) - monthValue(a.date));
 
-  useEffect(() => {
-    // Only run on client side to avoid SSR hydration mismatches
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    setIsMobile(window.innerWidth < 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
-    setPrefersReducedMotion(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
-  }, []);
+const companyLogo = (company: string) =>
+  company === "CitiusTech"
+    ? "/imgs/logos/citiustech.jpeg"
+    : company === "Flexspring"
+      ? "/imgs/logos/flexspring.jpeg"
+      : company === "Major League Hacking"
+        ? "/imgs/logos/mlh.png"
+      : company === "DXC Technology" || company.includes("WTW")
+        ? "/imgs/logos/wtw.png"
+        : null;
 
-  // Sort honors chronologically (most recent first)
-  const sortedHonors = [...honors].sort((a, b) => {
-    const parseDate = (dateStr: string): Date => {
-      const monthNames: Record<string, number> = {
-        "Jan": 0, "Feb": 1, "Mar": 2, "Apr": 3, "May": 4, "Jun": 5,
-        "Jul": 6, "Aug": 7, "Sep": 8, "Oct": 9, "Nov": 10, "Dec": 11
-      };
-      const match = dateStr.match(/(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{4})/);
-      if (match) {
-        return new Date(parseInt(match[2]), monthNames[match[1]], 1);
-      }
-      return new Date();
-    };
-    return parseDate(b.date).getTime() - parseDate(a.date).getTime();
-  });
+/** Short label for how the recommender knew me, from LinkedIn's relationship line. */
+const relationLabel = (r: string) =>
+  /managed .* directly/i.test(r) && !/didn.t manage/i.test(r)
+    ? "Manager"
+    : /mentor/i.test(r)
+      ? "Mentor"
+      : /senior to/i.test(r)
+        ? "Senior colleague"
+        : /different companies/i.test(r)
+          ? "Collaborator"
+          : "Teammate";
 
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    setMounted(true);
-  }, []);
+const sortedTestimonials = [...testimonials].sort((a, b) => monthValue(b.date) - monthValue(a.date));
 
-  useEffect(() => {
-    if (mounted) {
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      setParticles(generateParticles(isMobile));
-    }
-  }, [isMobile, mounted]);
+const TABS: { id: TabType; label: string; count: number; Icon?: typeof Trophy }[] = [
+  { id: "all", label: "All", count: honors.length + testimonials.length },
+  { id: "awards", label: "Awards", count: honors.length, Icon: Trophy },
+  { id: "recommendations", label: "Recommendations", count: testimonials.length, Icon: Quote },
+];
 
-  useEffect(() => {
-    if (selectedHonor) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
-    }
-    return () => {
-      document.body.style.overflow = "unset";
-    };
-  }, [selectedHonor]);
+/** Shared ticket surface: near-black gradient, 2px border, soft shadow (matches the experience page). */
+const TICKET =
+  "group relative overflow-hidden rounded-2xl bg-linear-to-br from-[#121212] to-[#050505] shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_24px_48px_-24px_rgba(0,0,0,0.9),0_12px_40px_-16px_rgba(255,255,255,0.06)] transition-shadow duration-300";
 
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && selectedHonor) {
-        setSelectedHonor(null);
-      }
-    };
-
-    if (selectedHonor) {
-      window.addEventListener("keydown", handleEscape);
-    }
-
-    return () => {
-      window.removeEventListener("keydown", handleEscape);
-    };
-  }, [selectedHonor]);
-
+/** Ticket edge drawn as an overlay (not a CSS border) so the notches can cut through it and the outline curves round them. */
+function Edge() {
   return (
-    <div ref={containerRef} className="relative min-h-screen overflow-hidden">
-      {/* Animated Background */}
-      <div className="absolute inset-0 -z-10 overflow-hidden">
-        {/* Default static background during SSR */}
-        {!mounted && (
-          <>
-            <div
-              className="absolute left-[10%] top-[10%] h-[600px] w-[600px] rounded-full opacity-10"
-              style={{
-                background: "radial-gradient(circle, rgba(99, 102, 241, 0.3) 0%, transparent 70%)",
-                filter: "blur(100px)",
-              }}
-            />
-            <div
-              className="absolute right-[15%] top-[50%] h-[500px] w-[500px] rounded-full opacity-8"
-              style={{
-                background: "radial-gradient(circle, rgba(168, 85, 247, 0.3) 0%, transparent 70%)",
-                filter: "blur(90px)",
-              }}
-            />
-          </>
-        )}
+    <span
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-0 rounded-2xl border-2 border-white/10 transition-colors duration-300 group-hover:border-white/20"
+    />
+  );
+}
 
-        {/* Dynamic background after hydration */}
-        {mounted && (
-          <>
-            {/* Gradient Blobs - Simplified on mobile */}
-            {!prefersReducedMotion && (
-              <>
-                <motion.div
-                  className="absolute left-[10%] top-[10%] h-[600px] w-[600px] rounded-full opacity-20"
-                  style={{
-                    background: "radial-gradient(circle, rgba(99, 102, 241, 0.4) 0%, transparent 70%)",
-                    filter: isMobile ? "blur(80px)" : "blur(100px)",
-                  }}
-                  animate={isMobile ? {
-                    scale: [1, 1.1, 1],
-                    opacity: [0.15, 0.25, 0.15],
-                  } : {
-                    x: [0, 100, -50, 0],
-                    y: [0, -80, 50, 0],
-                    scale: [1, 1.2, 0.9, 1],
-                  }}
-                  transition={isMobile ? {
-                    duration: 8,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  } : {
-                    duration: 25,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
-                />
-                <motion.div
-                  className="absolute right-[15%] top-[50%] h-[500px] w-[500px] rounded-full opacity-15"
-                  style={{
-                    background: "radial-gradient(circle, rgba(168, 85, 247, 0.4) 0%, transparent 70%)",
-                    filter: isMobile ? "blur(70px)" : "blur(90px)",
-                  }}
-                  animate={isMobile ? {
-                    scale: [1, 1.15, 1],
-                    opacity: [0.1, 0.2, 0.1],
-                  } : {
-                    x: [0, -120, 80, 0],
-                    y: [0, 100, -60, 0],
-                    scale: [1, 1.3, 1.1, 1],
-                  }}
-                  transition={isMobile ? {
-                    duration: 10,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                    delay: 1,
-                  } : {
-                    duration: 30,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                    delay: 2,
-                  }}
-                />
-              </>
-            )}
-
-            {/* Static background for reduced motion */}
-            {prefersReducedMotion && (
-              <>
-                <div
-                  className="absolute left-[10%] top-[10%] h-[600px] w-[600px] rounded-full opacity-10"
-                  style={{
-                    background: "radial-gradient(circle, rgba(99, 102, 241, 0.3) 0%, transparent 70%)",
-                    filter: "blur(100px)",
-                  }}
-                />
-                <div
-                  className="absolute right-[15%] top-[50%] h-[500px] w-[500px] rounded-full opacity-8"
-                  style={{
-                    background: "radial-gradient(circle, rgba(168, 85, 247, 0.3) 0%, transparent 70%)",
-                    filter: "blur(90px)",
-                  }}
-                />
-              </>
-            )}
-          </>
-        )}
-
-        {/* Grid Pattern */}
-        <div className="absolute inset-0 opacity-[0.03]">
-          <svg className="h-full w-full" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
-                <path d="M 60 0 L 0 0 0 60" fill="none" stroke="white" strokeWidth="1" />
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#grid)" />
-          </svg>
-        </div>
-      </div>
-
-    <motion.div
-      initial="initial"
-      animate="animate"
-      variants={staggerContainer}
-        className="relative mx-auto max-w-7xl px-4 py-24 mt-12"
-    >
-        {/* Header */}
-      <motion.h1
-        variants={staggerItem}
-        className="mb-6 text-4xl font-bold text-white md:text-5xl"
-      >
-        Recognitions
-      </motion.h1>
-
-        <motion.section
-          variants={staggerItem}
-          className="mb-8 space-y-4 text-lg text-white/80"
-        >
-          <p className="text-justify">
-            Throughout my career, I&apos;ve been fortunate to receive recognition
-            for my contributions to various projects and initiatives. These awards
-            and recommendations reflect my commitment to excellence, innovation, and delivering
-            exceptional results.
-          </p>
-        </motion.section>
-
-        {/* Tabs */}
-        <motion.div
-          variants={staggerItem}
-          className="mb-8 flex flex-wrap gap-3"
-        >
-          <motion.button
-            onClick={() => {
-              setActiveTab("all");
-              hapticManager.light();
-            }}
-            whileHover={isMobile ? {} : { scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className={`rounded-full px-6 py-2.5 text-sm font-medium transition-all ${
-              activeTab === "all"
-                ? "bg-white text-black shadow-lg shadow-white/20"
-                : "bg-white/10 text-white/80 hover:bg-white/20"
-            }`}
-          >
-            All ({honors.length + testimonials.length})
-          </motion.button>
-          <motion.button
-            onClick={() => {
-              setActiveTab("awards");
-              hapticManager.light();
-            }}
-            whileHover={isMobile ? {} : { scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className={`rounded-full px-6 py-2.5 text-sm font-medium transition-all ${
-              activeTab === "awards"
-                ? "bg-yellow-500/90 text-white shadow-lg shadow-yellow-500/30"
-                : "bg-white/10 text-white/80 hover:bg-white/20"
-            }`}
-          >
-            <Trophy className="mr-2 inline h-4 w-4" />
-            Awards ({honors.length})
-          </motion.button>
-          <motion.button
-            onClick={() => {
-              setActiveTab("recommendations");
-              hapticManager.light();
-            }}
-            whileHover={isMobile ? {} : { scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className={`rounded-full px-6 py-2.5 text-sm font-medium transition-all ${
-              activeTab === "recommendations"
-                ? "bg-blue-500/90 text-white shadow-lg shadow-blue-500/30"
-                : "bg-white/10 text-white/80 hover:bg-white/20"
-            }`}
-          >
-            <Quote className="mr-2 inline h-4 w-4" />
-            Recommendations ({testimonials.length})
-          </motion.button>
-        </motion.div>
-
-        {/* Awards Section */}
-        {(activeTab === "all" || activeTab === "awards") && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="mb-16"
-          >
-            {(activeTab === "all" || activeTab === "awards") && activeTab === "all" && (
-              <motion.h2
-                variants={staggerItem}
-                className="mb-8 text-3xl font-bold text-white md:text-4xl"
-              >
-                Awards
-              </motion.h2>
-            )}
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {sortedHonors.map((honor, index) => (
-              <motion.div
-                key={honor.id}
-                  initial={{ opacity: 0, y: isMobile ? 20 : 50 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: isMobile ? "-50px" : "-100px" }}
-                  transition={{
-                    delay: index * (isMobile ? 0.05 : 0.1),
-                    duration: isMobile ? 0.4 : 0.6,
-                    ease: isMobile ? "easeOut" : "easeOut"
-                  }}
-                  className="relative"
-                >
-                    <div className="relative h-full">
-                        {/* Award Badge */}
-                        <div className="absolute right-0 top-4 z-10">
-                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-br from-yellow-500/20 to-orange-500/20">
-                            <Trophy className="h-5 w-5 text-yellow-400" />
-                          </div>
-                        </div>
-
-                        {/* Content */}
-                        <div className="relative z-10">
-                          {/* Award Image Preview */}
-                          {honor.image && (
-                            <div className="mb-4">
-                              <motion.div
-                                whileHover={{ scale: isMobile ? 1 : 1.02 }}
-                                onClick={() => setSelectedHonor(honor)}
-                                className="relative cursor-pointer overflow-hidden rounded-lg border border-white/10 bg-white/5 group/image"
-                              >
-                                <Image
-                                  src={honor.image}
-                                  alt={`${honor.title} certificate`}
-                                  width={400}
-                                  height={300}
-                                  loading={index < 2 ? "eager" : "lazy"} // Load first 2 eagerly, rest lazy
-                                  className="h-auto w-full object-cover transition-transform group-hover/image:scale-105"
-                                />
-                                <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover/image:opacity-100">
-                                  <ZoomIn className="h-8 w-8 text-white" />
-                                </div>
-                              </motion.div>
-                            </div>
-                          )}
-                          <div className="mb-4">
-                            <div className="mb-3 flex gap-3">
-                              {honor.logo ? (
-                                <Image
-                                  src={honor.logo}
-                                  alt={`${honor.issuer} logo`}
-                                  width={48}
-                                  height={48}
-                                  loading="lazy"
-                                  className="h-12 w-12 rounded-sm"
-                                />
-                              ) : (
-                                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-white/5">
-                                  <Award className="h-6 w-6 text-white/80" />
-                                </div>
-                              )}
-                              <div className="flex-1">
-                                 <h3 className="text-lg font-bold text-white">
-                                  {honor.title}
-                                </h3>
-                                 <div className="flex items-center gap-2">
-                                   <p className="text-sm font-medium text-white/70">
-                                     {honor.issuer}
-                                   </p>
-                                   {honor.links && honor.links.length > 0 && (
-                                     <a
-                                       href={honor.links[0].href}
-                                       target="_blank"
-                                       rel="noopener noreferrer"
-                                       className="text-white/50 hover:text-white/80"
-                                     >
-                                       <ExternalLink className="h-3 w-3" />
-                                     </a>
-                                   )}
-                                 </div>
-                              </div>
-                              {/* Date - Top Right */}
-                              <div className="flex mt-1 gap-2 text-sm text-white/60">
-                                <Calendar className="h-4 w-4" />
-                                <span>{honor.date}</span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Description */}
-                          <p className="mb-4 text-sm text-white/80 line-clamp-3">{honor.description}</p>
-                        </div>
-                    </div>
-              </motion.div>
-                ))}
-            </div>
-          </motion.div>
-        )}
-
-        {/* Recommendations Section */}
-        {(activeTab === "all" || activeTab === "recommendations") && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className={activeTab === "all" ? "mt-16" : ""}
-          >
-            {(activeTab === "all" || activeTab === "recommendations") && activeTab === "all" && (
-              <motion.h2
-                variants={staggerItem}
-                className="mb-8 text-3xl font-bold text-white md:text-4xl"
-              >
-                Recommendations
-              </motion.h2>
-            )}
-            <motion.section
-              variants={staggerItem}
-              className={`mb-8 space-y-4 text-lg text-white/80 ${activeTab === "all" ? "" : "hidden"}`}
-            >
-              <p className="text-justify">
-                I&apos;m grateful to have worked with exceptional colleagues and
-                managers who have provided valuable feedback and recommendations.
-                These testimonials reflect the collaborative relationships I&apos;ve
-                built and the impact of my work across different projects and teams.
-              </p>
-            </motion.section>
-
-            {/* Recommendations List */}
-            <div className="space-y-12">
-              {testimonials.map((testimonial, index) => {
-                // Get company logo if available
-                const companyLogo = testimonial.company === "CitiusTech"
-                  ? "/imgs/logos/citiustech.jpeg"
-                  : testimonial.company === "DXC Technology" || testimonial.company.includes("WTW")
-                  ? "/imgs/logos/wtw.png"
-                  : null;
-
-                return (
-              <motion.div
-                key={testimonial.id}
-                  initial={{ opacity: 0, y: isMobile ? 15 : 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: isMobile ? "-50px" : "-100px" }}
-                  transition={{
-                    delay: index * (isMobile ? 0.05 : 0.1),
-                    duration: isMobile ? 0.3 : 0.5,
-                    ease: "easeOut"
-                  }}
-                  className="relative"
-                >
-                  <div className={index < testimonials.length - 1 ? 'pb-12 border-b border-white/10' : ''}>
-                    {/* Testimonial Text */}
-                    <div className="mb-8 flex gap-4">
-                      <Quote className="h-5 w-5 shrink-0 text-white mt-0.5" />
-                      <p className="text-base leading-relaxed text-white/90 whitespace-pre-line">
-                        {testimonial.text}
-                      </p>
-                    </div>
-
-                    {/* Author Info */}
-                    <div className="flex items-center gap-4 pl-9">
-                      {companyLogo ? (
-                        <Image
-                          src={companyLogo}
-                          alt={`${testimonial.company} logo`}
-                          width={40}
-                          height={40}
-                          loading="lazy"
-                          className="h-10 w-10 rounded-sm object-cover"
-                        />
-                      ) : (
-                        <div className="flex h-10 w-10 items-center justify-center rounded-sm bg-white/10">
-                          <User className="h-5 w-5 text-white/60" />
-                        </div>
-                      )}
-                      <div>
-                        <p className="text-sm font-semibold text-white">
-                          {testimonial.name}
-                        </p>
-                        <p className="text-xs text-white/60 mt-0.5">
-                          {testimonial.title} · {testimonial.company}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-            </motion.div>
-                );
-              })}
-        </div>
-        </motion.div>
-        )}
-
-        {/* Honor Detail Modal - Instagram Style */}
-        <AnimatePresence>
-          {selectedHonor && (
-            <>
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
-                onClick={() => setSelectedHonor(null)}
-              >
-                <motion.button
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  onClick={() => setSelectedHonor(null)}
-                  className="absolute right-4 top-4 z-10 rounded-full bg-white/10 p-3 text-white backdrop-blur-sm transition-colors hover:bg-white/20"
-                >
-                  <X className="h-6 w-6" />
-                </motion.button>
-                <motion.div
-                  initial={{ scale: 0.95, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 0.95, opacity: 0 }}
-                  className="relative flex w-full max-w-7xl flex-col overflow-hidden rounded-lg bg-white/5 backdrop-blur-sm md:flex-row md:items-stretch"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {/* Image Section - Left */}
-                  {selectedHonor.image && (
-                    <div className="flex w-full items-center justify-center bg-black/20 p-1 md:w-2/3 md:shrink-0">
-                      <Image
-                        src={selectedHonor.image}
-                        alt={`${selectedHonor.title} certificate`}
-                        width={1600}
-                        height={2400}
-                        loading="eager" // Modal image should load eagerly when opened
-                        className="h-auto max-h-[90vh] w-full object-contain"
-                      />
-                    </div>
-                  )}
-                  
-                  {/* Details Section - Right */}
-                  <div className="flex w-full flex-col overflow-y-auto p-6 md:h-auto md:w-1/3 md:p-8">
-                    {/* Header */}
-                    <div className="mb-6 border-b border-white/10 pb-6">
-                      <div className="mb-4 flex items-center gap-3">
-                        {selectedHonor.logo ? (
-                          <Image
-                            src={selectedHonor.logo}
-                            alt={`${selectedHonor.issuer} logo`}
-                            width={56}
-                            height={56}
-                            loading="eager" // Modal logo should load eagerly
-                            className="h-14 w-14 rounded-lg object-contain p-1"
-                          />
-                        ) : (
-                          <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-white/10">
-                            <Award className="h-7 w-7 text-white/80" />
-                          </div>
-                        )}
-                        <div className="flex-1">
-                          <h3 className="text-2xl font-bold text-white">
-                            {selectedHonor.title}
-                          </h3>
-                          <div className="mt-1 flex items-center gap-2">
-                            <p className="text-base font-medium text-white/70">
-                              {selectedHonor.issuer}
-                            </p>
-                            {selectedHonor.links && selectedHonor.links.length > 0 && (
-                              <a
-                                href={selectedHonor.links[0].href}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-white/50 hover:text-white/80"
-                              >
-                                <ExternalLink className="h-4 w-4" />
-                              </a>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Meta Info */}
-                      <div className="flex items-center gap-2 text-sm text-white/60">
-                        <Calendar className="h-4 w-4" />
-                        <span>{selectedHonor.date}</span>
-                      </div>
-                    </div>
-
-                    {/* Description */}
-                    <div className="flex-1">
-                      <h4 className="mb-3 text-sm font-semibold uppercase tracking-wide text-white/60">
-                        Description
-                      </h4>
-                      <p className="text-base leading-relaxed text-white/90 whitespace-pre-line">
-                        {selectedHonor.fullDescription || selectedHonor.description}
-                      </p>
-                    </div>
-                  </div>
-                </motion.div>
-              </motion.div>
-            </>
-          )}
-        </AnimatePresence>
-
-        {/* Floating Particles - Only render after hydration and skip on reduced motion */}
-        {mounted && !prefersReducedMotion && particles.map((particle, i) => (
-          <motion.div
-            key={i}
-            className={`absolute rounded-full ${isMobile ? 'h-0.5 w-0.5 bg-white/15' : 'h-1 w-1 bg-white/20'}`}
-            style={{
-              left: `${particle.left}%`,
-              top: `${particle.top}%`,
-            }}
-            animate={isMobile ? {
-              y: [0, -20, 0], // Smaller movement on mobile
-              opacity: [0.15, 0.3, 0.15],
-            } : {
-              y: [0, -30, 0],
-              opacity: [0.2, 0.5, 0.2],
-              scale: [1, 1.5, 1],
-            }}
-            transition={{
-              duration: particle.duration,
-              repeat: Infinity,
-              delay: particle.delay,
-              ease: isMobile ? "linear" : "easeInOut", // Simpler easing on mobile
-            }}
-          />
-        ))}
-    </motion.div>
+function Perforation() {
+  return (
+    <div className="relative h-0" aria-hidden="true">
+      <span className="absolute inset-x-5 -top-px h-0.5 bg-[radial-gradient(circle,rgba(255,255,255,0.22)_1px,transparent_1.5px)] bg-size-[8px_2px]" />
+      <span className="absolute left-0 -top-3 h-6 w-3 rounded-tr-full rounded-br-full border-2 border-l-0 border-white/10 bg-black transition-colors duration-300 group-hover:border-white/20" />
+      <span className="absolute right-0 -top-3 h-6 w-3 rounded-tl-full rounded-bl-full border-2 border-r-0 border-white/10 bg-black transition-colors duration-300 group-hover:border-white/20" />
     </div>
   );
 }
 
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return <p className="mb-2 font-mono text-xs uppercase tracking-[0.3em] text-red-400">{children}</p>;
+}
+
+export default function RecognitionPage() {
+  const [activeTab, setActiveTab] = useState<TabType>("all");
+  const [selectedHonor, setSelectedHonor] = useState<Honor | null>(null);
+  const reduceMotion = useReducedMotion() ?? false;
+
+  useEffect(() => {
+    if (!selectedHonor) return;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setSelectedHonor(null);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = "unset";
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [selectedHonor]);
+
+  const reveal = (i: number) => ({
+    initial: reduceMotion ? false : { opacity: 0, y: 30 },
+    whileInView: { opacity: 1, y: 0 },
+    viewport: { once: true, margin: "-60px" },
+    transition: { duration: 0.5, ease: "easeOut" as const, delay: i * 0.08 },
+  });
+
+  return (
+    <div className="relative min-h-screen overflow-hidden">
+      {/* Background: faint grid + red horizon glow */}
+      <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden="true">
+        <div
+          className="absolute -right-40 -top-40 h-[520px] w-[520px] rounded-full opacity-25"
+          style={{ background: "radial-gradient(circle, rgba(239,68,68,0.35) 0%, transparent 70%)", filter: "blur(90px)" }}
+        />
+        <div className="absolute inset-0 opacity-[0.04]">
+          <svg className="h-full w-full" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="recog-grid" width="48" height="48" patternUnits="userSpaceOnUse">
+                <path d="M 48 0 L 0 0 0 48" fill="none" stroke="white" strokeWidth="1" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#recog-grid)" />
+          </svg>
+        </div>
+      </div>
+
+      <motion.div
+        initial="initial"
+        animate="animate"
+        variants={staggerContainer}
+        className="relative mx-auto mt-12 max-w-7xl px-4 py-24 md:px-8"
+      >
+        {/* Header */}
+        <motion.p variants={staggerItem} className="mb-3 flex items-center gap-2 font-mono text-xs tracking-[0.3em] text-red-400">
+          <Plane className="h-3.5 w-3.5" /> COMMENDATIONS
+        </motion.p>
+        <motion.h1 variants={staggerItem} className="mb-6 text-3xl font-bold text-white md:text-4xl lg:text-5xl">
+          Recognitions
+        </motion.h1>
+        <motion.p variants={staggerItem} className="mb-8 text-sm text-white/75 md:text-base">
+          Throughout my career, I&apos;ve been fortunate to receive recognition for my contributions to various projects and
+          initiatives. These awards and recommendations reflect my commitment to excellence, innovation, and delivering
+          exceptional results.
+        </motion.p>
+
+        {/* Tabs */}
+        <motion.div variants={staggerItem} className="mb-10 flex flex-wrap gap-2" role="tablist" aria-label="Filter recognitions">
+          {TABS.map((t) => {
+            const active = activeTab === t.id;
+            return (
+              <button
+                key={t.id}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                onClick={() => {
+                  hapticManager.light();
+                  setActiveTab(t.id);
+                }}
+                className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-2 font-mono text-[11px] uppercase tracking-widest transition-colors md:px-4 ${
+                  active ? "border-white bg-white text-black" : "border-white/15 text-white/70 hover:border-white/40 hover:text-white"
+                }`}
+              >
+                {t.Icon && <t.Icon className="h-3.5 w-3.5" />}
+                {t.label} <span className={active ? "text-black/50" : "text-white/40"}>{t.count}</span>
+              </button>
+            );
+          })}
+        </motion.div>
+
+        {/* Awards */}
+        {(activeTab === "all" || activeTab === "awards") && (
+          <section className="mb-16" aria-labelledby="awards-heading">
+            {activeTab === "all" && (
+              <>
+                <SectionLabel>Awards</SectionLabel>
+                <h2 id="awards-heading" className="mb-8 text-2xl font-semibold tracking-tight text-white md:text-3xl">
+                  Honours along the route
+                </h2>
+              </>
+            )}
+            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+              {sortedHonors.map((honor, i) => (
+                <motion.article key={honor.id} {...reveal(i)} className={`flex flex-col ${TICKET}`}>
+                  <Edge />
+                  {honor.image && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        hapticManager.light();
+                        setSelectedHonor(honor);
+                      }}
+                      className="relative m-3 mb-0 block overflow-hidden rounded-xl border border-white/10 bg-black"
+                      aria-label={`View ${honor.title} certificate`}
+                    >
+                      <Image
+                        src={honor.image}
+                        alt={`${honor.title} certificate`}
+                        width={400}
+                        height={300}
+                        loading={i < 2 ? "eager" : "lazy"}
+                        className="aspect-4/3 h-auto w-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.03]"
+                      />
+                      <span className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
+                        <ZoomIn className="h-7 w-7 text-white" />
+                      </span>
+                    </button>
+                  )}
+
+                  <div className="flex flex-1 flex-col p-5">
+                    <div className="flex items-start gap-3">
+                      {honor.logo ? (
+                        <Image src={honor.logo} alt={`${honor.issuer} logo`} width={44} height={44} loading="lazy" className="h-11 w-11 shrink-0 rounded-md object-contain" />
+                      ) : (
+                        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-white/10">
+                          <Award className="h-5 w-5 text-white/80" />
+                        </span>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/40">Commendation</p>
+                        <h3 className="text-lg font-semibold leading-snug text-white">{honor.title}</h3>
+                      </div>
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-500/15">
+                        <Trophy className="h-4 w-4 text-red-300" />
+                      </span>
+                    </div>
+                    <p className="mt-4 line-clamp-3 text-sm leading-relaxed text-white/70">{honor.description}</p>
+                  </div>
+
+                  <Perforation />
+                  <div className="flex items-center justify-between gap-3 px-5 py-4">
+                    <div className="min-w-0">
+                      <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">Issued by</p>
+                      <p className="flex items-center gap-1.5 truncate text-sm text-white">
+                        {honor.issuer}
+                        {honor.links?.[0] && (
+                          <a href={honor.links[0].href} target="_blank" rel="noopener noreferrer" className="text-white/40 hover:text-white" aria-label={honor.links[0].label}>
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        )}
+                      </p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">Date</p>
+                      <p className="font-mono text-sm font-semibold text-white">{shortDate(honor.date)}</p>
+                    </div>
+                  </div>
+                </motion.article>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Recommendations */}
+        {(activeTab === "all" || activeTab === "recommendations") && (
+          <section aria-labelledby="recs-heading">
+            {activeTab === "all" && (
+              <>
+                <SectionLabel>Recommendations</SectionLabel>
+                <h2 id="recs-heading" className="mb-3 text-2xl font-semibold tracking-tight text-white md:text-3xl">
+                  Words from the crew
+                </h2>
+                <p className="mb-8 text-sm text-white/70 md:text-base">
+                  I&apos;m grateful to have worked with exceptional colleagues and managers who have provided valuable feedback
+                  and recommendations. These testimonials reflect the collaborative relationships I&apos;ve built and the impact of
+                  my work across different projects and teams.
+                </p>
+              </>
+            )}
+            <div className="columns-1 gap-6 lg:columns-2">
+              {sortedTestimonials.map((t, i) => {
+                const logo = companyLogo(t.company);
+                return (
+                  <motion.article key={t.id} {...reveal(i)} className={`mb-6 flex break-inside-avoid flex-col ${TICKET}`}>
+                    <Edge />
+                    <div className="flex flex-1 gap-4 p-5 md:p-7">
+                      <Quote className="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
+                      <p className="whitespace-pre-line text-sm leading-relaxed text-white/85 md:text-base">{t.text}</p>
+                    </div>
+                    <Perforation />
+                    <div className="flex items-center gap-4 px-5 py-4 md:px-7">
+                      {logo ? (
+                        <Image src={logo} alt={`${t.company} logo`} width={40} height={40} loading="lazy" className="h-10 w-10 shrink-0 rounded-md object-cover" />
+                      ) : (
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-white/10">
+                          <User className="h-5 w-5 text-white/60" />
+                        </span>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold text-white">{t.name}</p>
+                        <p className="truncate text-xs text-white/55">
+                          {t.title} · {t.company}
+                        </p>
+                      </div>
+                      <div className="hidden shrink-0 text-right sm:block">
+                        <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">{relationLabel(t.relationship)}</p>
+                        <p className="font-mono text-sm font-semibold text-white">{shortDate(t.date)}</p>
+                      </div>
+                    </div>
+                  </motion.article>
+                );
+              })}
+            </div>
+          </section>
+        )}
+      </motion.div>
+
+      {/* Certificate viewer */}
+      <AnimatePresence>
+        {selectedHonor && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
+            onClick={() => setSelectedHonor(null)}
+            role="dialog"
+            aria-modal="true"
+            aria-label={`${selectedHonor.title} certificate`}
+          >
+            <button
+              type="button"
+              onClick={() => setSelectedHonor(null)}
+              className="absolute right-4 top-4 z-10 rounded-full border border-white/15 bg-black/60 p-3 text-white transition-colors hover:border-white/40"
+              aria-label="Close"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            <motion.div
+              initial={{ scale: 0.97, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.97, opacity: 0 }}
+              className="relative flex w-full max-w-6xl flex-col overflow-hidden rounded-2xl border-2 border-white/10 bg-linear-to-br from-[#121212] to-[#050505] md:flex-row md:items-stretch"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {selectedHonor.image && (
+                <div className="flex w-full items-center justify-center bg-black p-2 md:w-2/3 md:shrink-0">
+                  <Image
+                    src={selectedHonor.image}
+                    alt={`${selectedHonor.title} certificate`}
+                    width={1600}
+                    height={2400}
+                    loading="eager"
+                    className="h-auto max-h-[85vh] w-full object-contain"
+                  />
+                </div>
+              )}
+              <div className="flex w-full flex-col overflow-y-auto p-6 md:w-1/3 md:p-8">
+                <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-red-400">Commendation</p>
+                <h3 className="mt-1 text-2xl font-bold text-white">{selectedHonor.title}</h3>
+                <div className="mt-4 grid grid-cols-2 gap-4 border-y border-white/10 py-4">
+                  <div className="min-w-0">
+                    <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">Issued by</p>
+                    <p className="mt-1 flex items-center gap-1.5 truncate text-sm text-white">
+                      {selectedHonor.issuer}
+                      {selectedHonor.links?.[0] && (
+                        <a href={selectedHonor.links[0].href} target="_blank" rel="noopener noreferrer" className="text-white/40 hover:text-white" aria-label={selectedHonor.links[0].label}>
+                          <ExternalLink className="h-3.5 w-3.5" />
+                        </a>
+                      )}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">Date</p>
+                    <p className="mt-1 font-mono text-sm font-semibold text-white">{shortDate(selectedHonor.date)}</p>
+                  </div>
+                </div>
+                <p className="mt-5 whitespace-pre-line text-sm leading-relaxed text-white/80 md:text-base">
+                  {selectedHonor.fullDescription || selectedHonor.description}
+                </p>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
