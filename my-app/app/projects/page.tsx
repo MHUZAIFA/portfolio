@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useMemo, useRef, type ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -317,7 +317,7 @@ function HangarBay({ project, bay }: { project: Project; bay: number }) {
             alt=""
             fill
             sizes={wide ? "(min-width: 1024px) 40vw, 100vw" : "(min-width: 1024px) 30vw, (min-width: 768px) 50vw, 100vw"}
-            className="object-cover brightness-[0.55] grayscale-[0.6] transition-[filter] duration-500 group-hover:brightness-100 group-hover:grayscale-0"
+            className="object-cover"
           />
           {/* Floor shadow under the "aircraft" */}
           <span
@@ -376,43 +376,6 @@ function HangarCeiling() {
           </div>
         ))}
       </div>
-    </div>
-  );
-}
-
-/** Sliding hangar doors that open once on load. */
-function HangarDoors() {
-  const reduceMotion = useReducedMotion();
-  if (reduceMotion) return null;
-
-  const panel =
-    "absolute inset-y-0 w-1/2 bg-[repeating-linear-gradient(90deg,#141414_0_46px,#0a0a0a_46px_48px)] shadow-[inset_0_0_80px_rgba(0,0,0,0.8)]";
-  const ease = [0.65, 0, 0.35, 1] as const;
-
-  return (
-    <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-30 overflow-hidden">
-      <motion.div
-        className={`${panel} left-0 border-r border-white/15`}
-        initial={{ x: 0 }}
-        animate={{ x: "-101%" }}
-        transition={{ duration: 1.4, delay: 0.5, ease }}
-      >
-        <span className={`absolute inset-x-0 bottom-0 h-3 ${HAZARD}`} />
-        <span className="absolute right-6 top-1/2 -translate-y-1/2 font-mono text-5xl font-black tracking-tight text-white/8 md:text-7xl">
-          HANG
-        </span>
-      </motion.div>
-      <motion.div
-        className={`${panel} right-0 border-l border-white/15`}
-        initial={{ x: 0 }}
-        animate={{ x: "101%" }}
-        transition={{ duration: 1.4, delay: 0.5, ease }}
-      >
-        <span className={`absolute inset-x-0 bottom-0 h-3 ${HAZARD}`} />
-        <span className="absolute left-6 top-1/2 -translate-y-1/2 font-mono text-5xl font-black tracking-tight text-white/8 md:text-7xl">
-          AR 01
-        </span>
-      </motion.div>
     </div>
   );
 }
@@ -721,7 +684,6 @@ export default function ProjectsPage() {
           }}
         >
           <HangarCeiling />
-          <HangarDoors />
           <div className="relative z-10">
           {filtered.length === 0 ? (
             <div className="relative px-6 py-16 text-center">
