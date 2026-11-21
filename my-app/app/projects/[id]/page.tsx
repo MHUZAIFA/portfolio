@@ -64,10 +64,10 @@ const projects: Record<string, Project> = {
       "Private by Design: No calendar sync, no sign-in, and nothing leaves your machine.",
     ],
     additionalImages: [
+      "/imgs/projects/flightdeck-workspace.png",
       "/imgs/projects/flightdeck-panel-dark.png",
       "/imgs/projects/flightdeck-panel-light.png",
       "/imgs/projects/flightdeck-hero.png",
-      "/imgs/projects/flightdeck-workspace.png",
       "/imgs/projects/flightdeck-gate-card.png",
       "/imgs/projects/flightdeck-flight-plan.png",
     ],
