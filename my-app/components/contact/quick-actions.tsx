@@ -67,8 +67,8 @@ export function QuickActions() {
       detail: EMAIL,
       cta: copied ? "Pasted in your buffer" : "Click to copy",
       ariaLabel: "Copy email address",
-      accent: "from-sky-500/20 via-cyan-500/10 to-transparent",
-      iconAccent: "text-sky-300 group-hover:text-sky-200",
+      accent: "from-red-500/15 via-red-500/5 to-transparent",
+      iconAccent: "text-red-300 group-hover:text-red-200",
       onClick: copyEmail,
     },
     {
@@ -78,8 +78,8 @@ export function QuickActions() {
       detail: "Intro chat or project scoping",
       cta: "Pick a time →",
       ariaLabel: "Schedule a meeting",
-      accent: "from-violet-500/20 via-fuchsia-500/10 to-transparent",
-      iconAccent: "text-violet-300 group-hover:text-violet-200",
+      accent: "from-red-500/15 via-red-500/5 to-transparent",
+      iconAccent: "text-red-300 group-hover:text-red-200",
       onClick: () => {
         void openCalendlyDirect();
       },
@@ -91,8 +91,8 @@ export function QuickActions() {
       detail: "Within 24 hours",
       cta: "Mon – Fri · async-friendly",
       ariaLabel: "Average response time",
-      accent: "from-emerald-500/20 via-teal-500/10 to-transparent",
-      iconAccent: "text-emerald-300 group-hover:text-emerald-200",
+      accent: "from-red-500/15 via-red-500/5 to-transparent",
+      iconAccent: "text-red-300 group-hover:text-red-200",
     },
     {
       id: "timezone",
@@ -101,8 +101,8 @@ export function QuickActions() {
       detail: `Mine: EST  ·  Yours: ${tz || "—"}`,
       cta: "Schedules align easily",
       ariaLabel: "Working timezone",
-      accent: "from-amber-500/20 via-orange-500/10 to-transparent",
-      iconAccent: "text-amber-300 group-hover:text-amber-200",
+      accent: "from-red-500/15 via-red-500/5 to-transparent",
+      iconAccent: "text-red-300 group-hover:text-red-200",
     },
   ];
 
@@ -116,7 +116,7 @@ export function QuickActions() {
               className={`pointer-events-none absolute inset-0 bg-gradient-to-br opacity-0 transition-opacity duration-500 group-hover:opacity-100 ${card.accent}`}
             />
             <div className="relative flex items-start justify-between gap-3">
-              <div className="rounded-sm bg-white/5 p-2 ring-1 ring-white/10 transition-colors duration-300 group-hover:bg-white/10">
+              <div className="rounded-md bg-white/5 p-2 ring-1 ring-white/10 transition-colors duration-300 group-hover:bg-red-500/10 group-hover:ring-red-500/30">
                 <Icon className={`h-4 w-4 transition-colors ${card.iconAccent}`} />
               </div>
               {card.external && (
@@ -131,7 +131,7 @@ export function QuickActions() {
                 {card.detail}
               </p>
               {card.cta && (
-                <p className="mt-3 text-[11px] font-medium uppercase tracking-[0.16em] text-white/50">
+                <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.2em] text-white/45 transition-colors group-hover:text-red-300/80">
                   {card.cta}
                 </p>
               )}
@@ -140,7 +140,7 @@ export function QuickActions() {
         );
 
         const baseClasses =
-          "group relative block w-full overflow-hidden rounded-sm border border-white/10 bg-white/[0.03] p-5 text-left shadow-[0_1px_0_rgba(255,255,255,0.04)_inset] backdrop-blur transition-all duration-300 hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/[0.06] hover:shadow-lg hover:shadow-black/30 focus-visible:-translate-y-0.5 focus-visible:border-white/30 focus-visible:outline-none";
+          "group relative block w-full overflow-hidden rounded-xl border-2 border-white/10 bg-linear-to-br from-[#121212] to-[#050505] p-5 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition-[border-color,box-shadow] duration-300 hover:border-red-500/40 hover:shadow-[0_12px_40px_-16px_rgba(239,68,68,0.35)] focus-visible:border-red-500/50 focus-visible:outline-none";
 
         return (
           <motion.div

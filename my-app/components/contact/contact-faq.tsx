@@ -64,7 +64,7 @@ export function ContactFaq() {
                 animate={{ rotate: isOpen ? 45 : 0 }}
                 transition={{ type: "spring", stiffness: 240, damping: 22 }}
                 className={`shrink-0 transition-colors ${
-                  isOpen ? "text-sky-300" : "text-white/35 group-hover:text-white/70"
+                  isOpen ? "text-red-300" : "text-white/35 group-hover:text-white/70"
                 }`}
               >
                 <Plus className="h-4 w-4" strokeWidth={1.75} />

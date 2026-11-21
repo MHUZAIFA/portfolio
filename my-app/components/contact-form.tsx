@@ -72,7 +72,7 @@ const intents = [
 ] as const;
 
 const inputBase =
-  "h-11 rounded-sm border-white/10 bg-white/[0.04] px-3.5 text-sm text-white placeholder:text-white/35 transition-all duration-200 hover:border-white/15 focus:bg-white/[0.06] focus-visible:border-sky-400/60 focus-visible:ring-2 focus-visible:ring-sky-400/15";
+  "h-11 rounded-sm border-white/10 bg-white/[0.04] px-3.5 text-sm text-white placeholder:text-white/35 transition-all duration-200 hover:border-white/15 focus:bg-white/[0.06] focus-visible:border-red-400/60 focus-visible:ring-2 focus-visible:ring-red-400/15";
 
 export function ContactForm() {
   const [formData, setFormData] = useState<FormData>({
@@ -243,7 +243,7 @@ export function ContactForm() {
                 feel free to explore my{" "}
                 <Link
                   href="/projects"
-                  className="text-sky-300 underline-offset-4 hover:underline"
+                  className="text-red-300 underline-offset-4 hover:underline"
                 >
                   projects
                 </Link>
@@ -284,7 +284,7 @@ export function ContactForm() {
                         className={cn(
                           "group inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all duration-200",
                           active
-                            ? "border-sky-400/40 bg-sky-500/15 text-sky-100 shadow-sm shadow-sky-500/10"
+                            ? "border-red-400/40 bg-red-500/15 text-red-100 shadow-sm shadow-red-500/10"
                             : "border-white/10 bg-white/[0.04] text-white/70 hover:border-white/20 hover:bg-white/[0.07] hover:text-white",
                         )}
                         aria-pressed={active}
@@ -292,7 +292,7 @@ export function ContactForm() {
                         <Icon
                           className={cn(
                             "h-3.5 w-3.5 transition-colors",
-                            active ? "text-sky-200" : "text-white/55",
+                            active ? "text-red-200" : "text-white/55",
                           )}
                         />
                         {intent.label}
@@ -416,7 +416,7 @@ export function ContactForm() {
                   value={formData.message}
                   onChange={(e) => handleChange("message", e.target.value)}
                   className={cn(
-                    "min-h-[150px] resize-y rounded-sm border-white/10 bg-white/[0.04] px-3.5 py-3 text-sm text-white placeholder:text-white/35 transition-all duration-200 hover:border-white/15 focus:bg-white/[0.06] focus-visible:border-sky-400/60 focus-visible:ring-2 focus-visible:ring-sky-400/15",
+                    "min-h-[150px] resize-y rounded-sm border-white/10 bg-white/[0.04] px-3.5 py-3 text-sm text-white placeholder:text-white/35 transition-all duration-200 hover:border-white/15 focus:bg-white/[0.06] focus-visible:border-red-400/60 focus-visible:ring-2 focus-visible:ring-red-400/15",
                     errors.message && "border-rose-400/60",
                   )}
                   placeholder="A few sentences about what you're working on, timelines, links to anything relevant…"
