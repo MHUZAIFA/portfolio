@@ -197,17 +197,6 @@ type Suggestion = {
   group?: string;
 };
 
-function longestCommonPrefix(strs: string[]): string {
-  if (!strs.length) return "";
-  let p = strs[0];
-  for (let i = 1; i < strs.length; i++) {
-    while (!strs[i].startsWith(p)) {
-      p = p.slice(0, -1);
-      if (!p) return "";
-    }
-  }
-  return p;
-}
 
 /* ─────────────────────────────────────────────────────────
    Interactive terminal
@@ -218,21 +207,41 @@ export function InteractiveTerminal({
   onTriggerMatrix,
   onThemeChange,
   variant = "card",
+  runRef,
+  onRun,
 }: {
   projects: TerminalProject[];
   onTriggerMatrix?: () => void;
   onThemeChange?: (theme: "coder" | "architect" | "ai" | "designer") => void;
-  /** `"card"` = window chrome + status bar; `"bare"` = scroll area + input only (e.g. dedicated terminal tab) */
-  variant?: "card" | "bare";
+  /**
+   * `"card"` = window chrome + status bar; `"bare"` = scroll area + input only (e.g. dedicated
+   * terminal tab); `"hud"` = bare, sized and worded for the glass-cockpit HUD console
+   */
+  variant?: "card" | "bare" | "hud";
+  /** Receives a function that runs a command (for on-screen controls), without scrolling the page */
+  runRef?: React.MutableRefObject<((cmd: string) => void) | null>;
+  /** Called with every command that runs (typed or pressed) */
+  onRun?: (cmd: string) => void;
 }) {
   const router = useRouter();
-  const [lines, setLines] = useState<Line[]>(() => [
-    {
-      id: 0,
-      kind: "output",
-      content: <BootSequence />,
-    },
-  ]);
+  const [lines, setLines] = useState<Line[]>(() =>
+    variant === "hud"
+      ? // The HUD opens with its start-up log, then `whoami` already run
+        [
+          { id: -2, kind: "output", content: <HudBoot /> },
+          {
+            id: 0,
+            kind: "prompt",
+            content: (
+              <span>
+                <span className="text-emerald-400/90">❯</span> <span className="text-white/90">whoami</span>
+              </span>
+            ),
+          },
+          { id: -1, kind: "output", content: <Whoami /> },
+        ]
+      : [{ id: 0, kind: "output", content: <BootSequence /> }],
+  );
   const [input, setInput] = useState("");
   const [cmdHistory, setCmdHistory] = useState<string[]>([]);
   const [histIdx, setHistIdx] = useState(-1);
@@ -241,7 +250,7 @@ export function InteractiveTerminal({
 
   /* Autocomplete state */
   const [suggestionIdx, setSuggestionIdx] = useState(0);
-  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
 
   const lineIdRef = useRef(1);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -278,10 +287,16 @@ export function InteractiveTerminal({
 
   /* ── Commands ─────────────────────────────────────────── */
 
+  const onRunRef = useRef(onRun);
+  useEffect(() => {
+    onRunRef.current = onRun;
+  }, [onRun]);
+
   const handleCommand = useCallback(
     (raw: string) => {
       const trimmed = raw.trim();
       if (!trimmed) return;
+      onRunRef.current?.(trimmed);
 
       push(
         "prompt",
@@ -953,23 +968,16 @@ export function InteractiveTerminal({
     return [];
   }, [input, projects]);
 
-  /** Ghost suggestion = the first suggestion's remaining text */
+  /*
+   * Inline completion, like VS Code: the current suggestion shows as faded text after the cursor.
+   * Tab accepts it; Alt+] / Alt+[ cycle through the other matches; Esc dismisses it.
+   * (`suggestionIdx` and `dismissed` reset whenever the input changes, in onChange.)
+   */
+  const current = suggestions.length ? suggestions[suggestionIdx % suggestions.length] : undefined;
   const ghost = useMemo(() => {
-    if (!suggestions.length) return "";
-    const replace = suggestions[0].replace;
-    if (!replace.startsWith(input)) return "";
-    return replace.slice(input.length);
-  }, [suggestions, input]);
-
-  /* Reset selected suggestion when list changes */
-  useEffect(() => {
-    setSuggestionIdx(0);
-  }, [suggestions.length, input]);
-
-  /* Show/hide dropdown */
-  useEffect(() => {
-    setShowSuggestions(isFocused && suggestions.length > 0 && input.length > 0);
-  }, [isFocused, suggestions.length, input]);
+    if (!current || dismissed || !current.replace.startsWith(input)) return "";
+    return current.replace.slice(input.length);
+  }, [current, dismissed, input]);
 
   /** Apply an autocomplete: replace current input with the suggestion's text */
   const applySuggestion = useCallback((s: Suggestion) => {
@@ -987,48 +995,24 @@ export function InteractiveTerminal({
   /* ── Keyboard handling ────────────────────────────────── */
 
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    const dropdownOpen = showSuggestions && suggestions.length > 0;
-
     if (e.key === "Tab") {
       e.preventDefault();
-      if (!suggestions.length) return;
-      // 1 match: complete fully
-      if (suggestions.length === 1) {
-        applySuggestion(suggestions[0]);
-        return;
-      }
-      // If the longest common prefix is longer than input, expand to it first;
-      // otherwise cycle through suggestions on repeated Tab.
-      const lcp = longestCommonPrefix(suggestions.map((s) => s.replace));
-      if (e.shiftKey) {
-        // Shift+Tab cycles backwards
-        const next =
-          suggestionIdx <= 0 ? suggestions.length - 1 : suggestionIdx - 1;
-        setSuggestionIdx(next);
-        return;
-      }
-      if (lcp.length > input.length && lcp.startsWith(input)) {
-        setInput(lcp);
-        requestAnimationFrame(() => {
-          inputRef.current?.setSelectionRange(lcp.length, lcp.length);
-        });
-        hapticManager.light();
-        return;
-      }
-      // Cycle highlight — user can press Enter or Tab again to accept
-      const next = (suggestionIdx + 1) % suggestions.length;
-      setSuggestionIdx(next);
+      // Accept the inline suggestion
+      if (ghost && current) applySuggestion(current);
+      return;
+    }
+
+    // Alt+] / Alt+[ : next / previous inline suggestion (e.code, since Alt changes e.key on macOS)
+    if (e.altKey && (e.code === "BracketRight" || e.code === "BracketLeft")) {
+      e.preventDefault();
+      if (suggestions.length < 2) return;
+      const step = e.code === "BracketRight" ? 1 : -1;
+      setSuggestionIdx((i) => (i + step + suggestions.length) % suggestions.length);
+      setDismissed(false);
       return;
     }
 
     if (e.key === "ArrowUp") {
-      if (dropdownOpen) {
-        e.preventDefault();
-        setSuggestionIdx((i) =>
-          i <= 0 ? suggestions.length - 1 : i - 1,
-        );
-        return;
-      }
       // History navigation
       e.preventDefault();
       if (cmdHistory.length === 0) return;
@@ -1040,11 +1024,6 @@ export function InteractiveTerminal({
     }
 
     if (e.key === "ArrowDown") {
-      if (dropdownOpen) {
-        e.preventDefault();
-        setSuggestionIdx((i) => (i + 1) % suggestions.length);
-        return;
-      }
       e.preventDefault();
       if (histIdx === -1) return;
       const next = histIdx + 1;
@@ -1058,24 +1037,10 @@ export function InteractiveTerminal({
       return;
     }
 
-    if (e.key === "Enter") {
-      // If dropdown open AND user has moved selection past the first item,
-      // pressing Enter accepts that suggestion (doesn't submit).
-      if (dropdownOpen && suggestionIdx > 0) {
-        e.preventDefault();
-        applySuggestion(suggestions[suggestionIdx]);
-        return;
-      }
-      // Otherwise fall through to form submit
+    if (e.key === "Escape" && ghost) {
+      e.preventDefault();
+      setDismissed(true);
       return;
-    }
-
-    if (e.key === "Escape") {
-      if (dropdownOpen) {
-        e.preventDefault();
-        setShowSuggestions(false);
-        return;
-      }
     }
 
     if (e.key === "ArrowRight") {
@@ -1115,12 +1080,14 @@ export function InteractiveTerminal({
     e.preventDefault();
     handleCommand(input);
     setInput("");
-    setShowSuggestions(false);
+    setSuggestionIdx(0);
     hapticManager.light();
   };
 
   const onChange = (v: string) => {
     setInput(v);
+    setSuggestionIdx(0);
+    setDismissed(false);
   };
 
   /* Global focus with 't' key when terminal visible */
@@ -1156,7 +1123,20 @@ export function InteractiveTerminal({
     return () => window.removeEventListener("terminal:run", h as EventListener);
   }, [handleCommand]);
 
-  const isBare = variant === "bare";
+  const isBare = variant !== "card";
+  const isHud = variant === "hud";
+
+  /* Let on-screen keys run commands directly */
+  useEffect(() => {
+    if (!runRef) return;
+    runRef.current = (cmd: string) => {
+      inputRef.current?.focus({ preventScroll: true });
+      handleCommand(cmd);
+    };
+    return () => {
+      runRef.current = null;
+    };
+  }, [runRef, handleCommand]);
 
   return (
     <div
@@ -1208,7 +1188,9 @@ export function InteractiveTerminal({
         ref={scrollRef}
         onClick={() => inputRef.current?.focus()}
         className={`relative cursor-text overflow-y-auto scroll-smooth font-mono text-[12px] leading-relaxed text-white/75 sm:text-[13px] [scrollbar-width:thin] [scrollbar-color:rgba(255,255,255,0.15)_transparent] ${
-          isBare
+          isHud
+            ? "h-[min(380px,56vh)] w-full min-w-0 px-0 py-3"
+            : isBare
             ? `w-full min-w-0 max-h-[min(88vh,960px)] min-h-[min(520px,58vh)] bg-[#0a0a0c]/80 p-3 transition-shadow duration-300 sm:p-4 ${
                 isFocused ? "shadow-[inset_0_0_0_1px_rgba(34,211,238,0.35)]" : ""
               }`
@@ -1267,11 +1249,12 @@ export function InteractiveTerminal({
                 autoComplete="off"
                 autoCorrect="off"
                 autoCapitalize="off"
-                placeholder="type 'help' — or try: whoami · ls · stack · matrix"
+                placeholder={
+                  isHud ? "enter command · try help, whoami, ls" : "type 'help' — or try: whoami · ls · stack · matrix"
+                }
                 className="w-full bg-transparent font-mono text-[12px] text-white/95 caret-cyan-300 outline-none placeholder:text-white/25 sm:text-[13px]"
                 aria-label="Terminal input"
-                aria-autocomplete="list"
-                aria-expanded={showSuggestions}
+                aria-autocomplete="inline"
               />
               {/* Inline ghost suggestion — fills the rest of the first match */}
               {ghost && (
@@ -1287,109 +1270,21 @@ export function InteractiveTerminal({
                       tab
                     </kbd>{" "}
                     to accept
+                    {suggestions.length > 1 && (
+                      <>
+                        {" · "}
+                        {(suggestionIdx % suggestions.length) + 1}/{suggestions.length}{" "}
+                        <kbd className="rounded border border-white/15 bg-white/5 px-1 py-0 text-[9px]">
+                          alt ]
+                        </kbd>
+                      </>
+                    )}
                   </span>
                 </span>
               )}
             </div>
           </div>
 
-          {/* Autocomplete dropdown */}
-          <AnimatePresence>
-            {showSuggestions && (
-              <motion.div
-                initial={{ opacity: 0, y: -4 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -4 }}
-                transition={{ duration: 0.12 }}
-                className="absolute left-5 right-0 top-full z-20 mt-1 overflow-hidden rounded-md border border-white/10 bg-[#0a0a0c]/95 shadow-2xl shadow-black/60 backdrop-blur-md"
-                role="listbox"
-              >
-                <div className="max-h-[220px] overflow-y-auto py-1 [scrollbar-width:thin]">
-                  {suggestions.slice(0, 12).map((s, i) => {
-                    const active = i === suggestionIdx;
-                    return (
-                      <button
-                        key={`${s.replace}-${i}`}
-                        type="button"
-                        role="option"
-                        aria-selected={active}
-                        onMouseEnter={() => setSuggestionIdx(i)}
-                        onMouseDown={(e) => {
-                          // prevent input blur before we apply
-                          e.preventDefault();
-                        }}
-                        onClick={() => {
-                          applySuggestion(s);
-                          setShowSuggestions(false);
-                        }}
-                        className={`flex w-full items-center gap-2 px-3 py-1.5 text-left font-mono text-[12px] transition-colors ${
-                          active
-                            ? "bg-cyan-300/10 text-white"
-                            : "text-white/70 hover:bg-white/5"
-                        }`}
-                      >
-                        <span
-                          className={`shrink-0 ${
-                            active ? "text-cyan-300" : "text-white/40"
-                          }`}
-                        >
-                          ›
-                        </span>
-                        <span
-                          className={`shrink-0 tabular-nums ${
-                            active ? "text-cyan-300" : "text-white/85"
-                          }`}
-                        >
-                          {s.label}
-                        </span>
-                        {s.desc && (
-                          <span
-                            className={`truncate text-[11px] ${
-                              active ? "text-white/70" : "text-white/40"
-                            }`}
-                          >
-                            — {s.desc}
-                          </span>
-                        )}
-                        {s.group && (
-                          <span className="ml-auto shrink-0 rounded border border-white/10 bg-white/5 px-1 py-0 text-[9px] text-white/50">
-                            {s.group}
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                  {suggestions.length > 12 && (
-                    <div className="px-3 pt-1 text-[10px] text-white/35">
-                      +{suggestions.length - 12} more — keep typing to narrow
-                    </div>
-                  )}
-                </div>
-                <div className="flex items-center justify-between border-t border-white/10 bg-white/[0.02] px-3 py-1 font-mono text-[9px] text-white/40">
-                  <span className="flex items-center gap-2">
-                    <kbd className="rounded border border-white/10 bg-white/5 px-1 py-0">
-                      tab
-                    </kbd>
-                    complete
-                    <kbd className="rounded border border-white/10 bg-white/5 px-1 py-0">
-                      ↑↓
-                    </kbd>
-                    navigate
-                  </span>
-                  <span className="flex items-center gap-2">
-                    <kbd className="rounded border border-white/10 bg-white/5 px-1 py-0">
-                      ↵
-                    </kbd>
-                    pick
-                    <kbd className="rounded border border-white/10 bg-white/5 px-1 py-0">
-                      esc
-                    </kbd>
-                    close
-                  </span>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
         </form>
       </div>
 
@@ -1428,6 +1323,20 @@ export function InteractiveTerminal({
 /* ─────────────────────────────────────────────────────────
    Outputs
    ───────────────────────────────────────────────────────── */
+
+/** Start-up log for the HUD console. */
+function HudBoot() {
+  return (
+    <div className="flex flex-col gap-0.5">
+      <span className="font-semibold uppercase tracking-[0.2em] text-white/90">Comms link established</span>
+      <span className="text-white/50">
+        Ask anything: <span className="text-cyan-300">whoami</span>, <span className="text-cyan-300">ls</span>,{" "}
+        <span className="text-cyan-300">stack</span>, <span className="text-cyan-300">cat &lt;project&gt;</span>, or{" "}
+        <span className="text-cyan-300">help</span> for the full list. Click a radar contact to inspect a project.
+      </span>
+    </div>
+  );
+}
 
 function BootSequence() {
   return (

@@ -15,11 +15,11 @@ import {
   clearReturningFlag,
   transitionHero,
 } from "@/lib/view-transition";
-import { Search, X, ArrowUpDown, Check, Star, ArrowUpRight, Warehouse, CalendarCheck, Rocket, Keyboard } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { X, ArrowUpDown, Check, Star, ArrowUpRight, Warehouse, CalendarCheck, Rocket, Keyboard } from "lucide-react";
 import { hapticManager } from "@/lib/haptic-manager";
 import { staggerContainer, staggerItem } from "@/components/providers/motion-provider";
-import { InteractiveTerminal, type TerminalProject } from "@/components/projects/interactive-terminal";
+import { type TerminalProject } from "@/components/projects/interactive-terminal";
+import { HudConsole } from "@/components/projects/hud-console";
 import { MatrixRain } from "@/components/projects/matrix-rain";
 import { openCalendlyDirect } from "@/components/contact/book-call";
 import { ShortcutsOverlay, type Shortcut } from "@/components/projects/fun-elements";
@@ -899,7 +899,6 @@ function RunwayLights({
    ───────────────────────────────────────────────────────── */
 
 const SHORTCUTS: Shortcut[] = [
-  { group: "Search", keys: ["/"], desc: "Focus grep search" },
   { group: "Search", keys: ["Esc"], desc: "Clear / blur search" },
   { group: "Navigation", keys: ["?"], desc: "Toggle this panel" },
   { group: "Terminal", keys: ["↑"], desc: "Previous command" },
@@ -935,7 +934,6 @@ export default function ProjectsPage() {
   const sortMenuRef = useRef<HTMLDivElement>(null);
   const floorRef = useRef<HTMLElement>(null);
   const listRef = useRef<HTMLOListElement>(null);
-  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Global keyboard shortcuts
   useEffect(() => {
@@ -943,13 +941,7 @@ export default function ProjectsPage() {
       const t = e.target as HTMLElement;
       const typing = t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable;
 
-      if (e.key === "/" && !typing) {
-        e.preventDefault();
-        searchInputRef.current?.focus();
-      } else if (e.key === "Escape" && document.activeElement === searchInputRef.current) {
-        setSearchQuery("");
-        searchInputRef.current?.blur();
-      } else if (e.key === "?" && !typing) {
+      if (e.key === "?" && !typing) {
         e.preventDefault();
         setShortcutsOpen((v) => !v);
       } else if (e.key.toLowerCase() === "m" && !typing && !e.metaKey && !e.ctrlKey) {
@@ -1022,6 +1014,7 @@ export default function ProjectsPage() {
     return r;
   }, [searchQuery, activeCategory, sortBy]);
 
+
   const clearFilters = () => {
     setSearchQuery("");
     setActiveCategory(null);
@@ -1053,153 +1046,94 @@ export default function ProjectsPage() {
           Everything I&apos;ve designed, built and shipped, parked in one hangar. Step into a bay to see how it was made.
         </motion.p>
 
-        {/* Command line: grep + sort */}
-        <motion.div variants={staggerItem} className="mb-4 flex flex-col gap-2 sm:flex-row">
+        {/* Cockpit: interactive terminal */}
+        <motion.section variants={staggerItem} className="mb-16">
+          <SectionLabel>Cockpit</SectionLabel>
+          <h2 className="mb-3 text-2xl font-semibold tracking-tight text-white md:text-3xl">Take the controls</h2>
+          <p className="mb-6 max-w-2xl text-sm text-white/60">
+            Every project is a contact on the radar: hover to identify it, click to open its file. Or talk to the
+            comms log directly; it&apos;s a real-ish terminal.
+          </p>
+          <HudConsole projects={terminalProjects} onTriggerMatrix={() => setMatrixOn(true)} />
+        </motion.section>
+
+        {/* Category filter + sort, sitting right above the hangar */}
+        <motion.div variants={staggerItem} className="flex items-center gap-3">
           <div
-            className={`group relative flex flex-1 items-center gap-2 overflow-hidden rounded-lg border bg-black/40 px-3 py-2.5 backdrop-blur-sm transition-all duration-200 focus-within:bg-black/50 ${
-              searchQuery && filtered.length === 0
-                ? "border-rose-400/30 focus-within:border-rose-400/50 focus-within:shadow-[0_0_0_1px_rgba(251,113,133,0.25),0_0_24px_-6px_rgba(251,113,133,0.35)]"
-                : "border-white/10 focus-within:border-cyan-300/40 focus-within:shadow-[0_0_0_1px_rgba(34,211,238,0.25),0_0_24px_-6px_rgba(34,211,238,0.4)]"
-            }`}
+            className="-ml-4 flex min-w-0 flex-1 gap-2 overflow-x-auto pb-1 pl-4 [scrollbar-width:none] md:ml-0 md:flex-wrap md:pl-0 [&::-webkit-scrollbar]:hidden"
+            role="group"
+            aria-label="Filter by category"
           >
-            <motion.span
-              aria-hidden
-              className="pointer-events-none absolute inset-x-0 bottom-0 h-px origin-left bg-gradient-to-r from-transparent via-cyan-300/70 to-transparent opacity-0 group-focus-within:opacity-100"
-              initial={{ scaleX: 0 }}
-              animate={{ scaleX: searchQuery ? 1 : 0 }}
-              transition={{ duration: 0.3 }}
-            />
-            <span className="shrink-0 select-none font-mono text-sm text-emerald-400/80">$</span>
-            <Search className="h-3.5 w-3.5 shrink-0 text-white/40 transition-colors group-focus-within:text-cyan-300" />
-            <span className="shrink-0 select-none font-mono text-xs text-cyan-300/70">grep</span>
-            <span className="hidden shrink-0 select-none font-mono text-[11px] text-white/35 sm:inline">-i</span>
-            <span className="shrink-0 select-none font-mono text-sm text-emerald-300/60">&quot;</span>
-            <Input
-              ref={searchInputRef}
-              type="text"
-              placeholder="react, ai, python..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-auto min-w-0 flex-1 border-0 bg-transparent px-0 py-0 font-mono text-sm text-emerald-200 shadow-none placeholder:text-white/25 focus-visible:ring-0"
-            />
-            <span className="shrink-0 select-none font-mono text-sm text-emerald-300/60">&quot;</span>
-            <div className="ml-auto flex shrink-0 items-center gap-1.5">
-              <AnimatePresence mode="popLayout">
-                {searchQuery && (
-                  <motion.span
-                    key={`count-${filtered.length === 0 ? "none" : "ok"}`}
-                    initial={{ opacity: 0, scale: 0.85, y: -2 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.85, y: -2 }}
-                    transition={{ duration: 0.15 }}
-                    className={`inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 font-mono text-[10px] tabular-nums ${
-                      filtered.length === 0
-                        ? "border-rose-400/30 bg-rose-400/10 text-rose-200"
-                        : "border-emerald-400/25 bg-emerald-400/10 text-emerald-200"
-                    }`}
-                  >
-                    <span className="h-1 w-1 animate-pulse rounded-full bg-current" />
-                    {filtered.length}
-                  </motion.span>
-                )}
-              </AnimatePresence>
-              {searchQuery && (
+            {[null, ...CATEGORIES].map((cat) => {
+              const active = activeCategory === cat;
+              const count = cat ? projects.filter((p) => p.category === cat).length : projects.length;
+              return (
                 <button
+                  key={cat ?? "all"}
                   type="button"
-                  aria-label="Clear search"
+                  aria-pressed={active}
                   onClick={() => {
-                    setSearchQuery("");
-                    searchInputRef.current?.focus();
+                    setActiveCategory(active || cat === null ? null : cat);
                     hapticManager.light();
                   }}
-                  className="rounded p-1 text-white/40 transition hover:bg-white/10 hover:text-white"
+                  className={`inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs transition-colors ${
+                    active
+                      ? "border-red-400/50 bg-red-500/10 text-white"
+                      : "border-white/10 bg-white/[0.03] text-white/60 hover:border-white/25 hover:text-white"
+                  }`}
                 >
-                  <X className="h-3.5 w-3.5" />
+                  {cat ?? "All"}
+                  <span className="font-mono text-[10px] text-white/35">{count}</span>
                 </button>
-              )}
-            </div>
+              );
+            })}
           </div>
-
-          <div ref={sortMenuRef} className="relative">
-            <button
-              type="button"
-              onClick={() => {
-                setSortOpen((v) => !v);
-                hapticManager.light();
-              }}
-              className="inline-flex h-full w-full items-center justify-between gap-2 rounded-md border border-white/10 bg-black/30 px-3 py-2.5 font-mono text-xs text-white/80 backdrop-blur-sm transition-all hover:border-white/25 hover:bg-black/40 sm:w-auto sm:min-w-[200px]"
-            >
-              <span className="flex items-center gap-2">
-                <ArrowUpDown className="h-3.5 w-3.5 text-white/50" />
-                <span className="text-white/40">--sort</span>
-                <span>=</span>
-                <span className="text-cyan-300">{sortOptions.find((s) => s.value === sortBy)?.label}</span>
-              </span>
-            </button>
-            <AnimatePresence>
-              {sortOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: -4, scale: 0.96 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -4, scale: 0.96 }}
-                  transition={{ duration: 0.15 }}
-                  className="absolute right-0 z-30 mt-2 w-full min-w-[220px] overflow-hidden rounded-lg border border-white/15 bg-black/85 p-1 shadow-2xl shadow-black/50 backdrop-blur-xl sm:w-auto"
-                >
-                  {sortOptions.map((o) => (
-                    <button
-                      key={o.value}
-                      onClick={() => {
-                        setSortBy(o.value);
-                        setSortOpen(false);
-                        hapticManager.light();
-                      }}
-                      className={`flex w-full items-center justify-between gap-3 rounded-md px-3 py-2 text-left font-mono text-xs transition-colors ${
-                        sortBy === o.value ? "bg-white/10 text-white" : "text-white/65 hover:bg-white/5 hover:text-white"
-                      }`}
-                    >
-                      <span className="flex flex-col">
-                        <span>{o.label}</span>
-                        <span className="text-[10px] text-white/35">{o.flag}</span>
-                      </span>
-                      {sortBy === o.value && <Check className="h-3.5 w-3.5 text-cyan-300" />}
-                    </button>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </motion.div>
-
-        {/* Category filter */}
-        <motion.div
-          variants={staggerItem}
-          className="-mx-4 mb-10 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:mx-0 md:flex-wrap md:px-0 [&::-webkit-scrollbar]:hidden"
-          role="group"
-          aria-label="Filter by category"
-        >
-          {[null, ...CATEGORIES].map((cat) => {
-            const active = activeCategory === cat;
-            const count = cat ? projects.filter((p) => p.category === cat).length : projects.length;
-            return (
+            <div ref={sortMenuRef} className="relative shrink-0">
               <button
-                key={cat ?? "all"}
                 type="button"
-                aria-pressed={active}
                 onClick={() => {
-                  setActiveCategory(active || cat === null ? null : cat);
+                  setSortOpen((v) => !v);
                   hapticManager.light();
                 }}
-                className={`inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs transition-colors ${
-                  active
-                    ? "border-red-400/50 bg-red-500/10 text-white"
-                    : "border-white/10 bg-white/[0.03] text-white/60 hover:border-white/25 hover:text-white"
-                }`}
+                className="inline-flex w-full items-center gap-2 rounded-md px-2 py-2.5 font-mono text-sm text-white/80 transition-colors hover:bg-white/5 sm:w-auto"
               >
-                {cat ?? "All"}
-                <span className="font-mono text-[10px] text-white/35">{count}</span>
+                <ArrowUpDown className="h-3.5 w-3.5 text-white/40" />
+                <span className="text-white/45">--sort</span>
+                <span className="-mx-1 text-white/30">=</span>
+                <span className="text-red-300">{sortOptions.find((s) => s.value === sortBy)?.label}</span>
               </button>
-            );
-          })}
+              <AnimatePresence>
+                {sortOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -4, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -4, scale: 0.96 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute right-0 z-30 mt-2 w-full min-w-[220px] overflow-hidden rounded-lg border border-white/15 bg-black/85 p-1 shadow-2xl shadow-black/50 backdrop-blur-xl sm:w-auto"
+                  >
+                    {sortOptions.map((o) => (
+                      <button
+                        key={o.value}
+                        onClick={() => {
+                          setSortBy(o.value);
+                          setSortOpen(false);
+                          hapticManager.light();
+                        }}
+                        className={`flex w-full items-center justify-between gap-3 rounded-md px-3 py-2 text-left font-mono text-xs transition-colors ${
+                          sortBy === o.value ? "bg-white/10 text-white" : "text-white/65 hover:bg-white/5 hover:text-white"
+                        }`}
+                      >
+                        <span className="flex flex-col">
+                          <span>{o.label}</span>
+                          <span className="text-[10px] text-white/35">{o.flag}</span>
+                        </span>
+                        {sortBy === o.value && <Check className="h-3.5 w-3.5 text-red-300" />}
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
         </motion.div>
 
         {/* Hangar floor */}
@@ -1216,7 +1150,7 @@ export default function ProjectsPage() {
             <div className="relative px-6 py-16 text-center">
               <BayCorners tone="border-white/25" />
               <p className="font-mono text-xs uppercase tracking-[0.3em] text-white/40">Hangar empty</p>
-              <p className="mx-auto mt-2 max-w-md text-sm text-white/55">Nothing matches that search.</p>
+              <p className="mx-auto mt-2 max-w-md text-sm text-white/55">Nothing matches that filter.</p>
               <button
                 type="button"
                 onClick={clearFilters}
@@ -1237,22 +1171,6 @@ export default function ProjectsPage() {
             </ol>
           )}
           </div>
-        </motion.section>
-
-        {/* Cockpit: interactive terminal */}
-        <motion.section variants={staggerItem} className="mb-24">
-          <SectionLabel>Cockpit</SectionLabel>
-          <h2 className="mb-3 text-2xl font-semibold tracking-tight text-white md:text-3xl">Take the controls</h2>
-          <p className="mb-6 max-w-2xl text-sm text-white/60">
-            A real-ish terminal. Try{" "}
-            {["help", "whoami", "ls", "cat recyclevision", "sudo hireme"].map((cmd, i, arr) => (
-              <span key={cmd}>
-                <code className="rounded bg-white/[0.06] px-1.5 py-0.5 font-mono text-xs text-red-300">{cmd}</code>
-                {i < arr.length - 2 ? ", " : i === arr.length - 2 ? " or " : "."}
-              </span>
-            ))}
-          </p>
-          <InteractiveTerminal projects={terminalProjects} onTriggerMatrix={() => setMatrixOn(true)} />
         </motion.section>
 
         {/* Contact */}
@@ -1277,7 +1195,7 @@ export default function ProjectsPage() {
             <CTACard
               icon={<Keyboard className="h-4 w-4" />}
               title="Just curious?"
-              desc="Press ? anywhere for shortcuts, m for the matrix, / to search."
+              desc="Press ? anywhere for shortcuts, m for the matrix, t to type in the terminal."
               cta="Open shortcuts"
               onCta={() => setShortcutsOpen(true)}
             />

@@ -564,3 +564,106 @@ html[data-vt="back"]::view-transition-new(root) {
     background: rgba(var(--runway-color), 0.7);
   }
 }
+
+/* ─────────────────────────────────────────────────────────
+   Glass-cockpit HUD console (projects › Take the controls)
+   ───────────────────────────────────────────────────────── */
+/* Terminal palette inside the HUD: accents go red, errors amber, prompt red */
+.hud-screen {
+  --color-cyan-200: #fecaca;
+  --color-cyan-300: #fca5a5;
+  --color-cyan-500: #ef4444;
+  --color-emerald-300: #fca5a5;
+  --color-emerald-400: #f87171;
+  --color-violet-300: #ffffff;
+  --color-purple-300: #ffffff;
+  --color-rose-300: #fbbf24;
+}
+
+/* Radar sweep: a fading red wedge with a bright leading edge, turning clockwise */
+.hud-sweep {
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg 290deg,
+    rgba(239, 68, 68, 0.06) 300deg,
+    rgba(239, 68, 68, 0.3) 358deg,
+    rgba(254, 202, 202, 0.9) 359.5deg,
+    transparent 360deg
+  );
+  animation: hud-sweep linear infinite;
+}
+@keyframes hud-sweep {
+  to {
+    transform: rotate(360deg);
+  }
+}
+/* Contacts flare as the sweep passes, then fade until it comes round again */
+.hud-blip {
+  fill: #f87171;
+  animation: hud-blip ease-out infinite;
+}
+@keyframes hud-blip {
+  0% {
+    fill: #fee2e2;
+    filter: drop-shadow(0 0 6px rgba(248, 113, 113, 1));
+    opacity: 1;
+  }
+  70%,
+  100% {
+    fill: #f87171;
+    filter: none;
+    opacity: 0.35;
+  }
+}
+
+/* Heading tape drifts slowly */
+.hud-tape {
+  animation: hud-tape 40s linear infinite;
+}
+@keyframes hud-tape {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* Command bar chips */
+.hud-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: 9999px;
+  padding: 0.4rem 0.9rem;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.05);
+  transition:
+    color 0.15s,
+    box-shadow 0.15s,
+    background 0.15s,
+    transform 0.1s;
+}
+.hud-chip:hover {
+  color: #fff;
+  background: rgba(239, 68, 68, 0.16);
+  box-shadow: 0 0 18px -4px rgba(239, 68, 68, 0.6);
+}
+.hud-chip:active {
+  transform: translateY(1px);
+}
+.hud-chip--exec {
+  color: #fca5a5;
+  background: rgba(239, 68, 68, 0.14);
+  box-shadow: 0 0 20px -6px rgba(239, 68, 68, 0.7);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hud-sweep,
+  .hud-blip,
+  .hud-tape {
+    animation: none;
+  }
+}
+
