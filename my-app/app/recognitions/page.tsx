@@ -292,7 +292,7 @@ export default function RecognitionPage() {
         initial="initial"
         animate="animate"
         variants={staggerContainer}
-        className="relative mx-auto mt-12 max-w-7xl px-4 py-24 md:px-8"
+        className="relative mx-auto max-w-7xl px-4 pb-24 pt-16 md:mt-12 md:px-8 md:pt-24"
       >
         {/* Header */}
         <motion.p variants={staggerItem} className="mb-3 flex items-center gap-2 font-mono text-xs tracking-[0.3em] text-red-400">
@@ -308,7 +308,13 @@ export default function RecognitionPage() {
         </motion.p>
 
         {/* Tabs */}
-        <motion.div variants={staggerItem} className="mb-10 flex flex-wrap gap-2" role="tablist" aria-label="Filter recognitions">
+        <motion.div
+          variants={staggerItem}
+          // Phones: one row that scrolls sideways (edge to edge); wider screens: wrap
+          className="-mx-4 mb-10 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:mx-0 md:flex-wrap md:px-0 [&::-webkit-scrollbar]:hidden"
+          role="tablist"
+          aria-label="Filter recognitions"
+        >
           {TABS.map((t) => {
             const active = activeTab === t.id;
             return (
@@ -321,11 +327,11 @@ export default function RecognitionPage() {
                   hapticManager.light();
                   setActiveTab(t.id);
                 }}
-                className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-2 font-mono text-[11px] uppercase tracking-widest transition-colors md:px-4 ${
+                className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md border px-2.5 py-1.5 font-mono text-[9px] uppercase tracking-wider transition-colors md:px-4 md:py-2 md:text-[11px] md:tracking-widest ${
                   active ? "border-white bg-white text-black" : "border-white/15 text-white/70 hover:border-white/40 hover:text-white"
                 }`}
               >
-                {t.Icon && <t.Icon className="h-3.5 w-3.5" />}
+                {t.Icon && <t.Icon className="h-3 w-3 md:h-3.5 md:w-3.5" />}
                 {t.label} <span className={active ? "text-black/50" : "text-white/40"}>{t.count}</span>
               </button>
             );
@@ -388,7 +394,7 @@ export default function RecognitionPage() {
                         <Trophy className="h-4 w-4 text-red-300" />
                       </span>
                     </div>
-                    <p className="mt-4 line-clamp-3 text-sm leading-relaxed text-white/70">{honor.description}</p>
+                    <p className="mt-4 line-clamp-3 text-justify text-sm leading-relaxed text-white/70 hyphens-auto">{honor.description}</p>
                   </div>
 
                   <Perforation />
@@ -439,7 +445,7 @@ export default function RecognitionPage() {
                     <Edge />
                     <div className="flex flex-1 gap-4 p-5 md:p-7">
                       <Quote className="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
-                      <p className="whitespace-pre-line text-sm leading-relaxed text-white/85 md:text-base">{t.text}</p>
+                      <p className="whitespace-pre-line text-justify text-sm leading-relaxed text-white/85 hyphens-auto md:text-base">{t.text}</p>
                     </div>
                     <Perforation />
                     <div className="flex items-center gap-4 px-5 py-4 md:px-7">
@@ -529,7 +535,7 @@ export default function RecognitionPage() {
                     <p className="mt-1 font-mono text-sm font-semibold text-white">{shortDate(selectedHonor.date)}</p>
                   </div>
                 </div>
-                <p className="mt-5 whitespace-pre-line text-sm leading-relaxed text-white/80 md:text-base">
+                <p className="mt-5 whitespace-pre-line text-justify text-sm leading-relaxed text-white/80 hyphens-auto md:text-base">
                   {selectedHonor.fullDescription || selectedHonor.description}
                 </p>
               </div>

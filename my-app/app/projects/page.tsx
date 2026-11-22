@@ -1031,7 +1031,7 @@ export default function ProjectsPage() {
         initial={arrivedViaTransition ? false : "initial"}
         animate="animate"
         variants={staggerContainer}
-        className="relative mx-auto mt-12 max-w-7xl px-4 py-24 md:px-8"
+        className="relative mx-auto max-w-7xl px-4 pb-24 pt-16 md:mt-12 md:px-8 md:pt-24"
       >
         {/* Header */}
         <motion.p

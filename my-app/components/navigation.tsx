@@ -13,7 +13,6 @@ import {
   Briefcase,
   FolderOpen,
   Award,
-  Heart,
   Mail,
   Search,
   Command,
@@ -29,7 +28,6 @@ const navItems = [
   { href: "/projects", label: "Projects", icon: FolderOpen, keywords: ["projects", "portfolio", "work", "apps"] },
   { href: "/certificates", label: "Certificates", icon: Award, keywords: ["certificates", "certifications", "credentials"] },
   { href: "/recognitions", label: "Recognitions", icon: Trophy, keywords: ["honors", "awards", "recognition", "achievements", "rewards", "testimonials", "recommendations", "reviews", "feedback", "endorsements"] },
-  { href: "/interests", label: "Interests", icon: Heart, keywords: ["interests", "hobbies", "passions"] },
   { href: "/contact", label: "Contact", icon: Mail, keywords: ["contact", "email", "reach", "connect", "message"] },
 ];
 

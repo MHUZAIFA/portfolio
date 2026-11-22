@@ -19,7 +19,7 @@ export default function ContactPage() {
       initial="initial"
       animate="animate"
       variants={staggerContainer}
-      className="relative mx-auto max-w-7xl px-4 pt-24 pb-24 md:px-8 md:pb-32"
+      className="relative mx-auto max-w-7xl px-4 pb-24 pt-16 md:px-8 md:pt-24 md:pb-32"
     >
       {/* Background: faint grid + red horizon glow (matches the experience page) */}
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
@@ -41,7 +41,7 @@ export default function ContactPage() {
 
       <motion.section
         variants={staggerItem}
-        className="relative mt-8 mb-14 md:mt-12 md:mb-20"
+        className="relative mb-14 md:mt-12 md:mb-20"
       >
         <p className="mb-5 flex items-center gap-2 font-mono text-xs tracking-[0.3em] text-red-400">
           <Plane className="h-3.5 w-3.5" /> CONTROL TOWER
