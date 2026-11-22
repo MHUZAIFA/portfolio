@@ -829,6 +829,18 @@ html[data-vt="back"]::view-transition-new(root) {
   background: #fafafa;
   color: #0a0a0b;
 }
+/* Phones: smaller signs so both fit on one line */
+@media (max-width: 639px) {
+  .tr-sign {
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    padding: 2px;
+  }
+  .tr-sign__code,
+  .tr-sign__label {
+    padding: 0.35rem 0.45rem;
+  }
+}
 button:hover > .tr-sign,
 button:focus-visible > .tr-sign {
   transform: translateY(-3px);

@@ -112,7 +112,10 @@ function Radar({
   return (
     <div className="relative mx-auto aspect-square w-full max-w-[300px]">
       {/* Sweep */}
-      <div aria-hidden="true" className="hud-sweep absolute inset-[3.3%] rounded-full" style={{ animationDuration: `${SWEEP}s` }} />
+      {/* Clipped to the circle: the spinning square's corners would otherwise poke out and widen the page */}
+      <div aria-hidden="true" className="absolute inset-[3.3%] overflow-hidden rounded-full">
+        <div className="hud-sweep absolute inset-0" style={{ animationDuration: `${SWEEP}s` }} />
+      </div>
 
       <svg viewBox={`${-size / 2} ${-size / 2} ${size} ${size}`} className="absolute inset-0 h-full w-full overflow-visible">
         {/* Range rings and crosshair */}

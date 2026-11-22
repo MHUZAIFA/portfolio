@@ -155,7 +155,7 @@ export function TakeoffRunway({ departures }: { departures: Departure[] }) {
       </div>
 
       {/* Airfield signs */}
-      <div className="relative -mt-6 flex flex-wrap items-end justify-center gap-x-6 gap-y-5 sm:-mt-8">
+      <div className="relative -mt-6 flex items-end justify-center gap-x-3 sm:-mt-8 sm:gap-x-6">
         {departures.map((d) => (
           <button
             key={d.label}
