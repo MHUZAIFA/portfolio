@@ -667,3 +667,193 @@ html[data-vt="back"]::view-transition-new(root) {
   }
 }
 
+/* ─────────────────────────────────────────────────────────
+   Takeoff runway (projects › Next departure)
+   ───────────────────────────────────────────────────────── */
+.tr-scene {
+  perspective: 520px;
+  perspective-origin: 50% 0%;
+}
+.tr-runway {
+  width: 300px;
+  height: 1100px;
+  margin-left: -150px;
+  transform-origin: 50% 100%;
+  transform: rotateX(72deg);
+  transform-style: preserve-3d;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.5) 0 3px, transparent 3px calc(100% - 3px), rgba(255, 255, 255, 0.5) calc(100% - 3px)),
+    linear-gradient(180deg, #0b0b0d, #151517 70%, #19191c);
+}
+.tr-edge {
+  background: #fff7e0;
+  box-shadow: 0 0 10px 3px rgba(255, 244, 214, 0.55);
+}
+.tr-edge--threshold {
+  background: #4ade80;
+  box-shadow: 0 0 10px 3px rgba(74, 222, 128, 0.6);
+}
+.tr-centre {
+  background: rgba(255, 255, 255, 0.35);
+  animation: tr-centre 1.6s linear infinite;
+}
+@keyframes tr-centre {
+  0%,
+  100% {
+    background: rgba(255, 255, 255, 0.3);
+    box-shadow: none;
+  }
+  6% {
+    background: #fff;
+    box-shadow: 0 0 12px 4px rgba(255, 255, 255, 0.8);
+  }
+  20% {
+    background: rgba(255, 255, 255, 0.3);
+    box-shadow: none;
+  }
+}
+
+/* Runway number repaints when another runway is picked */
+.tr-number {
+  animation: tr-number 0.35s ease-out;
+}
+@keyframes tr-number {
+  from {
+    opacity: 0;
+    filter: blur(4px);
+    letter-spacing: 0.3em;
+  }
+}
+
+/* The aircraft: lined up, then rolls, rotates and climbs away into the distance */
+.tr-plane,
+.tr-shadow {
+  margin-left: -44px;
+  transform-style: preserve-3d;
+}
+.tr-plane {
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.8));
+}
+.tr-shadow {
+  background: radial-gradient(closest-side, rgba(0, 0, 0, 0.75), transparent);
+  transform: translate(6px, 6px);
+}
+.tr-plane.is-rolling {
+  animation: tr-takeoff 2.6s cubic-bezier(0.55, 0, 0.9, 0.6) forwards;
+}
+.tr-shadow.is-rolling {
+  animation: tr-shadow 2.6s cubic-bezier(0.55, 0, 0.9, 0.6) forwards;
+}
+@keyframes tr-takeoff {
+  0% {
+    transform: translateY(0) translateZ(0);
+    opacity: 1;
+  }
+  55% {
+    transform: translateY(-480px) translateZ(0);
+  }
+  100% {
+    transform: translateY(-1000px) translateZ(220px) scale(0.9);
+    opacity: 0;
+  }
+}
+@keyframes tr-shadow {
+  0% {
+    transform: translate(6px, 6px);
+    opacity: 1;
+  }
+  55% {
+    transform: translate(6px, -474px);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(70px, -980px) scale(0.6);
+    opacity: 0;
+  }
+}
+.tr-nav {
+  animation: tr-blink 1.4s steps(1, end) infinite;
+}
+.tr-strobe {
+  animation: tr-blink 0.9s steps(1, end) infinite;
+}
+@keyframes tr-blink {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+
+/* Airfield signs: red mandatory sign (primary) and black information signs */
+.tr-sign {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 4px;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow: 0 10px 24px -10px rgba(0, 0, 0, 0.9);
+  transition:
+    transform 0.15s ease-out,
+    box-shadow 0.2s ease-out;
+}
+.tr-sign__code,
+.tr-sign__label {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.45rem 0.7rem;
+  border-radius: 2px;
+}
+.tr-sign--mandatory {
+  background: #dc2626;
+  color: #fff;
+}
+.tr-sign--mandatory .tr-sign__code,
+.tr-sign--mandatory .tr-sign__label {
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.85);
+}
+.tr-sign--info {
+  background: #0a0a0b;
+  color: #fafafa;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.15),
+    0 10px 24px -10px rgba(0, 0, 0, 0.9);
+}
+.tr-sign--info .tr-sign__code {
+  background: #fafafa;
+  color: #0a0a0b;
+}
+button:hover > .tr-sign,
+button:focus-visible > .tr-sign {
+  transform: translateY(-3px);
+}
+button:hover > .tr-sign--mandatory,
+button:focus-visible > .tr-sign--mandatory {
+  box-shadow: 0 0 28px -4px rgba(239, 68, 68, 0.8);
+}
+button:hover > .tr-sign--info,
+button:focus-visible > .tr-sign--info {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.4),
+    0 0 24px -6px rgba(255, 255, 255, 0.35);
+}
+button:disabled > .tr-sign {
+  opacity: 0.6;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tr-centre,
+  .tr-nav,
+  .tr-strobe,
+  .tr-number {
+    animation: none;
+  }
+}
+
+

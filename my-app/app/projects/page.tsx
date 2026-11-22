@@ -15,11 +15,12 @@ import {
   clearReturningFlag,
   transitionHero,
 } from "@/lib/view-transition";
-import { X, ArrowUpDown, Check, Star, ArrowUpRight, Warehouse, CalendarCheck, Rocket, Keyboard } from "lucide-react";
+import { X, ArrowUpDown, Check, Star, ArrowUpRight, Warehouse } from "lucide-react";
 import { hapticManager } from "@/lib/haptic-manager";
 import { staggerContainer, staggerItem } from "@/components/providers/motion-provider";
 import { type TerminalProject } from "@/components/projects/interactive-terminal";
 import { HudConsole } from "@/components/projects/hud-console";
+import { TakeoffRunway } from "@/components/projects/takeoff-runway";
 import { MatrixRain } from "@/components/projects/matrix-rain";
 import { openCalendlyDirect } from "@/components/contact/book-call";
 import { ShortcutsOverlay, type Shortcut } from "@/components/projects/fun-elements";
@@ -1174,31 +1175,64 @@ export default function ProjectsPage() {
         </motion.section>
 
         {/* Contact */}
-        <motion.section variants={staggerItem}>
-          <SectionLabel>Next departure</SectionLabel>
-          <h2 className="mb-8 text-2xl font-semibold tracking-tight text-white md:text-3xl">Build something together</h2>
-          <div className="grid gap-4 md:grid-cols-3">
-            <CTACard
-              icon={<CalendarCheck className="h-4 w-4" />}
-              title="Book a 30-min call"
-              desc="Grab a slot on my calendar to chat about ideas, roles, or just to say hi."
-              cta="Open Calendly"
-              onCta={() => void openCalendlyDirect()}
-            />
-            <CTACard
-              icon={<Rocket className="h-4 w-4" />}
-              title="Ship something together"
-              desc="Hiring or collaborating? The sudo hireme command will get you there."
-              cta="Run sudo hireme"
-              onCta={() => window.dispatchEvent(new CustomEvent("terminal:run", { detail: "sudo hireme" }))}
-            />
-            <CTACard
-              icon={<Keyboard className="h-4 w-4" />}
-              title="Just curious?"
-              desc="Press ? anywhere for shortcuts, m for the matrix, t to type in the terminal."
-              cta="Open shortcuts"
-              onCta={() => setShortcutsOpen(true)}
-            />
+        <motion.section variants={staggerItem} className="mt-48 grid items-start gap-10 lg:grid-cols-2 lg:gap-14">
+          {/* Left: the pitch */}
+          <div>
+            <SectionLabel>Next departure</SectionLabel>
+            <h2 className="mb-4 text-2xl font-semibold tracking-tight text-white md:text-4xl">Build something together</h2>
+            <p className="max-w-xl text-sm leading-relaxed text-white/70 md:text-base">
+              Got a product to ship, a team that could use another pair of hands, or an idea you want to talk
+              through? Whether it&apos;s a role, a collaboration or an ambitious side project, I&apos;d love to hear
+              about it.
+            </p>
+            <p className="mt-4 max-w-xl text-sm leading-relaxed text-white/50">
+              Pick a runway on the right: book a 30-minute call straight onto my calendar, or run{" "}
+              <code className="rounded bg-white/[0.06] px-1.5 py-0.5 font-mono text-xs text-red-300">sudo hireme</code>{" "}
+              in the terminal for the full brief.
+            </p>
+            {/* How working together goes, as a flight plan */}
+            <ol className="mt-8 max-w-xl space-y-2.5">
+              {[
+                ["Pre-flight", "a quick call about what you're building"],
+                ["Flight plan", "agree on scope and milestones"],
+                ["Takeoff", "ship in small, visible steps"],
+              ].map(([phase, desc], i) => (
+                <li key={phase} className="flex items-baseline gap-3 text-sm">
+                  <span className="font-mono text-[10px] tracking-[0.2em] text-red-300/80">{String(i + 1).padStart(2, "0")}</span>
+                  <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-white/80">{phase}</span>
+                  <span className="text-white/45">{desc}</span>
+                </li>
+              ))}
+            </ol>
+
+            <dl className="mt-8 grid max-w-md grid-cols-3 gap-4 font-mono text-[10px] uppercase tracking-[0.2em]">
+              {[
+                ["Based", "Montréal"],
+                ["Timezone", "EST · UTC−5"],
+                ["Status", "Open to chat"],
+              ].map(([k, v]) => (
+                <div key={k}>
+                  <dt className="text-white/35">{k}</dt>
+                  <dd className="mt-1 text-xs normal-case tracking-normal text-white/80">{v}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+
+          {/* Right: the runway, centred vertically against the text */}
+          <div className="lg:self-center">
+          <TakeoffRunway
+            departures={[
+              { code: "27L", label: "Book a 30-min call", tone: "mandatory", takeoff: true, run: () => void openCalendlyDirect() },
+              {
+                code: "09R",
+                label: "sudo hireme",
+                tone: "info",
+                takeoff: true,
+                run: () => window.dispatchEvent(new CustomEvent("terminal:run", { detail: "sudo hireme" })),
+              },
+            ]}
+          />
           </div>
         </motion.section>
       </motion.div>
@@ -1210,37 +1244,3 @@ export default function ProjectsPage() {
    Subcomponents
    ───────────────────────────────────────────────────────── */
 
-function CTACard({
-  icon,
-  title,
-  desc,
-  cta,
-  onCta,
-}: {
-  icon: ReactNode;
-  title: string;
-  desc: string;
-  cta: string;
-  onCta: () => void;
-}) {
-  return (
-    <div className={`flex flex-col p-5 ${TICKET}`}>
-      <Edge />
-      <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/5 text-red-300 ring-1 ring-white/10">
-        {icon}
-      </span>
-      <h3 className="mt-4 text-base font-semibold text-white">{title}</h3>
-      <p className="mt-1 flex-1 text-sm leading-relaxed text-white/55">{desc}</p>
-      <button
-        type="button"
-        onClick={() => {
-          onCta();
-          hapticManager.light();
-        }}
-        className="relative mt-4 inline-flex w-fit items-center gap-1.5 rounded-full border border-white/15 px-3 py-1.5 text-xs text-white/80 transition-colors hover:border-red-400/50 hover:bg-red-500/10 hover:text-white"
-      >
-        {cta} <ArrowUpRight className="h-3 w-3" />
-      </button>
-    </div>
-  );
-}
