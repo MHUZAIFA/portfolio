@@ -1,12 +1,18 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useMemo } from "react";
-import { X, ChevronLeft, ChevronRight, ArrowLeft, Folder } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { hapticManager } from "@/lib/haptic-manager";
 
-interface Certificate {
+/**
+ * Certificates as a pilot's licence: each certificate is a logged type rating (with a code like
+ * AWS-03), grouped into rating classes by issuer. Filters pick a class; opening a rating shows the
+ * original in an inspection view (arrow keys / swipe to move through, Esc to close).
+ */
+
+export interface Certificate {
   id: string;
   title: string;
   issuer: string;
@@ -14,328 +20,253 @@ interface Certificate {
   image: string;
 }
 
-interface CertificateGalleryProps {
-  certificates: Certificate[];
-  viewMode: "gallery" | "folder";
+/** Rating classes, in display order, with the prefix used in rating codes. */
+const CLASSES: { issuer: string; label: string; name: string; prefix: string }[] = [
+  { issuer: "AWS", label: "AWS", name: "Amazon Web Services", prefix: "AWS" },
+  { issuer: "Microsoft", label: "Microsoft", name: "Microsoft", prefix: "MSFT" },
+  { issuer: "Angular", label: "Angular", name: "Angular", prefix: "NG" },
+  { issuer: "Other", label: "Other", name: "General", prefix: "GEN" },
+];
+
+type Rating = Certificate & { code: string; classLabel: string };
+
+function useRatings(certificates: Certificate[]) {
+  return useMemo(() => {
+    const known = new Set(CLASSES.map((c) => c.issuer));
+    const ratings: Rating[] = [];
+    CLASSES.forEach((cls) => {
+      certificates
+        .filter((c) => (known.has(c.issuer) ? c.issuer === cls.issuer : cls.issuer === "Other"))
+        .forEach((c, i) => ratings.push({ ...c, code: `${cls.prefix}-${String(i + 1).padStart(2, "0")}`, classLabel: cls.label }));
+    });
+    return ratings;
+  }, [certificates]);
 }
 
-export function CertificateGallery({ certificates, viewMode }: CertificateGalleryProps) {
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [touchEnd, setTouchEnd] = useState<number | null>(null);
-  const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
-
-  // Group certificates by category
-  const groupedCertificates = useMemo(() => {
-    const groups: Record<string, Certificate[]> = {
-      angular: [],
-      aws: [],
-      microsoft: [],
-      others: [],
-    };
-
-    certificates.forEach((cert) => {
-      const path = cert.image.toLowerCase();
-      if (path.includes("/angular/")) {
-        groups.angular.push(cert);
-      } else if (path.includes("/aws/")) {
-        groups.aws.push(cert);
-      } else if (path.includes("/microsoft/")) {
-        groups.microsoft.push(cert);
-      } else {
-        groups.others.push(cert);
-      }
-    });
-
-    return groups;
-  }, [certificates]);
-
-  const getCategoryName = (category: string) => {
-    const names: Record<string, string> = {
-      angular: "Angular",
-      aws: "AWS",
-      microsoft: "Microsoft",
-      others: "Others",
-    };
-    return names[category] || category;
-  };
-
-  const openFolder = (folder: string) => {
-    setSelectedFolder(folder);
-    hapticManager.medium();
-  };
-
-  const closeFolder = () => {
-    setSelectedFolder(null);
-    hapticManager.light();
-  };
-
-  const minSwipeDistance = 50;
-
-  const onTouchStart = (e: React.TouchEvent) => {
-    setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const onTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
-  const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
-
-    if (selectedIndex !== null) {
-      if (isLeftSwipe && selectedIndex < certificates.length - 1) {
-        setSelectedIndex(selectedIndex + 1);
-        hapticManager.light();
-      }
-      if (isRightSwipe && selectedIndex > 0) {
-        setSelectedIndex(selectedIndex - 1);
-        hapticManager.light();
-      }
-    }
-  };
-
-  const openLightbox = (index: number) => {
-    setSelectedIndex(index);
-    hapticManager.medium();
-  };
-
-  const closeLightbox = () => {
-    setSelectedIndex(null);
-    hapticManager.light();
-  };
-
-  const navigateNext = () => {
-    if (selectedIndex !== null && selectedIndex < certificates.length - 1) {
-      setSelectedIndex(selectedIndex + 1);
-      hapticManager.light();
-    }
-  };
-
-  const navigatePrev = () => {
-    if (selectedIndex !== null && selectedIndex > 0) {
-      setSelectedIndex(selectedIndex - 1);
-      hapticManager.light();
-    }
-  };
-
-  const renderGalleryView = () => (
-    <div className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-4">
-      {certificates.map((cert, index) => (
-        <motion.div
-          key={cert.id}
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3, delay: index * 0.05 }}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={() => openLightbox(index)}
-          className="group relative aspect-[4/3] cursor-pointer overflow-hidden rounded-lg bg-white/5"
+function RatingTile({ rating, index, onOpen }: { rating: Rating; index: number; onOpen: () => void }) {
+  return (
+    <motion.button
+      type="button"
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ duration: 0.4, delay: (index % 4) * 0.05 }}
+      onClick={onOpen}
+      className="group flex flex-col text-left"
+    >
+      <span className="relative block aspect-[4/3] overflow-hidden rounded-md ring-1 ring-white/10 transition group-hover:ring-red-400/50">
+        <Image
+          src={rating.image}
+          alt={rating.title}
+          fill
+          sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+          className="object-cover transition-transform duration-500 group-hover:scale-105"
+          draggable={false}
+        />
+        {/* Rating code, like an endorsement number */}
+        <span className="absolute left-2 top-2 rounded-sm bg-black/75 px-1.5 py-0.5 font-mono text-[10px] font-semibold tracking-[0.15em] text-white backdrop-blur-sm">
+          {rating.code}
+        </span>
+        {/* Inspection stamp on hover */}
+        <span
+          aria-hidden="true"
+          className="absolute bottom-3 right-3 flex h-[68px] w-[68px] rotate-[-14deg] scale-75 items-center justify-center rounded-full border-2 border-red-500 font-mono text-[10px] font-black uppercase leading-tight tracking-widest text-red-400 opacity-0 shadow-[inset_0_0_0_3px_rgba(0,0,0,0.85),inset_0_0_0_4px_rgba(239,68,68,0.7)] transition duration-300 group-hover:scale-100 group-hover:opacity-100"
+          style={{ background: "rgba(0,0,0,0.85)" }}
         >
-          <Image
-            src={cert.image}
-            alt={cert.title}
-            fill
-            sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            className="object-cover transition-transform group-hover:scale-110"
-            draggable={false}
-            onClick={() => openLightbox(index)}
-          />
-          <div className="absolute inset-0 bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
-            <div className="flex h-full items-center justify-center">
-              <p className="text-center text-sm font-medium text-white">
-                {cert.title}
-              </p>
-            </div>
-          </div>
-        </motion.div>
-      ))}
-    </div>
+          <span className="text-center">
+            Rated
+            <br />
+            {rating.date}
+          </span>
+        </span>
+      </span>
+      <span className="mt-2.5 line-clamp-2 text-sm font-medium text-white/90 transition-colors group-hover:text-white">
+        {rating.title}
+      </span>
+      <span className="mt-1 font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">
+        {rating.issuer} · {rating.date}
+      </span>
+    </motion.button>
+  );
+}
+
+export function CertificateGallery({ certificates }: { certificates: Certificate[] }) {
+  const ratings = useRatings(certificates);
+  const [filter, setFilter] = useState<string | null>(null);
+  const [open, setOpen] = useState<number | null>(null);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+
+  const classes = CLASSES.map((c) => ({ ...c, count: ratings.filter((r) => r.classLabel === c.label).length })).filter(
+    (c) => c.count > 0,
+  );
+  const visible = filter ? ratings.filter((r) => r.classLabel === filter) : ratings;
+  const years = ratings.map((r) => Number(r.date)).filter(Boolean);
+
+  const step = useCallback(
+    (dir: 1 | -1) => {
+      setOpen((i) => {
+        if (i === null) return i;
+        const next = i + dir;
+        if (next < 0 || next >= visible.length) return i;
+        hapticManager.light();
+        return next;
+      });
+    },
+    [visible.length],
   );
 
-  const renderFolderView = () => {
-    // If a folder is selected, show its contents
-    if (selectedFolder) {
-      const folderCerts = groupedCertificates[selectedFolder] || [];
-      
-      return (
-        <div>
-          <motion.button
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            onClick={closeFolder}
-            className="mb-6 flex items-center gap-2 text-white/70 transition-colors hover:text-white"
-          >
-            <ArrowLeft className="h-5 w-5" />
-            <span>Back to Folders</span>
-          </motion.button>
-          
-          <motion.h2
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6 text-2xl font-bold text-white"
-          >
-            {getCategoryName(selectedFolder)} Certificates
-          </motion.h2>
-          
-          <div className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-4">
-            {folderCerts.map((cert, index) => {
-              const globalIndex = certificates.findIndex((c) => c.id === cert.id);
-              return (
-                <motion.div
-                  key={cert.id}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.3, delay: index * 0.05 }}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => openLightbox(globalIndex)}
-                  className="group relative aspect-[4/3] cursor-pointer overflow-hidden rounded-lg bg-white/5"
-                >
-                  <Image
-                    src={cert.image}
-                    alt={cert.title}
-                    fill
-                    sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                    className="object-cover transition-transform group-hover:scale-110"
-                    draggable={false}
-                    onClick={() => openLightbox(globalIndex)}
-                  />
-                  <div className="absolute inset-0 bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
-                    <div className="flex h-full items-center justify-center">
-                      <p className="text-center text-sm font-medium text-white">
-                        {cert.title}
-                      </p>
-                    </div>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
-        </div>
-      );
-    }
+  // Keyboard and scroll lock while inspecting
+  useEffect(() => {
+    if (open === null) return;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(null);
+      if (e.key === "ArrowRight") step(1);
+      if (e.key === "ArrowLeft") step(-1);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [open, step]);
 
-    // Show folder cards
-    return (
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        {Object.entries(groupedCertificates).map(([category, certs], index) => {
-          if (certs.length === 0) return null;
-          const firstCert = certs[0];
-          
-          return (
-            <div key={category}>
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3, delay: index * 0.1 }}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => openFolder(category)}
-                className="group cursor-pointer overflow-hidden rounded-lg border border-white/10 bg-white/5 transition-all hover:border-white/20 hover:bg-white/10"
-              >
-                <div className="relative aspect-[4/3] overflow-hidden">
-                  <Image
-                    src={firstCert.image}
-                    alt={getCategoryName(category)}
-                    fill
-                    sizes="(max-width: 768px) 50vw, 25vw"
-                    className="object-cover transition-transform group-hover:scale-110"
-                    draggable={false}
-                    onClick={() => openFolder(category)}
-                  />
-                </div>
-              </motion.div>
-              <div className="mt-2 flex items-center gap-2 text-left">
-                <Folder className="h-4 w-4 text-white/70" />
-                <span className="text-sm text-white">
-                  {getCategoryName(category)} ({certs.length})
-                </span>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    );
-  };
+  const current = open !== null ? visible[open] : null;
 
   return (
     <>
-      {viewMode === "gallery" ? renderGalleryView() : renderFolderView()}
+      {/* Licence summary */}
+      <dl className="mb-8 flex flex-wrap gap-x-10 gap-y-3 font-mono text-[10px] uppercase tracking-[0.2em]">
+        {[
+          ["Ratings held", String(ratings.length)],
+          ["Issuers", String(classes.length)],
+          ["Latest", years.length ? String(Math.max(...years)) : "—"],
+          ["Status", "Current"],
+        ].map(([k, v]) => (
+          <div key={k}>
+            <dt className="text-white/35">{k}</dt>
+            <dd className="mt-1 text-lg font-semibold tracking-normal text-white">{v}</dd>
+          </div>
+        ))}
+      </dl>
 
+      {/* Rating class filter: one swipeable row on phones */}
+      <div
+        className="-mx-4 mb-12 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:mx-0 md:flex-wrap md:px-0 [&::-webkit-scrollbar]:hidden"
+        role="tablist"
+        aria-label="Filter by rating class"
+      >
+        {[{ label: null as string | null, count: ratings.length }, ...classes.map((c) => ({ label: c.label as string | null, count: c.count }))].map(
+          ({ label, count }) => {
+            const active = filter === label;
+            return (
+              <button
+                key={label ?? "all"}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                onClick={() => {
+                  hapticManager.light();
+                  setFilter(label);
+                }}
+                className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md border px-2.5 py-1.5 font-mono text-[9px] uppercase tracking-wider transition-colors md:px-4 md:py-2 md:text-[11px] md:tracking-widest ${
+                  active ? "border-white bg-white text-black" : "border-white/15 text-white/70 hover:border-white/40 hover:text-white"
+                }`}
+              >
+                {label ?? "All ratings"} <span className={active ? "text-black/50" : "text-white/40"}>{count}</span>
+              </button>
+            );
+          },
+        )}
+      </div>
+
+      {/* Ratings, grouped by class */}
+      <div className="space-y-14">
+        {(filter ? classes.filter((c) => c.label === filter) : classes).map((cls) => {
+          const inClass = visible.filter((r) => r.classLabel === cls.label);
+          return (
+            <section key={cls.label} aria-labelledby={`class-${cls.prefix}`}>
+              <div className="mb-5 flex items-baseline justify-between gap-4">
+                <h2 id={`class-${cls.prefix}`} className="flex items-baseline gap-3">
+                  <span className="font-mono text-xs uppercase tracking-[0.3em] text-red-400">Class · {cls.prefix}</span>
+                  <span className="text-xl font-semibold text-white md:text-2xl">{cls.name}</span>
+                </h2>
+                <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/35">
+                  {cls.count} {cls.count === 1 ? "rating" : "ratings"}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-3 lg:grid-cols-4">
+                {inClass.map((r, i) => (
+                  <RatingTile
+                    key={r.id}
+                    rating={r}
+                    index={i}
+                    onOpen={() => {
+                      hapticManager.medium();
+                      setOpen(visible.indexOf(r));
+                    }}
+                  />
+                ))}
+              </div>
+            </section>
+          );
+        })}
+      </div>
+
+      {/* Inspection view */}
       <AnimatePresence>
-        {selectedIndex !== null && (
+        {current && open !== null && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/95"
-            onClick={closeLightbox}
-            onTouchStart={onTouchStart}
-            onTouchMove={onTouchMove}
-            onTouchEnd={onTouchEnd}
+            className="fixed inset-0 z-50 flex flex-col bg-black/95 backdrop-blur-sm"
+            onClick={() => setOpen(null)}
+            onTouchStart={(e) => setTouchStart(e.targetTouches[0].clientX)}
+            onTouchEnd={(e) => {
+              if (touchStart === null) return;
+              const d = touchStart - e.changedTouches[0].clientX;
+              if (Math.abs(d) > 50) step(d > 0 ? 1 : -1);
+              setTouchStart(null);
+            }}
+            role="dialog"
+            aria-modal="true"
+            aria-label={current.title}
           >
-            <motion.button
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={(e) => {
-                e.stopPropagation();
-                closeLightbox();
-              }}
-              className="absolute right-4 top-4 z-10 rounded-full bg-white/10 p-2 text-white transition-colors hover:bg-white/20"
-              aria-label="Close"
-            >
-              <X className="h-6 w-6" />
-            </motion.button>
-
-            {selectedIndex > 0 && (
-              <motion.button
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  navigatePrev();
-                }}
-                className="absolute left-4 z-10 rounded-full bg-white/10 p-3 text-white transition-colors hover:bg-white/20"
-                aria-label="Previous"
-              >
-                <ChevronLeft className="h-6 w-6" />
-              </motion.button>
-            )}
-
-            {selectedIndex < certificates.length - 1 && (
-              <motion.button
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  navigateNext();
-                }}
-                className="absolute right-4 z-10 rounded-full bg-white/10 p-3 text-white transition-colors hover:bg-white/20"
-                aria-label="Next"
-              >
-                <ChevronRight className="h-6 w-6" />
-              </motion.button>
-            )}
-
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
+            {/* Top bar */}
+            <div
+              className="flex items-start justify-between gap-4 px-4 py-4 md:px-8"
               onClick={(e) => e.stopPropagation()}
-              className="relative mx-4 h-[90vh] w-full max-w-4xl"
             >
-              <div className="relative h-full w-full">
+              <div className="min-w-0">
+                <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-red-400">
+                  Rating {current.code} · Issued {current.date} · {open + 1}/{visible.length}
+                </p>
+                <p className="mt-1 truncate text-base font-semibold text-white md:text-lg">{current.title}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setOpen(null)}
+                className="shrink-0 rounded-full bg-white/10 p-2 text-white transition-colors hover:bg-white/20"
+                aria-label="Close"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* The certificate */}
+            <div className="relative flex min-h-0 flex-1 items-center justify-center px-4 pb-6 md:px-20">
+              <motion.div
+                key={current.id}
+                initial={{ opacity: 0, scale: 0.97 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.25 }}
+                className="relative h-full w-full max-w-5xl"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <Image
-                  src={certificates[selectedIndex].image}
-                  alt={certificates[selectedIndex].title}
+                  src={current.image}
+                  alt={current.title}
                   fill
                   sizes="(max-width: 768px) 100vw, 90vw"
                   className="object-contain"
@@ -343,21 +274,38 @@ export function CertificateGallery({ certificates, viewMode }: CertificateGaller
                   priority
                   unoptimized
                 />
-              </div>
-              {/* <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6 text-white">
-                <h3 className="text-xl font-semibold">
-                  {certificates[selectedIndex].title}
-                </h3>
-                <p className="text-sm text-white/80">
-                  {certificates[selectedIndex].issuer} •{" "}
-                  {certificates[selectedIndex].date}
-                </p>
-              </div> */}
-            </motion.div>
+              </motion.div>
+
+              {open > 0 && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    step(-1);
+                  }}
+                  className="absolute left-2 rounded-full bg-white/10 p-3 text-white transition-colors hover:bg-white/20 md:left-6"
+                  aria-label="Previous rating"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </button>
+              )}
+              {open < visible.length - 1 && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    step(1);
+                  }}
+                  className="absolute right-2 rounded-full bg-white/10 p-3 text-white transition-colors hover:bg-white/20 md:right-6"
+                  aria-label="Next rating"
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </button>
+              )}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
     </>
   );
 }
-

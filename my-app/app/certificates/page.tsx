@@ -3,8 +3,7 @@
 import { CertificateGallery } from "@/components/certificate-gallery";
 import { staggerContainer, staggerItem } from "@/components/providers/motion-provider";
 import { motion } from "framer-motion";
-import { useState } from "react";
-import { Grid, Folder } from "lucide-react";
+import { Plane } from "lucide-react";
 
 const certificates = [
   // Angular Certificates
@@ -182,53 +181,47 @@ const certificates = [
 ];
 
 export default function CertificatesPage() {
-  const [viewMode, setViewMode] = useState<"gallery" | "folder">("gallery");
-
   return (
-    <motion.div
-      initial="initial"
-      animate="animate"
-      variants={staggerContainer}
-      className="mx-auto max-w-7xl px-4 py-24 mt-12"
-    >
-      <div className="mb-12 flex flex-col lg:flex-row gap-4 lg:gap-0 items-start lg:items-center lg:justify-between">
-        <motion.h1
-          variants={staggerItem}
-          className="text-4xl font-bold text-white md:text-5xl"
-        >
-          Certificates
-        </motion.h1>
-        <motion.div
-          variants={staggerItem}
-          className="flex gap-1 rounded-lg border border-white/10 bg-white/5 p-1"
-        >
-          <button
-            onClick={() => setViewMode("gallery")}
-            className={`flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-all ${
-              viewMode === "gallery"
-                ? "bg-white text-black shadow-sm"
-                : "text-white/70 hover:text-white hover:bg-white/10"
-            }`}
-          >
-            <Grid className="h-4 w-4" />
-            Gallery
-          </button>
-          <button
-            onClick={() => setViewMode("folder")}
-            className={`flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-all ${
-              viewMode === "folder"
-                ? "bg-white text-black shadow-sm"
-                : "text-white/70 hover:text-white hover:bg-white/10"
-            }`}
-          >
-            <Folder className="h-4 w-4" />
-            Folders
-          </button>
-        </motion.div>
+    <div className="relative min-h-screen overflow-hidden">
+      {/* Background: faint grid + red horizon glow */}
+      <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden="true">
+        <div
+          className="absolute -right-40 -top-40 h-[520px] w-[520px] rounded-full opacity-25"
+          style={{ background: "radial-gradient(circle, rgba(239,68,68,0.35) 0%, transparent 70%)", filter: "blur(90px)" }}
+        />
+        <div className="absolute inset-0 opacity-[0.04]">
+          <svg className="h-full w-full" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="cert-grid" width="48" height="48" patternUnits="userSpaceOnUse">
+                <path d="M 48 0 L 0 0 0 48" fill="none" stroke="white" strokeWidth="1" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#cert-grid)" />
+          </svg>
+        </div>
       </div>
 
-      <CertificateGallery certificates={certificates} viewMode={viewMode} />
-    </motion.div>
+      <motion.div
+        initial="initial"
+        animate="animate"
+        variants={staggerContainer}
+        className="relative mx-auto max-w-7xl px-4 pb-24 pt-16 md:mt-12 md:px-8 md:pt-24"
+      >
+        <motion.p variants={staggerItem} className="mb-3 flex items-center gap-2 font-mono text-xs tracking-[0.3em] text-red-400">
+          <Plane className="h-3.5 w-3.5" /> LICENCE &amp; RATINGS
+        </motion.p>
+        <motion.h1 variants={staggerItem} className="mb-6 text-3xl font-bold text-white md:text-4xl lg:text-5xl">
+          Certificates
+        </motion.h1>
+        <motion.p variants={staggerItem} className="mb-10 max-w-2xl text-sm text-white/75 md:text-base">
+          Every course I&apos;ve completed, logged like type ratings on a pilot&apos;s licence. Open one to inspect the
+          original.
+        </motion.p>
+
+        <motion.div variants={staggerItem}>
+          <CertificateGallery certificates={certificates} />
+        </motion.div>
+      </motion.div>
+    </div>
   );
 }
-
