@@ -5,20 +5,22 @@ import { useCallback, useEffect, useState, useRef } from "react";
 import { Download } from "lucide-react";
 import { hapticManager } from "@/lib/haptic-manager";
 import { HeroParticleField } from "@/components/hero-particle-field";
-import { ScrambleText, WordReveal } from "@/components/hero-text-fx";
+import { RollText, WordReveal } from "@/components/hero-text-fx";
 import { INTRO_TIMELINE as T, onIntroStart } from "@/lib/game-bus";
 
 const roles = [
-  "Graduate Student",
-  "Full Stack AI Developer",
-  "D365 Customizer",
-  "UI/UX Designer",
+  "Cloud Solutions Architect",
+  "Full Stack Developer", // Air Canada, Flexspring, CitiusTech, WTW
+  "UI/UX Designer", // Homesfy
+  "Graduate Student", // Concordia MACS
 ];
 
 const EASE_OUT = [0.16, 1, 0.3, 1] as const;
+/** How long each role stays on screen. */
+const ROLE_MS = 3500;
 
 const DESCRIPTION =
-  "Fuelled by a passion for developing web applications and designing compelling products, I have deep desire to excel and continuously improve my craft.";
+  "I love building software end to end, from the first architecture sketch to the last pixel. Especially the kind that pushes limits and leaves the world a little better.";
 
 type HeroSectionProps = {
   gameActive?: boolean;
@@ -59,7 +61,7 @@ export function HeroSection({ gameActive = false }: HeroSectionProps = {}) {
     if (!roleActive) return;
     const interval = setInterval(() => {
       setCurrentRoleIndex((prev) => (prev + 1) % roles.length);
-    }, 3500);
+    }, ROLE_MS);
     return () => clearInterval(interval);
   }, [roleActive]);
 
@@ -195,8 +197,8 @@ export function HeroSection({ gameActive = false }: HeroSectionProps = {}) {
             />
           </div>
 
-          {/* 2.0s / 2.3s — "I'm a" rises from a mask, then the role decodes */}
-          <div className="mb-10 flex items-center justify-center h-20 md:h-28 lg:h-32">
+          {/* 2.0s / 2.3s — "I'm a" rises from a mask, then the role rolls in */}
+          <div className="mt-6 mb-4 flex items-center justify-center lg:mt-10">
             <AnimatedRoles
               currentIndex={currentRoleIndex}
               roles={roles}
@@ -278,10 +280,10 @@ function AnimatedRoles({
   roleActive: boolean;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-4 flex-wrap mt-16 lg:mt-24">
-      <span className="block overflow-hidden pb-2">
+    <div className="flex flex-col items-center gap-2 md:gap-3">
+      <span className="block overflow-hidden">
         <motion.span
-          className="block text-4xl font-light text-white/60 md:text-6xl lg:text-7xl xl:text-8xl whitespace-nowrap"
+          className="block font-mono text-xs uppercase tracking-[0.4em] text-white/45 md:text-sm"
           initial={{ y: "110%" }}
           animate={introStarted ? { y: "0%" } : undefined}
           transition={{ duration: 0.9, delay: T.imA, ease: EASE_OUT }}
@@ -289,15 +291,33 @@ function AnimatedRoles({
           I&apos;m a
         </motion.span>
       </span>
-      <div className="relative w-full flex items-center justify-center text-center mb-16 lg:mb-36">
-        <div className="absolute inset-0 flex items-center justify-center mt-4 lg:mt-8">
-          <ScrambleText
-            text={roles[currentIndex]}
-            active={roleActive}
-            className="text-4xl font-light text-white md:text-6xl lg:text-7xl xl:text-8xl whitespace-nowrap"
-          />
-        </div>
-      </div>
+      <RollText
+        text={roles[currentIndex]}
+        active={roleActive}
+        className="text-[clamp(1.75rem,7vw,5.5rem)] font-light leading-[1.15] text-white"
+      />
+      {/* Which role is showing; the active tick fills over the time it's on screen. */}
+      <motion.div
+        aria-hidden="true"
+        className="mt-2 flex gap-1.5"
+        initial={{ opacity: 0 }}
+        animate={roleActive ? { opacity: 1 } : undefined}
+        transition={{ duration: 0.6, delay: 0.4 }}
+      >
+        {roles.map((r, i) => (
+          <span key={r} className="relative h-0.5 w-6 overflow-hidden rounded-full bg-white/15 md:w-8">
+            {i === currentIndex && roleActive && (
+              <motion.span
+                key={currentIndex}
+                className="absolute inset-0 origin-left rounded-full bg-indigo-200/80"
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: 1 }}
+                transition={{ duration: ROLE_MS / 1000, ease: "linear" }}
+              />
+            )}
+          </span>
+        ))}
+      </motion.div>
     </div>
   );
 }

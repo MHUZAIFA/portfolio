@@ -1,7 +1,7 @@
 "use client";
 
 import { Fragment, useEffect, useRef } from "react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion, type Variants } from "framer-motion";
 
 const GLYPHS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789#%*+=/";
 const EASE_OUT = [0.16, 1, 0.3, 1] as const;
@@ -82,6 +82,51 @@ export function ScrambleText({
         {" "}
       </span>
     </>
+  );
+}
+
+const ROLL: Variants = {
+  hidden: { y: "105%", opacity: 0, filter: "blur(8px)" },
+  shown: (i: number) => ({ y: "0%", opacity: 1, filter: "blur(0px)", transition: { duration: 0.7, delay: 0.15 + i * 0.022, ease: EASE_OUT } }),
+  exit: (i: number) => ({ y: "-105%", opacity: 0, filter: "blur(8px)", transition: { duration: 0.45, delay: i * 0.012, ease: [0.7, 0, 0.84, 0] as const } }),
+};
+
+/**
+ * Swaps `text` with a staggered letter roll: the old word lifts out of a mask as the new one
+ * rises in beneath it. Real letters at every moment, so copy/paste never picks up junk.
+ */
+export function RollText({ text, active, className }: { text: string; active: boolean; className?: string }) {
+  const reduced = useReducedMotion();
+  return (
+    <span className={`relative inline-flex justify-center ${className ?? ""}`}>
+      <span className="sr-only" aria-live="polite">
+        {active ? text : ""}
+      </span>
+      {/* Invisible copy of the current text sizes the line, so the layout never jumps. */}
+      <span aria-hidden="true" className="invisible whitespace-pre">
+        {text}
+      </span>
+      <AnimatePresence initial={!reduced}>
+        {active && (
+          <motion.span
+            key={text}
+            aria-hidden="true"
+            // Centred on its own width (not the container's) and clipped only vertically, so the
+            // outgoing word isn't cut off while the line resizes for the incoming one.
+            className="absolute left-1/2 top-0 flex h-full -translate-x-1/2 select-none overflow-y-clip whitespace-pre"
+            initial="hidden"
+            animate="shown"
+            exit="exit"
+          >
+            {Array.from(text).map((ch, i) => (
+              <motion.span key={i} custom={i} variants={reduced ? undefined : ROLL} className="inline-block">
+                {ch}
+              </motion.span>
+            ))}
+          </motion.span>
+        )}
+      </AnimatePresence>
+    </span>
   );
 }
 
