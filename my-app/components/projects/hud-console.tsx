@@ -282,21 +282,21 @@ export function HudConsole({ projects, onTriggerMatrix }: { projects: TerminalPr
               setLast(cmd.split(" ")[0]);
             }}
           />
-        </div>
-      </div>
 
-      {/* Command bar */}
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="mr-1 hidden font-mono text-[10px] uppercase tracking-[0.2em] text-white/35 sm:inline">Quick</span>
-        {QUICK.map((q) => (
-          <button key={q.cmd} type="button" onClick={() => run(q.cmd)} className="hud-chip">
-            {q.label}
-          </button>
-        ))}
-        <button type="button" onClick={() => run(EXEC.cmd)} className="hud-chip hud-chip--exec ml-auto">
-          <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-current" />
-          {EXEC.label}
-        </button>
+          {/* Command bar, right under the terminal */}
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <span className="mr-1 hidden font-mono text-[10px] uppercase tracking-[0.2em] text-white/35 sm:inline">Quick</span>
+            {QUICK.map((q) => (
+              <button key={q.cmd} type="button" onClick={() => run(q.cmd)} className="hud-chip">
+                {q.label}
+              </button>
+            ))}
+            <button type="button" onClick={() => run(EXEC.cmd)} className="hud-chip hud-chip--exec ml-auto">
+              <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-current" />
+              {EXEC.label}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

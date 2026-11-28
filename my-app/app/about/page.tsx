@@ -504,7 +504,7 @@ export default function AboutPage() {
         <motion.p variants={staggerItem} className="mb-3 flex items-center gap-2 font-mono text-xs tracking-[0.3em] text-red-400">
           <Plane className="h-3.5 w-3.5" /> CREW PROFILE
         </motion.p>
-        <motion.h1 variants={staggerItem} className="mb-10 text-3xl font-bold text-white md:text-4xl lg:text-5xl">
+        <motion.h1 variants={staggerItem} className="mb-5 text-3xl font-bold text-white md:text-4xl lg:text-5xl">
           About Me
         </motion.h1>
 

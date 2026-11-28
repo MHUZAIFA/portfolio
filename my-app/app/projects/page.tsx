@@ -1040,23 +1040,29 @@ export default function ProjectsPage() {
         >
           <Warehouse className="h-3.5 w-3.5" /> HANGAR · YUL
         </motion.p>
-        <motion.h1 variants={staggerItem} className="mb-6 text-3xl font-bold text-white md:text-4xl lg:text-5xl">
+        <motion.h1 variants={staggerItem} className="mb-5 text-3xl font-bold text-white md:text-4xl lg:text-5xl">
           Projects
         </motion.h1>
-        <motion.p variants={staggerItem} className="mb-10 max-w-2xl text-sm text-white/75 md:text-base">
-          Everything I&apos;ve designed, built and shipped, parked in one hangar. Step into a bay to see how it was made.
-        </motion.p>
 
         {/* Cockpit: interactive terminal */}
         <motion.section variants={staggerItem} className="mb-16">
           <SectionLabel>Cockpit</SectionLabel>
           <h2 className="mb-3 text-2xl font-semibold tracking-tight text-white md:text-3xl">Take the controls</h2>
-          <p className="mb-6 max-w-2xl text-sm text-white/60">
+          <p className="mb-6 text-sm lg:whitespace-nowrap text-white/60">
             Every project is a contact on the radar: hover to identify it, click to open its file. Or talk to the
             comms log directly; it&apos;s a real-ish terminal.
           </p>
           <HudConsole projects={terminalProjects} onTriggerMatrix={() => setMatrixOn(true)} />
         </motion.section>
+
+        {/* Hangar intro */}
+        <motion.div variants={staggerItem} className="mb-6">
+          <SectionLabel>Hangar floor</SectionLabel>
+          <h2 className="mb-3 text-2xl font-semibold tracking-tight text-white md:text-3xl">Explore the fleet</h2>
+          <p className="max-w-2xl text-sm text-white/60">
+            Everything I&apos;ve designed, built and shipped, parked in one hangar. Step into a bay to see how it was made.
+          </p>
+        </motion.div>
 
         {/* Category filter + sort, sitting right above the hangar */}
         <motion.div variants={staggerItem} className="flex items-center gap-3">

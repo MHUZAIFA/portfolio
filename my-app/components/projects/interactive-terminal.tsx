@@ -14,6 +14,79 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Terminal as TerminalIcon, Copy, Check } from "lucide-react";
 import { hapticManager } from "@/lib/haptic-manager";
+import Link from "next/link";
+import { PROJECT_LINKS } from "@/lib/project-links";
+
+/* ─────────────────────────────────────────────────────────
+   Idle typewriter hint (shown while the input is empty and unfocused)
+   ───────────────────────────────────────────────────────── */
+
+/** Demo commands typed out one by one, each followed by a nudge, then erased. */
+const HINT_COMMANDS = ["whoami", "ls", "stack", "cat bpmn-studio", "sudo hireme"];
+const HINT_SUFFIX = " (try it yourself)";
+
+function TypewriterHint() {
+  const [cmd, setCmd] = useState("");
+  const [suffix, setSuffix] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout>;
+    const wait = (ms: number) => new Promise<void>((r) => (timer = setTimeout(r, ms)));
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const run = async () => {
+      if (reduced) {
+        await wait(0);
+        if (cancelled) return;
+        setCmd(HINT_COMMANDS[0]);
+        setSuffix(HINT_SUFFIX);
+        return;
+      }
+      while (!cancelled) {
+        for (const c of HINT_COMMANDS) {
+          for (let i = 1; i <= c.length && !cancelled; i++) {
+            setCmd(c.slice(0, i));
+            await wait(70 + Math.random() * 60);
+          }
+          await wait(250);
+          for (let i = 1; i <= HINT_SUFFIX.length && !cancelled; i++) {
+            setSuffix(HINT_SUFFIX.slice(0, i));
+            await wait(25);
+          }
+          await wait(1600);
+          for (let i = HINT_SUFFIX.length - 1; i >= 0 && !cancelled; i--) {
+            setSuffix(HINT_SUFFIX.slice(0, i));
+            await wait(12);
+          }
+          for (let i = c.length - 1; i >= 0 && !cancelled; i--) {
+            setCmd(c.slice(0, i));
+            await wait(30);
+          }
+          if (cancelled) return;
+          await wait(350);
+        }
+      }
+    };
+    run();
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, []);
+
+  return (
+    <span
+      aria-hidden
+      className="pointer-events-none absolute left-0 top-0 flex h-full w-full items-center overflow-hidden font-mono"
+      style={{ whiteSpace: "pre" }}
+    >
+      <span className="text-white/45">{cmd}</span>
+      <span className="text-amber-300/70">{suffix}</span>
+      <span className="ml-px inline-block h-[1.1em] w-[0.55em] animate-pulse bg-cyan-300/70" />
+    </span>
+  );
+}
 
 /* ─────────────────────────────────────────────────────────
    Types
@@ -281,6 +354,21 @@ export function InteractiveTerminal({
     el.scrollTop = el.scrollHeight;
   }, [lines]);
 
+  /* ── Session log: commands are saved per tab and replayed (without side effects) on return ── */
+  const logKey = `terminal-log:${variant}`;
+  const replayingRef = useRef(false);
+  const saveLog = useCallback(
+    (update: (log: string[]) => string[]) => {
+      try {
+        const log = JSON.parse(sessionStorage.getItem(logKey) ?? "[]") as string[];
+        sessionStorage.setItem(logKey, JSON.stringify(update(log).slice(-100)));
+      } catch {
+        /* storage unavailable: just don't persist */
+      }
+    },
+    [logKey],
+  );
+
   const push = useCallback((kind: LineKind, content: ReactNode) => {
     setLines((prev) => [...prev, { id: lineIdRef.current++, kind, content }]);
   }, []);
@@ -297,6 +385,9 @@ export function InteractiveTerminal({
       const trimmed = raw.trim();
       if (!trimmed) return;
       onRunRef.current?.(trimmed);
+      // Replayed commands only redraw their output: no tabs, navigation or effects
+      const live = !replayingRef.current;
+      if (live) saveLog((log) => [...log, trimmed]);
 
       push(
         "prompt",
@@ -372,7 +463,7 @@ export function InteractiveTerminal({
               → navigating to {C.key("/projects/" + p.id)}…
             </span>,
           );
-          setTimeout(() => router.push(`/projects/${p.id}`), 300);
+          if (live) setTimeout(() => router.push(`/projects/${p.id}`), 300);
           break;
         }
 
@@ -414,6 +505,7 @@ export function InteractiveTerminal({
         case "clear":
         case "cls":
           setLines([]);
+          if (live) saveLog(() => []);
           break;
 
         case "sudo": {
@@ -445,7 +537,7 @@ export function InteractiveTerminal({
                 {C.key("Esc")} to exit.
               </span>,
             );
-            onTriggerMatrix();
+            if (live) onTriggerMatrix();
           } else {
             push("error", <span>matrix: effect unavailable</span>);
           }
@@ -559,7 +651,7 @@ export function InteractiveTerminal({
             "success",
             <span>→ opening {C.key("github.com/mohammedhuzaifa")}…</span>,
           );
-          if (typeof window !== "undefined") {
+          if (live) {
             window.open(
               "https://github.com/mohammedhuzaifa",
               "_blank",
@@ -574,7 +666,7 @@ export function InteractiveTerminal({
             "success",
             <span>→ opening {C.key("linkedin.com/in/huzaifa-anjum")}…</span>,
           );
-          if (typeof window !== "undefined") {
+          if (live) {
             window.open(
               "https://www.linkedin.com/in/huzaifa-anjum/",
               "_blank",
@@ -586,7 +678,7 @@ export function InteractiveTerminal({
         case "email":
         case "mail":
           push("success", <span>→ composing email…</span>);
-          if (typeof window !== "undefined") {
+          if (live) {
             window.location.href = "mailto:mhuzaifa.career@outlook.com";
           }
           break;
@@ -601,7 +693,7 @@ export function InteractiveTerminal({
             <span>→ launching {C.key("calendly popup")}…</span>,
           );
           // Open Calendly popup (loads widget on-demand, falls back to tab)
-          (async () => {
+          if (live) (async () => {
             try {
               const mod = await import("@/components/contact/book-call");
               // Trigger via a hidden click path: we re-use the hook logic
@@ -663,7 +755,7 @@ export function InteractiveTerminal({
             );
             break;
           }
-          onThemeChange?.(p as "coder" | "architect" | "ai" | "designer");
+          if (live) onThemeChange?.(p as "coder" | "architect" | "ai" | "designer");
           push(
             "success",
             <span>
@@ -891,7 +983,7 @@ export function InteractiveTerminal({
           );
       }
     },
-    [projects, push, router, onTriggerMatrix, onThemeChange, cmdHistory],
+    [projects, push, router, onTriggerMatrix, onThemeChange, cmdHistory, saveLog],
   );
 
   /* ── Autocomplete engine ──────────────────────────────── */
@@ -1057,6 +1149,7 @@ export function InteractiveTerminal({
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "l") {
       e.preventDefault();
       setLines([]);
+      saveLog(() => []);
       return;
     }
 
@@ -1105,6 +1198,28 @@ export function InteractiveTerminal({
     window.addEventListener("keydown", h);
     return () => window.removeEventListener("keydown", h);
   }, [visible]);
+
+  /* Restore this session's log once on mount */
+  const replayedRef = useRef(false);
+  useEffect(() => {
+    if (replayedRef.current) return;
+    let log: string[] = [];
+    try {
+      log = JSON.parse(sessionStorage.getItem(logKey) ?? "[]") as string[];
+    } catch {
+      return;
+    }
+    if (!log.length) return;
+    // Deferred a tick so the restore isn't a synchronous setState inside the effect
+    const t = setTimeout(() => {
+      if (replayedRef.current) return;
+      replayedRef.current = true;
+      replayingRef.current = true;
+      log.forEach((cmd) => handleCommand(cmd));
+      replayingRef.current = false;
+    }, 0);
+    return () => clearTimeout(t);
+  }, [logKey, handleCommand]);
 
   /* External run-command bridge (for CTA buttons etc.) */
   useEffect(() => {
@@ -1189,7 +1304,7 @@ export function InteractiveTerminal({
         onClick={() => inputRef.current?.focus()}
         className={`relative cursor-text overflow-y-auto scroll-smooth font-mono text-[12px] leading-relaxed text-white/75 sm:text-[13px] [scrollbar-width:thin] [scrollbar-color:rgba(255,255,255,0.15)_transparent] ${
           isHud
-            ? "h-[min(380px,56vh)] w-full min-w-0 px-0 py-3"
+            ? "h-[min(327px,56vh)] w-full min-w-0 px-0 py-3"
             : isBare
             ? `w-full min-w-0 max-h-[min(88vh,960px)] min-h-[min(520px,58vh)] bg-[#0a0a0c]/80 p-3 transition-shadow duration-300 sm:p-4 ${
                 isFocused ? "shadow-[inset_0_0_0_1px_rgba(34,211,238,0.35)]" : ""
@@ -1250,12 +1365,18 @@ export function InteractiveTerminal({
                 autoCorrect="off"
                 autoCapitalize="off"
                 placeholder={
-                  isHud ? "enter command · try help, whoami, ls" : "type 'help' — or try: whoami · ls · stack · matrix"
+                  isFocused
+                    ? isHud
+                      ? "enter command · try help, whoami, ls"
+                      : "type 'help' — or try: whoami · ls · stack · matrix"
+                    : ""
                 }
                 className="w-full bg-transparent font-mono text-[12px] text-white/95 caret-cyan-300 outline-none placeholder:text-white/25 sm:text-[13px]"
                 aria-label="Terminal input"
                 aria-autocomplete="inline"
               />
+              {/* Idle demo: types a few commands while nobody's at the controls */}
+              {!isFocused && !input && <TypewriterHint />}
               {/* Inline ghost suggestion — fills the rest of the first match */}
               {ghost && (
                 <span
@@ -1822,8 +1943,32 @@ function ProjectDetail({ project }: { project: TerminalProject }) {
         <span className="text-amber-200">{project.date}</span>
       </div>
       <div className="mt-1 text-white/70">
-        <span className="text-white/40">desc:</span> {project.description}
+        <span className="text-white/40">desc:</span> {project.description}{" "}
+        <Link
+          href={`/projects/${project.id}`}
+          onClick={(e) => e.stopPropagation()}
+          className="whitespace-nowrap text-cyan-300 underline decoration-cyan-300/40 underline-offset-2 hover:decoration-cyan-300"
+        >
+          view details →
+        </Link>
       </div>
+      {PROJECT_LINKS[project.id]?.length ? (
+        <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5">
+          <span className="text-white/40">links:</span>
+          {PROJECT_LINKS[project.id].map((l) => (
+            <a
+              key={l.url}
+              href={l.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="text-emerald-300 underline decoration-emerald-300/40 underline-offset-2 hover:decoration-emerald-300"
+            >
+              {l.label} ↗
+            </a>
+          ))}
+        </div>
+      ) : null}
       {project.technologies && (
         <div className="mt-1 flex flex-wrap items-center gap-1 text-white/60">
           <span className="text-white/40">tech:</span>
