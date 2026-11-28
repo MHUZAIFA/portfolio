@@ -306,6 +306,7 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
     pushBlast(crash.x, crash.y, 2.2);
     gameBus.lasers = [];
     gameBus.meteors = [];
+    gameBus.ship = null;
     setStatus("over");
     onStatusChange?.("over");
     const final = scoreRef.current;
@@ -442,6 +443,8 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
     if (gameStatusRef.current === "running") {
       gameBus.lasers = lasersRef.current;
       gameBus.meteors = meteorsRef.current;
+      const ship = spaceshipRef.current;
+      gameBus.ship = { position: ship.position, radius: Math.max(ship.width, ship.height) / 2 };
     }
     renderGame(ctx, rect.width, rect.height);
 
@@ -834,6 +837,7 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
       gameBus.status = "idle";
       gameBus.lasers = [];
       gameBus.meteors = [];
+    gameBus.ship = null;
     };
   }, []);
 

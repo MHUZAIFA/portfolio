@@ -232,6 +232,10 @@ export function HeroParticleField({ sectionRef, nameRef, gameActive, onReady }: 
     let prevLocalY = -1e5;
     let mvx = 0;
     let mvy = 0;
+    let prevShipX = -1e5;
+    let prevShipY = -1e5;
+    let svx = 0;
+    let svy = 0;
     let camX = 0;
     let camY = 0;
 
@@ -356,6 +360,26 @@ export function HeroParticleField({ sectionRef, nameRef, gameActive, onReady }: 
         const p = toLocal(m.position.x, m.position.y, rect);
         return { x: p.x, y: p.y, r: m.radius + 22 };
       });
+      // Ship: a wide soft bow wave, plus a drag along its heading so it leaves a wake.
+      let sx = -1e5;
+      let sy = -1e5;
+      let shipR = 0;
+      if (gameBus.ship) {
+        const l = toLocal(gameBus.ship.position.x, gameBus.ship.position.y, rect);
+        sx = l.x;
+        sy = l.y;
+        shipR = gameBus.ship.radius + 26;
+        if (prevShipX > -1e4) {
+          svx = svx * 0.6 + (sx - prevShipX) * 0.4;
+          svy = svy * 0.6 + (sy - prevShipY) * 0.4;
+        }
+        prevShipX = sx;
+        prevShipY = sy;
+      } else {
+        svx = svy = 0;
+        prevShipX = prevShipY = -1e5;
+      }
+      const shipR2 = shipR * shipR;
       const blasts = gameBus.blasts.splice(0).map((b) => {
         const p = toLocal(b.x, b.y, rect);
         return { x: p.x, y: p.y, r: 150 * b.power, s: 16 * b.power };
@@ -434,6 +458,18 @@ export function HeroParticleField({ sectionRef, nameRef, gameActive, onReady }: 
             const s = 1 - d / laserR;
             ax += (dx / d) * s * 11;
             ay += (dy / d) * s * 11;
+          }
+        }
+
+        if (shipR > 0) {
+          dx = x[i] - sx;
+          dy = y[i] - sy;
+          d2 = dx * dx + dy * dy;
+          if (d2 < shipR2) {
+            const d = Math.sqrt(d2) || 1;
+            const s = 1 - d / shipR;
+            ax += (dx / d) * s * s * 7 + svx * s * 0.15;
+            ay += (dy / d) * s * s * 7 + svy * s * 0.15;
           }
         }
 

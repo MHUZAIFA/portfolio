@@ -10,6 +10,8 @@ type GameBus = {
   status: "idle" | "running" | "over";
   lasers: ReadonlyArray<{ position: BusPoint }>;
   meteors: ReadonlyArray<{ position: BusPoint; radius: number }>;
+  /** The player's ship while a game is running (viewport space), so it can plough through the name. */
+  ship: { position: BusPoint; radius: number } | null;
   /** Viewport-space impulses (meteor kills, crashes, clicks). Drained by the field each frame. */
   blasts: BusBlast[];
   /** Set once the intro loading screen has finished. */
@@ -20,6 +22,7 @@ export const gameBus: GameBus = {
   status: "idle",
   lasers: [],
   meteors: [],
+  ship: null,
   blasts: [],
   appLoaded: false,
 };
