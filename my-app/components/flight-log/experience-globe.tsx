@@ -213,7 +213,19 @@ export function ExperienceRouteSection({ stops, clusters, children }: { stops: R
                     <span className={`block truncate text-sm font-medium [@media(max-height:780px)]:inline ${isLast ? "text-red-200" : active ? "text-white" : "text-white/80"}`}>
                       {s.city}
                     </span>
-                    <span className="block truncate text-xs text-white/45 [@media(max-height:780px)]:ml-2 [@media(max-height:780px)]:inline">{s.companies.join(" · ")}</span>
+                    <span
+                      className="block truncate text-xs text-white/45 [@media(max-height:780px)]:ml-2 [@media(max-height:780px)]:inline"
+                      title={s.companies.map((c, j) => `${s.roles[j].join(" → ")} · ${c}`).join("\n")}
+                    >
+                      {s.companies.map((c, j) => (
+                        <span key={c}>
+                          {j > 0 && " · "}
+                          <span className="text-white/65">{s.roles[j].join(" → ")}</span>
+                          {" @ "}
+                          {c}
+                        </span>
+                      ))}
+                    </span>
                   </span>
                   <span className={`font-mono text-xs tabular-nums ${isLast ? "text-red-300/80" : "text-white/40"}`}>{s.years}</span>
                 </li>

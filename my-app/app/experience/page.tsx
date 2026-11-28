@@ -803,10 +803,14 @@ function buildRoute(rows: Experience[]): RouteStop[] {
     const to = leg.enRoute ? "now" : `'${(leg.arriveLong.match(/\d{4}/)?.[0] ?? "").slice(2)}`;
     const last = stops[stops.length - 1];
     if (last && last.city === place.city) {
-      if (!last.companies.includes(name)) last.companies.push(name);
+      const j = last.companies.indexOf(name);
+      if (j < 0) {
+        last.companies.push(name);
+        last.roles.push([e.role]);
+      } else if (!last.roles[j].includes(e.role)) last.roles[j].push(e.role);
       last.to = to;
     } else {
-      stops.push({ code: place.city, ...place, companies: [name], years: "", from: Math.floor(startValue(e.duration) / 12) % 100, to });
+      stops.push({ code: place.city, ...place, companies: [name], roles: [[e.role]], years: "", from: Math.floor(startValue(e.duration) / 12) % 100, to });
     }
   }
   return stops.map(({ from, to, ...s }) => ({ ...s, years: `'${String(from).padStart(2, "0")}–${to}` }));

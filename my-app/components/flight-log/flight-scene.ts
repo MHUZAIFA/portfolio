@@ -242,10 +242,11 @@ function buildPlane() {
  * Airport tag drawn into the scene (not HTML) so the plane can fly over it: a canvas-texture sprite
  * that always faces the camera at a constant pixel size.
  */
-function makeLabel(title: string, years: string, detail: string, font: string) {
+function makeLabel(title: string, years: string, details: string[], font: string) {
   const S = 2; // supersampling for crisp text on retina
   const padX = 8;
   const padY = 6;
+  const LINE = 13; // detail line height
   const mono = 'ui-monospace, SFMono-Regular, Menlo, monospace';
   const titleFont = `600 ${12 * S}px ${font}`;
   const yearsFont = `${10 * S}px ${mono}`;
@@ -257,9 +258,9 @@ function makeLabel(title: string, years: string, detail: string, font: string) {
   ctx.font = yearsFont;
   const yw = ctx.measureText(years).width;
   ctx.font = detailFont;
-  const dw = ctx.measureText(detail).width;
+  const dw = Math.max(0, ...details.map((d) => ctx.measureText(d).width));
   canvas.width = Math.ceil(Math.max(tw + 6 * S + yw, dw) + padX * 2 * S);
-  canvas.height = Math.ceil((padY * 2 + 27) * S);
+  canvas.height = Math.ceil((padY * 2 + 14 + LINE * details.length) * S);
 
   ctx.fillStyle = "rgba(0,0,0,0.72)";
   ctx.strokeStyle = "rgba(255,255,255,0.16)";
@@ -277,7 +278,7 @@ function makeLabel(title: string, years: string, detail: string, font: string) {
   ctx.fillText(years, padX * S + tw + 6 * S, (padY + 11) * S);
   ctx.font = detailFont;
   ctx.fillStyle = "rgba(255,255,255,0.62)";
-  ctx.fillText(detail, padX * S, (padY + 24) * S);
+  details.forEach((d, i) => ctx.fillText(d, padX * S, (padY + 24 + LINE * i) * S));
 
   const map = new THREE.CanvasTexture(canvas);
   map.colorSpace = THREE.SRGBColorSpace;
@@ -545,7 +546,7 @@ export function createFlightScene(container: HTMLElement, opts: FlightSceneOptio
   const font = opts.labelFont ?? getComputedStyle(container).fontFamily;
   const labelSprites = [
     ...stops.map((s, i) => ({
-      ...makeLabel(s.city, s.years, s.companies.join(" · "), font),
+      ...makeLabel(s.city, s.years, s.companies.map((c, j) => `${c} · ${s.roles[j]?.join(" → ") ?? ""}`), font),
       anchor: stopVecs[i].clone().normalize(),
       show: (mode: "local" | "global") => mode === "local" || clusters[stopCluster[i]].stops.length === 1,
       flip: false,
@@ -556,7 +557,7 @@ export function createFlightScene(container: HTMLElement, opts: FlightSceneOptio
         const members = c.stops.map((i) => stops[i]);
         const years = `${members[0].years.split("–")[0]}–${members[members.length - 1].years.split("–")[1]}`;
         return {
-          ...makeLabel(c.name, years, members.map((m) => m.city).join(" · "), font),
+          ...makeLabel(c.name, years, [members.map((m) => m.city).join(" · ")], font),
           anchor: latLonToVec3(c.lat, c.lon).normalize(),
           show: (mode: "local" | "global") => mode === "global",
           flip: false,

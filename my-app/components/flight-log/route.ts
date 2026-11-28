@@ -8,6 +8,8 @@ export type RouteStop = {
   lon: number;
   /** Organisations at this stop, oldest first. */
   companies: string[];
+  /** Positions held at each company (parallel to `companies`), oldest first. */
+  roles: string[][];
   /** e.g. "'19–'21" */
   years: string;
 };
