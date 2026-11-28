@@ -22,6 +22,8 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { hapticManager } from "@/lib/haptic-manager";
 import { staggerContainer, staggerItem } from "@/components/providers/motion-provider";
+import { ExperienceRouteSection } from "@/components/flight-log/experience-globe";
+import { clusterStops, type RouteStop } from "@/components/flight-log/route";
 import { SiReact, SiAngular, SiDotnet, SiJavascript, SiTypescript, SiMongodb, SiNodedotjs, SiDocker, SiKubernetes, SiExpress, SiApachecassandra } from "react-icons/si";
 import { FaJava, FaAws } from "react-icons/fa";
 import type { IconType } from "react-icons";
@@ -74,7 +76,7 @@ const experiences: Experience[] = [
     id: "0f",
     company: "Flexspring",
     role: "Full Stack Developer",
-    duration: "May 2026 - 16 Aug 2026 (4 mos)",
+    duration: "May 2026 - 17 Aug 2026 (4 mos)",
     location: "Montreal, Quebec, Canada",
     type: "full-time",
     description: "Full Stack Developer at Flexspring, Montreal, after converting from the internship to a full-time role.",
@@ -764,6 +766,54 @@ function toTrip(members: Experience[]): Trip {
 }
 
 const ALL_TRIPS = groupTrips(sortedExperiences).map(toTrip);
+
+/* ─────────────────────────────────────────────────────────
+   Route map: the globe flies between the places I've worked
+   ───────────────────────────────────────────────────────── */
+
+/** Where each role was based (first part of `location`). Entries without a specific city aren't mapped. */
+const PLACES: Record<string, { city: string; lat: number; lon: number }> = {
+  mumbai: { city: "Mumbai", lat: 19.076, lon: 72.8777 },
+  thane: { city: "Thane", lat: 19.2183, lon: 72.9781 },
+  airoli: { city: "Airoli", lat: 19.159, lon: 72.9986 },
+  montreal: { city: "Montréal", lat: 45.5019, lon: -73.5674 },
+};
+
+/** Where a role's city isn't precise enough (both Montréal roles just say "Montreal"). */
+const PLACE_BY_COMPANY: Record<string, { city: string; lat: number; lon: number }> = {
+  Flexspring: { city: "Downtown Montréal", lat: 45.5017, lon: -73.5673 },
+  "Air Canada": { city: "YUL Airport", lat: 45.4706, lon: -73.7408 }, // HQ at Montréal–Trudeau
+};
+
+const SHORT_NAMES: Record<string, string> = {
+  "Reliance Industries Limited": "Reliance",
+  "Willis Towers Watson": "WTW",
+  "Homesfy Realty Pvt Ltd": "Homesfy",
+};
+
+/** Work roles oldest → newest, one stop per consecutive city. */
+function buildRoute(rows: Experience[]): RouteStop[] {
+  const work = rows.filter(isWork).sort((a, b) => startValue(a.duration) - startValue(b.duration));
+  const stops: (RouteStop & { from: number; to: string })[] = [];
+  for (const e of work) {
+    const place = PLACE_BY_COMPANY[e.company] ?? PLACES[e.location.split(",")[0].trim().toLowerCase()];
+    if (!place) continue; // e.g. "India" — no specific city to fly to
+    const name = SHORT_NAMES[e.company] ?? e.company;
+    const leg = toLeg(e.duration);
+    const to = leg.enRoute ? "now" : `'${(leg.arriveLong.match(/\d{4}/)?.[0] ?? "").slice(2)}`;
+    const last = stops[stops.length - 1];
+    if (last && last.city === place.city) {
+      if (!last.companies.includes(name)) last.companies.push(name);
+      last.to = to;
+    } else {
+      stops.push({ code: place.city, ...place, companies: [name], years: "", from: Math.floor(startValue(e.duration) / 12) % 100, to });
+    }
+  }
+  return stops.map(({ from, to, ...s }) => ({ ...s, years: `'${String(from).padStart(2, "0")}–${to}` }));
+}
+
+const ROUTE_STOPS = buildRoute(experiences);
+const ROUTE_CLUSTERS = clusterStops(ROUTE_STOPS, { Mumbai: "Mumbai region", "Downtown Montréal": "Montréal" });
 /** Any role id → the id of the trip (ticket) it belongs to. */
 const TRIP_OF = new Map(ALL_TRIPS.flatMap((t) => t.members.map((m) => [m.id, t.lead.id] as const)));
 
@@ -1138,8 +1188,6 @@ export default function ExperiencePage() {
 
   const activeFilter = FILTERS.find((f) => f.id === filter)!;
   const trips = groupTrips(sortedExperiences.filter(activeFilter.match)).map(toTrip);
-  const current = sortedExperiences.find((e) => e.type === "full-time" && e.duration.includes("Present"));
-  const airports = Array.from(new Set(sortedExperiences.map((e) => airportCode(e.location))));
 
   // Plane position along the route follows the viewport centre
   useEffect(() => {
@@ -1225,44 +1273,30 @@ export default function ExperiencePage() {
         initial="initial"
         animate="animate"
         variants={staggerContainer}
-        className="relative mx-auto max-w-7xl px-4 pb-24 pt-16 md:mt-12 md:px-8 md:pt-24"
+        className="relative mx-auto max-w-7xl px-4 pb-24 pt-16 md:mt-12 md:px-8 md:pt-12 lg:mt-0 lg:pt-20"
       >
-        {/* Header */}
-        <motion.p variants={staggerItem} className="mb-3 flex items-center gap-2 font-mono text-xs tracking-[0.3em] text-red-400">
-          <AirlinerIcon className="h-3.5 w-3.5 rotate-90" /> FLIGHT LOG
-        </motion.p>
-        <motion.h1 variants={staggerItem} className="mb-6 text-3xl font-bold text-white md:text-4xl lg:text-5xl">
-          Experience
-        </motion.h1>
+        {/* Route map (three.js) + header and intro: fills the first screen so the whole globe shows on landing */}
+        <ExperienceRouteSection stops={ROUTE_STOPS} clusters={ROUTE_CLUSTERS}>
+          <motion.p variants={staggerItem} className="mb-3 flex items-center gap-2 font-mono text-xs tracking-[0.3em] text-red-400">
+            <AirlinerIcon className="h-3.5 w-3.5 rotate-90" /> FLIGHT LOG
+          </motion.p>
+          <motion.h1 variants={staggerItem} className="mb-5 text-3xl font-bold text-white md:text-4xl lg:text-5xl">
+            Experience
+          </motion.h1>
+          <motion.section variants={staggerItem} className="space-y-3 text-justify text-[12px] leading-relaxed text-white/75 hyphens-auto md:text-[14px]">
+            <p>
+              I&apos;m a Full Stack Developer at <span className="text-white">Air Canada</span> in Montréal. Before that I
+              spent two years at Flexspring, starting as an intern and moving into a full-time role, after building
+              enterprise healthcare software at CitiusTech and full-stack applications at Willis Towers Watson in Mumbai.
+            </p>
+            <p>
+              Outside of work I&apos;m an Advisor at <span className="text-white">HackConcordia</span>, where I previously
+              led technology as VP and Director, and I studied my Master of Applied Computer Science at Concordia
+              University.
+            </p>
+          </motion.section>
 
-        <motion.section variants={staggerItem} className="mb-8 space-y-3 text-sm text-white/75 md:text-base">
-          <p>
-            I&apos;m a Full Stack Developer at <span className="text-white">Air Canada</span> in Montréal. Before that I
-            spent two years at Flexspring, starting as an intern and moving into a full-time role, after building
-            enterprise healthcare software at CitiusTech and full-stack applications at Willis Towers Watson in Mumbai.
-          </p>
-          <p>
-            Outside of work I&apos;m an Advisor at <span className="text-white">HackConcordia</span>, where I previously
-            led technology as VP and Director, and I studied my Master of Applied Computer Science at Concordia
-            University.
-          </p>
-        </motion.section>
-
-        {/* Quick stats */}
-        <motion.dl variants={staggerItem} className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-3">
-          <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
-            <dt className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">Currently flying</dt>
-            <dd className="mt-1 truncate text-sm font-semibold text-white">{current ? current.company : "—"}</dd>
-          </div>
-          <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
-            <dt className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">Flights logged</dt>
-            <dd className="mt-1 font-mono text-sm font-semibold text-white">{sortedExperiences.length}</dd>
-          </div>
-          <div className="col-span-2 rounded-xl border border-white/10 bg-white/[0.03] p-4 sm:col-span-1">
-            <dt className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">Airports</dt>
-            <dd className="mt-1 font-mono text-sm font-semibold text-white">{airports.join(" · ")}</dd>
-          </div>
-        </motion.dl>
+        </ExperienceRouteSection>
 
         {/* Departures board */}
         <motion.div variants={staggerItem} className="mb-10">

@@ -6,6 +6,7 @@ import { Navigation } from "@/components/navigation";
 import { ViewTransitionResolver } from "@/components/view-transition-resolver";
 import { MotionProvider } from "@/components/providers/motion-provider";
 import { AudioController } from "@/lib/audio-controller";
+import { markAppLoaded } from "@/lib/game-bus";
 
 // Lazy load MouseEffects to reduce initial bundle size
 const MouseEffects = lazy(() => import("@/components/mouse-effects").then(mod => ({ default: mod.MouseEffects })));
@@ -37,6 +38,7 @@ export function AppWrapper({ children }: { children: React.ReactNode }) {
 
     // Delay loading mouse effects until after initial load
     if (!isLoading) {
+      markAppLoaded();
       const timer = setTimeout(() => setShowMouseEffects(true), 500);
       return () => {
         events.forEach((event) => {

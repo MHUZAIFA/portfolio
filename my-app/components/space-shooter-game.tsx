@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import { motion } from "framer-motion";
+import { gameBus, INTRO_TIMELINE, onIntroStart, pushBlast } from "@/lib/game-bus";
 
 type Vec2 = {
   x: number;
@@ -101,6 +102,22 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
   const idleAnimationRef = useRef<number | null>(null);
   const spawnAnimationStartRef = useRef<number | null>(null);
   const quitGameRef = useRef<(() => void) | null>(null);
+  /** When the idle ship's fly-in begins (performance.now ms); null = not yet. */
+  const shipIntroAtRef = useRef<number | null>(null);
+  const [panelVisible, setPanelVisible] = useState(false);
+
+  // Part of the hero intro: ship flies in, then the Ready/Play panel appears.
+  useEffect(() => {
+    let panelTimer: ReturnType<typeof setTimeout> | null = null;
+    const stop = onIntroStart(() => {
+      shipIntroAtRef.current = performance.now() + INTRO_TIMELINE.ship * 1000;
+      panelTimer = setTimeout(() => setPanelVisible(true), INTRO_TIMELINE.gamePanel * 1000);
+    });
+    return () => {
+      stop();
+      if (panelTimer) clearTimeout(panelTimer);
+    };
+  }, []);
 
   // Get initial ship position (above bottom-left menu)
   const getInitialShipPosition = (width: number, height: number): Vec2 => {
@@ -254,6 +271,8 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
 
   const startGame = () => {
     resetGameState();
+    shipIntroAtRef.current = 0; // skip any pending fly-in
+    setPanelVisible(true);
 
     // Set ship to bottom center and start game immediately
     const canvas = canvasRef.current;
@@ -270,6 +289,7 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
     spawnAnimationStartRef.current = performance.now();
 
     gameStatusRef.current = "running";
+    gameBus.status = "running";
     setStatus("running");
     onStatusChange?.("running");
     if (animationRef.current !== null) {
@@ -280,6 +300,12 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
 
   const endGame = () => {
     gameStatusRef.current = "over";
+    gameBus.status = "over";
+    // Ship goes down: blow the hero particles apart from the crash site.
+    const crash = spaceshipRef.current.position;
+    pushBlast(crash.x, crash.y, 2.2);
+    gameBus.lasers = [];
+    gameBus.meteors = [];
     setStatus("over");
     onStatusChange?.("over");
     const final = scoreRef.current;
@@ -413,6 +439,10 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
     elapsedRef.current += timestamp === 0 ? 0 : timestamp ? timestamp - (timestamp - delta * 1000) : 0;
 
     updateGame(delta, rect.width, rect.height);
+    if (gameStatusRef.current === "running") {
+      gameBus.lasers = lasersRef.current;
+      gameBus.meteors = meteorsRef.current;
+    }
     renderGame(ctx, rect.width, rect.height);
 
     animationRef.current = requestAnimationFrame(loop);
@@ -525,6 +555,11 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
         const distSq = dx2 * dx2 + dy2 * dy2;
         if (distSq <= meteor.radius * meteor.radius) {
           hit = true;
+          pushBlast(
+            meteor.position.x,
+            meteor.position.y,
+            meteor.size === "small" ? 0.6 : meteor.size === "medium" ? 0.9 : 1.3,
+          );
           destroyedThisFrame += meteor.size === "small" ? 1 : meteor.size === "medium" ? 2 : 3;
           return false;
         }
@@ -570,9 +605,16 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
     
     // Subtle up and down floating animation
     const floatOffset = Math.sin(performance.now() * 0.001) * 8; // Slow, subtle movement
-    
+
+    // Intro fly-in: rise from below the viewport, decelerating into the hover spot.
+    const introAt = shipIntroAtRef.current;
+    const introP = introAt === null ? 0 : Math.min(1, Math.max(0, (performance.now() - introAt) / 1100));
+    const introE = 1 - Math.pow(1 - introP, 4);
+    const introOffset = (1 - introE) * 260;
+
     ctx.save();
-    ctx.translate(ship.position.x, ship.position.y + floatOffset);
+    ctx.globalAlpha = Math.min(1, introE * 1.6);
+    ctx.translate(ship.position.x, ship.position.y + floatOffset + introOffset);
     ctx.rotate(ship.rotation);
     
     // Boosters/thrust effect (always on in idle state)
@@ -789,6 +831,9 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
       if (animationRef.current !== null) {
         cancelAnimationFrame(animationRef.current);
       }
+      gameBus.status = "idle";
+      gameBus.lasers = [];
+      gameBus.meteors = [];
     };
   }, []);
 
@@ -868,8 +913,13 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
         )}
 
         {status !== "running" && (
-          <div className="pointer-events-auto absolute inset-0">
-            <div className="absolute bottom-4 left-4 flex flex-col gap-3 px-4 text-left text-white">
+          <div className="pointer-events-none absolute inset-0">
+            <motion.div
+              initial={{ opacity: 0, y: 14 }}
+              animate={panelVisible ? { opacity: 1, y: 0 } : undefined}
+              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+              className="pointer-events-auto absolute bottom-4 left-4 flex flex-col gap-3 px-4 text-left text-white"
+            >
               <p className="text-xs font-semibold uppercase tracking-[0.25em] text-white/50">
                 {status === "idle" ? "Ready" : "Game Over"}
               </p>
@@ -888,7 +938,7 @@ export function SpaceShooterGame({ onStatusChange }: SpaceShooterGameProps) {
               <p className="text-[10px] text-white/50 sm:text-xs max-w-xs">
                 <span className="font-semibold">Q/E</span> or <span className="font-semibold">←/→</span> to rotate, <span className="font-semibold">W/A/S/D</span> or <span className="font-semibold">Arrow keys</span> to move, <span className="font-semibold">Space</span> to shoot
               </p>
-            </div>
+            </motion.div>
           </div>
         )}
       </div>
