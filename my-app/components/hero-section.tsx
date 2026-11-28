@@ -17,7 +17,7 @@ const roles = [
 
 const EASE_OUT = [0.16, 1, 0.3, 1] as const;
 /** How long each role stays on screen. */
-const ROLE_MS = 3500;
+const ROLE_MS = 2800;
 
 const DESCRIPTION =
   "I love building software end to end, from the first architecture sketch to the last pixel. Especially the kind that pushes limits and leaves the world a little better.";
@@ -187,14 +187,6 @@ export function HeroSection({ gameActive = false }: HeroSectionProps = {}) {
                 </span>
               ))}
             </h1>
-            {/* 1.8s — landing flash, in sync with the particle shockwave */}
-            <motion.div
-              aria-hidden="true"
-              className="pointer-events-none absolute bottom-3 left-1/2 h-px w-[min(90vw,1100px)] -translate-x-1/2 bg-gradient-to-r from-transparent via-indigo-200 to-transparent"
-              initial={{ opacity: 0, scaleX: 0 }}
-              animate={introStarted ? { opacity: [0, 1, 0], scaleX: [0, 1, 1] } : undefined}
-              transition={{ duration: 1.2, delay: T.nameLands, times: [0, 0.3, 1], ease: "easeOut" }}
-            />
           </div>
 
           {/* 2.0s / 2.3s — "I'm a" rises from a mask, then the role rolls in */}
@@ -296,28 +288,6 @@ function AnimatedRoles({
         active={roleActive}
         className="text-[clamp(1.75rem,7vw,5.5rem)] font-light leading-[1.15] text-white"
       />
-      {/* Which role is showing; the active tick fills over the time it's on screen. */}
-      <motion.div
-        aria-hidden="true"
-        className="mt-2 flex gap-1.5"
-        initial={{ opacity: 0 }}
-        animate={roleActive ? { opacity: 1 } : undefined}
-        transition={{ duration: 0.6, delay: 0.4 }}
-      >
-        {roles.map((r, i) => (
-          <span key={r} className="relative h-0.5 w-6 overflow-hidden rounded-full bg-white/15 md:w-8">
-            {i === currentIndex && roleActive && (
-              <motion.span
-                key={currentIndex}
-                className="absolute inset-0 origin-left rounded-full bg-indigo-200/80"
-                initial={{ scaleX: 0 }}
-                animate={{ scaleX: 1 }}
-                transition={{ duration: ROLE_MS / 1000, ease: "linear" }}
-              />
-            )}
-          </span>
-        ))}
-      </motion.div>
     </div>
   );
 }
